@@ -1,0 +1,101 @@
+{
+  "common": {
+    "back": "Geri",
+    "profile": "Profil",
+    "settings": "Ayarlar",
+    "today": "Bugün",
+    "viewAll": "Tümünü Gör"
+  },
+  "home": {
+    "kcalConsumed": "kcal tüketildi",
+    "remaining": "Kalan",
+    "macronutrients": "Makro Besinler",
+    "protein": "Protein",
+    "carbs": "Karbonhidrat",
+    "fat": "Yağ",
+    "todaysMeals": "Bugünün Öğünleri",
+    "noMealsYet": "Henüz öğün yok",
+    "scanOrAddFirst": "Takibe başlamak için ilk öğününü tara veya ekle",
+    "quickActions": "Hızlı İşlemler",
+    "scanOrInput": "Tara veya Gir",
+    "addMealByScanning": "Öğünü tarayarak veya yazarak ekle",
+    "eatingHistory": "Yemek Geçmişi",
+    "viewAllLoggedMeals": "Tüm kayıtlı öğünlerini görüntüle"
+  },
+  "scan": {
+    "title": "Tara veya Gir",
+    "scan": "Tara",
+    "input": "Gir",
+    "pointCameraToScan": "Tarama için kamerayı yemeğe doğrult",
+    "scanMeal": "Öğünü Tara",
+    "cameraComingSoon": "Kamera entegrasyonu yakında",
+    "mealType": "Öğün tipi",
+    "breakfast": "Kahvaltı",
+    "lunch": "Öğle Yemeği",
+    "dinner": "Akşam Yemeği",
+    "snack": "Atıştırmalık",
+    "whatDidYouEat": "Ne yedin?",
+    "foodPlaceholder": "örn. Izgara tavuk salatası",
+    "portion": "Porsiyon",
+    "portionOptional": "(isteğe bağlı)",
+    "portionPlaceholder": "örn. 1 kase, 200g",
+    "quickAdd": "Hızlı ekle",
+    "addMeal": "Öğün Ekle",
+    "quickSuggestions": {
+      "grilledChicken": "Izgara tavuk salatası",
+      "oatmeal": "Yulaf lapası ve meyveler",
+      "turkeySandwich": "Hindi sandviç",
+      "greekYogurt": "Yunan yoğurdu",
+      "riceVegetables": "Pilav ve sebzeler",
+      "eggsToast": "Yumurta ve tost"
+    }
+  },
+  "history": {
+    "yesterday": "Dün",
+    "title": "Yemek Geçmişi",
+    "description": "Tüm kayıtlı öğünlerin ve beslenme verilerin.",
+    "noMealsLogged": "Henüz öğün kaydedilmedi",
+    "scanOrAddFirst": "Başlamak için ilk öğününü tara veya manuel ekle.",
+    "scanned": "Tarandı",
+    "manual": "Manuel"
+  },
+  "profile": {
+    "title": "Profil",
+    "subtitle": "Hesabını ve tercihlerini yönet",
+    "personalInfo": "Kişisel Bilgiler",
+    "dietaryPreferences": "Diyet Tercihleri",
+    "healthGoals": "Sağlık Hedefleri"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "general": "Genel",
+    "support": "Destek",
+    "account": "Hesap",
+    "notifications": "Bildirimler",
+    "language": "Dil",
+    "darkMode": "Karanlık Mod",
+    "lightMode": "Aydınlık Mod",
+    "privacyPolicy": "Gizlilik Politikası",
+    "contactUs": "Bize Ulaşın",
+    "logOut": "Çıkış Yap",
+    "on": "Açık",
+    "off": "Kapalı",
+    "english": "English",
+    "turkish": "Türkçe"
+  },
+  "mealDescription": {
+    "title": "Öğün Detayları",
+    "unknownMeal": "Bilinmeyen öğün",
+    "nutritionalInfo": "Beslenme Bilgisi",
+    "nutritionalInfoDesc": "AI destekli öğün analizi ve beslenme özeti burada görünecek. Kalori, makro ve diyet bilgileri için AI servisinize bağlanın.",
+    "caloriesMacros": "Kalori ve Makrolar",
+    "calories": "Kalori",
+    "proteinG": "Protein (g)",
+    "carbsG": "Karbonhidrat (g)",
+    "fatG": "Yağ (g)",
+    "dietaryTags": "Diyet Etiketleri",
+    "dietaryTagsDesc": "Etiketler AI tarafından öğün içeriğine göre oluşturulacak.",
+    "scanned": "Tarandı",
+    "manualEntry": "Manuel giriş"
+  }
+}
