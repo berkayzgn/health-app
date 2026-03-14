@@ -6,6 +6,23 @@
     "today": "Bugün",
     "viewAll": "Tümünü Gör"
   },
+  "auth": {
+    "login": "Giriş Yap",
+    "register": "Kayıt Ol",
+    "loginSubtitle": "Hesabına giriş yap",
+    "registerSubtitle": "Yeni bir hesap oluştur",
+    "name": "İsim",
+    "namePlaceholder": "Adınız",
+    "email": "E-posta",
+    "emailPlaceholder": "ornek@email.com",
+    "password": "Şifre",
+    "passwordPlaceholder": "Şifreniz",
+    "passwordHint": "En az 6 karakter",
+    "loginButton": "Giriş Yap",
+    "registerButton": "Kayıt Ol",
+    "error": "Hata",
+    "genericError": "Bir hata oluştu, tekrar deneyin"
+  },
   "home": {
     "kcalConsumed": "kcal tüketildi",
     "remaining": "Kalan",

@@ -6,6 +6,23 @@
     "today": "Today",
     "viewAll": "View All"
   },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "loginSubtitle": "Sign in to your account",
+    "registerSubtitle": "Create a new account",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailPlaceholder": "example@email.com",
+    "password": "Password",
+    "passwordPlaceholder": "Your password",
+    "passwordHint": "At least 6 characters",
+    "loginButton": "Login",
+    "registerButton": "Register",
+    "error": "Error",
+    "genericError": "Something went wrong, please try again"
+  },
   "home": {
     "kcalConsumed": "kcal consumed",
     "remaining": "Remaining",

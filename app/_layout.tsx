@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import "../global.css";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -19,6 +19,11 @@ const queryClient = new QueryClient({
 function RootLayoutContent() {
   const theme = useStore((s) => s.theme);
   const loadStoredTheme = useStore((s) => s.loadStoredTheme);
+  const loadStoredAuth = useStore((s) => s.loadStoredAuth);
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const authLoading = useStore((s) => s.authLoading);
+  const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     loadStoredLanguage();
@@ -26,7 +31,20 @@ function RootLayoutContent() {
 
   useEffect(() => {
     loadStoredTheme();
+    loadStoredAuth();
   }, []);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    const inAuthScreen = segments[0] === "auth";
+
+    if (!isAuthenticated && !inAuthScreen) {
+      router.replace("/auth");
+    } else if (isAuthenticated && inAuthScreen) {
+      router.replace("/");
+    }
+  }, [isAuthenticated, authLoading, segments]);
 
   return (
     <>
@@ -38,6 +56,7 @@ function RootLayoutContent() {
           gestureEnabled: true,
         }}
       >
+        <Stack.Screen name="auth" options={{ animation: "fade" }} />
         <Stack.Screen name="index" />
         <Stack.Screen name="scan" />
         <Stack.Screen name="history" />

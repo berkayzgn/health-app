@@ -12,7 +12,7 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const { theme, setTheme, notificationsEnabled, setNotificationsEnabled } = useStore();
+  const { theme, setTheme, notificationsEnabled, setNotificationsEnabled, clearAuth } = useStore();
   const c = getThemeColors(theme);
 
   const currentLanguageLabel =
@@ -25,7 +25,8 @@ export default function SettingsScreen() {
   };
 
   const handleLogOut = () => {
-    router.replace("/");
+    clearAuth();
+    router.replace("/auth");
   };
 
   const settingsSections = [
@@ -62,13 +63,13 @@ export default function SettingsScreen() {
           icon: "document-text-outline",
           labelKey: "settings.privacyPolicy",
           type: "link" as const,
-          onPress: () => {},
+          onPress: () => { },
         },
         {
           icon: "mail-outline",
           labelKey: "settings.contactUs",
           type: "link" as const,
-          onPress: () => {},
+          onPress: () => { },
         },
       ],
     },
@@ -181,7 +182,7 @@ export default function SettingsScreen() {
         >
           <Pressable
             style={{ backgroundColor: c.surface, borderRadius: 12, padding: 16, width: "100%", maxWidth: 384 }}
-            onPress={() => {}}
+            onPress={() => { }}
           >
             <Text style={{ color: c.text, fontSize: 18, fontWeight: "bold", marginBottom: 16 }}>
               {t("settings.language")}
