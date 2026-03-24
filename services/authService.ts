@@ -9,7 +9,7 @@ interface AuthResponse {
     };
 }
 
-interface ProfileResponse {
+export interface ProfileResponse {
     id: string;
     email: string;
     name: string;
@@ -51,4 +51,17 @@ export async function logout(): Promise<void> {
 
 export async function getMe(): Promise<ProfileResponse | null> {
     return api.get<ProfileResponse | null>('/users/me');
+}
+
+export type UpdateProfileBody = {
+    name?: string;
+    heightCm?: string;
+    weightKg?: string;
+    conditionTypes?: string[];
+    dietaryPreferences?: string[];
+    dailyCalorieGoal?: number;
+};
+
+export async function updateProfile(body: UpdateProfileBody): Promise<ProfileResponse | null> {
+    return api.patch<ProfileResponse | null>('/users/me', body);
 }

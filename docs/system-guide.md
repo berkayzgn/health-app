@@ -29,10 +29,10 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 - **react-i18next + i18next**: Coklu dil destegi (TR/EN)
 - **AsyncStorage**: Token, dil ve tema gibi yerel kalici veriler
 
-### Frontend Dizinleri
+### Frontend Dizinleri (repo kökü)
 
 - `app/`: Ekranlar ve route dosyalari
-- `services/`: API ve servis katmani (`api.ts`, `authService.ts`, `mealService.ts`)
+- `services/`: API ve servis katmani (`api.ts`, `authService.ts`)
 - `store/`: Zustand store'lari
 - `locales/`: i18n json dosyalari
 
@@ -65,7 +65,7 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 
 ### Lokal Gelistirme
 
-- Frontend: `npm start` veya `npx expo start`
+- Frontend: repo kökünde `npm start`
 - Backend: `cd backend && npm run start:dev`
 
 ### Dockerize Gelistirme

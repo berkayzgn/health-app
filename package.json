@@ -12,14 +12,19 @@
     "docker:logs": "docker compose logs -f backend postgres pgadmin"
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/manrope": "^0.4.2",
     "@expo/vector-icons": "^15.1.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@tanstack/react-query": "^5.90.21",
     "expo": "~55.0.5",
     "expo-constants": "^55.0.7",
+    "expo-font": "~55.0.4",
+    "expo-linear-gradient": "~55.0.9",
     "expo-linking": "^55.0.7",
     "expo-localization": "^55.0.8",
     "expo-router": "^55.0.4",
+    "expo-splash-screen": "~55.0.12",
     "expo-status-bar": "~55.0.4",
     "i18next": "^25.8.14",
     "nativewind": "^4.2.2",
@@ -38,6 +43,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "babel-plugin-module-resolver": "^5.0.3",
     "babel-preset-expo": "^55.0.10",
     "typescript": "~5.9.2"
   },

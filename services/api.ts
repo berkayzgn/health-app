@@ -2,21 +2,64 @@ import { NativeModules, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
-// Priority: explicit env var -> simulator defaults -> Metro host -> fallback
-const envBaseUrl = process.env.EXPO_PUBLIC_API_URL;
-const expoHost = Constants.expoConfig?.hostUri?.split(':')[0];
-const scriptURL: string | undefined = NativeModules.SourceCode?.scriptURL;
-const scriptHost = scriptURL?.match(/https?:\/\/([^/:]+)/)?.[1];
+function trimTrailingSlash(url: string) {
+    return url.replace(/\/+$/, '');
+}
+
+/** Metro / Expo’nun bildirdiği geliştirme makinesi IP’si (fiziksel cihaz için). */
+function resolveLanHost(): string | null {
+    const fromHostUri = Constants.expoConfig?.hostUri?.split(':')[0];
+    if (fromHostUri) return fromHostUri;
+
+    const manifest = Constants.manifest as { debuggerHost?: string } | null;
+    const dbg =
+        Constants.expoGoConfig?.debuggerHost ?? manifest?.debuggerHost;
+    if (dbg) return dbg.split(':')[0];
+
+    const scriptURL: string | undefined = NativeModules.SourceCode?.scriptURL;
+    const scriptHost = scriptURL?.match(/https?:\/\/([^/:]+)/)?.[1];
+    if (
+        scriptHost &&
+        scriptHost !== 'localhost' &&
+        scriptHost !== '127.0.0.1'
+    ) {
+        return scriptHost;
+    }
+    return null;
+}
+
+// Öncelik: .env EXPO_PUBLIC_API_URL -> fiziksel cihazda LAN IP -> simülatör / emulator localhost
+const envBaseUrl = process.env.EXPO_PUBLIC_API_URL
+    ? trimTrailingSlash(process.env.EXPO_PUBLIC_API_URL)
+    : undefined;
+const lanHost = resolveLanHost();
 const isSimulator = !Constants.isDevice;
 
 const fallbackHost = Platform.select({
-    ios: isSimulator ? 'localhost' : scriptHost ?? expoHost ?? 'localhost',
-    android: isSimulator ? '10.0.2.2' : scriptHost ?? expoHost ?? '10.0.2.2',
-    default: scriptHost ?? expoHost ?? 'localhost',
+    ios: isSimulator ? 'localhost' : lanHost ?? 'localhost',
+    android: isSimulator
+        ? '10.0.2.2'
+        : lanHost ?? '10.0.2.2',
+    default: lanHost ?? 'localhost',
 });
 
 const API_BASE_URL = envBaseUrl ?? `http://${fallbackHost}:3000`;
+
+if (__DEV__) {
+    console.log('[api] API_BASE_URL =', API_BASE_URL, {
+        isDevice: Constants.isDevice,
+        env: !!envBaseUrl,
+    });
+}
+
+if (__DEV__ && Constants.isDevice && !envBaseUrl && !lanHost) {
+    console.warn(
+        '[api] EXPO_PUBLIC_API_URL tanımlı değil ve Metro ana makine IP’si okunamadı; ' +
+            'fiziksel cihazda istekler başarısız olabilir. Proje kökünde .env: EXPO_PUBLIC_API_URL=http://BILGISAYAR_IP:3000',
+    );
+}
 const TOKEN_KEY = '@health_app_token';
+const REQUEST_TIMEOUT_MS = 12_000;
 
 async function getToken(): Promise<string | null> {
     return AsyncStorage.getItem(TOKEN_KEY);
@@ -45,14 +88,29 @@ async function request<T>(
         (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
     let response: Response;
     try {
         response = await fetch(`${API_BASE_URL}${endpoint}`, {
             ...options,
             headers,
+            signal: controller.signal,
         });
     } catch (err) {
-        throw new Error(`Sunucuya ulaşılamadı (${API_BASE_URL})`);
+        const hint =
+            Constants.isDevice && !isSimulator
+                ? ' Aynı Wi‑Fi’de olduğunuzdan emin olun; gerekirse proje kökünde .env ile EXPO_PUBLIC_API_URL=http://BILGISAYAR_IP:3000 ayarlayın ve Metro’yu yeniden başlatın.'
+                : '';
+        const aborted = err instanceof Error && err.name === 'AbortError';
+        throw new Error(
+            aborted
+                ? `Sunucu yanıt vermedi (zaman aşımı, ${REQUEST_TIMEOUT_MS / 1000}s). Backend çalışıyor mu? (${API_BASE_URL})${hint}`
+                : `Sunucuya ulaşılamadı (${API_BASE_URL}).${hint}`,
+        );
+    } finally {
+        clearTimeout(timeoutId);
     }
 
     if (!response.ok) {

@@ -19,7 +19,8 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT', 3000);
 
-  await app.listen(port);
-  console.log(`🚀 Backend running on http://localhost:${port}`);
+  // 0.0.0.0: telefon / tablet gibi aynı ağdaki cihazların bilgisayara bağlanabilmesi için
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 Backend running on http://localhost:${port} (LAN: http://0.0.0.0:${port})`);
 }
 bootstrap();

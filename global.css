@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Semantic colors use Tailwind tokens like bg-surface → rgb(var(--color-surface) / <alpha>).
+ * Runtime values: theme/palettes.json + getDesignVars() in app/_layout.tsx (NativeWind vars).
+ */

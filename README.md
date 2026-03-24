@@ -15,24 +15,15 @@ A React Native health and nutrition app built with Expo, featuring food scanning
 
 ```
 health-ai-app/
-├── app/
-│   ├── (tabs)/
-│   │   ├── _layout.tsx    # Tab navigation layout
-│   │   ├── index.tsx      # Home screen
-│   │   ├── scan.tsx       # Scan Food screen
-│   │   ├── history.tsx    # History screen
-│   │   └── profile.tsx    # Profile screen
-│   └── _layout.tsx       # Root layout with providers
+├── app/                  # Expo Router ekranları
 ├── components/
-│   ├── ui/               # Reusable UI components
-│   └── scanner/          # Scanner-related components
-├── hooks/                # Custom React hooks
-├── store/                # Zustand stores
-│   └── useStore.ts       # Example global state
-├── services/             # API and external services
-├── constants/            # App constants
-├── types/                # TypeScript type definitions
-└── assets/               # Images, fonts, etc.
+├── services/
+├── store/
+├── locales/
+├── assets/
+├── backend/              # NestJS API + Prisma
+├── docker-compose.yml
+└── docker/
 ```
 
 ## Getting Started
@@ -45,10 +36,7 @@ health-ai-app/
 ### Installation
 
 ```bash
-# Install dependencies (already done)
 npm install
-
-# Start the development server
 npm start
 ```
 
