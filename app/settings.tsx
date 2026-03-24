@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Text, ScrollView, Pressable, Switch, Modal } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import SafeAreaWrapper from "../components/SafeAreaWrapper";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,7 +21,6 @@ export default function SettingsScreen() {
   const changeLanguage = async (lang: "en" | "tr") => {
     await i18n.changeLanguage(lang);
     await setStoredLanguage(lang);
-    setLanguageModalVisible(false);
   };
 
   const handleLogOut = () => {
@@ -31,7 +30,7 @@ export default function SettingsScreen() {
 
   const settingsSections = [
     {
-      titleKey: "settings.general",
+      titleKey: "settings.preferences",
       items: [
         {
           icon: "notifications-outline",
@@ -47,6 +46,11 @@ export default function SettingsScreen() {
           value: theme === "dark",
           onToggle: (v: boolean) => setTheme(v ? "dark" : "light"),
         },
+      ],
+    },
+    {
+      titleKey: "settings.languageSection",
+      items: [
         {
           icon: "language-outline",
           labelKey: "settings.language",
@@ -57,7 +61,7 @@ export default function SettingsScreen() {
       ],
     },
     {
-      titleKey: "settings.support",
+      titleKey: "settings.about",
       items: [
         {
           icon: "document-text-outline",
@@ -87,10 +91,10 @@ export default function SettingsScreen() {
   ];
 
   return (
-    <SafeAreaView style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
+    <SafeAreaWrapper style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
       <View style={{ borderBottomColor: c.border, backgroundColor: c.surface }} className="flex-row items-center px-4 py-3 border-b">
         <Pressable
-          onPress={() => router.replace("/")}
+          onPress={() => router.back()}
           className="flex-row items-center"
           accessibilityLabel={t("common.back")}
         >
@@ -106,6 +110,7 @@ export default function SettingsScreen() {
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
       >
         <View className="p-4 pb-8">
           {settingsSections.map((section) => (
@@ -173,20 +178,31 @@ export default function SettingsScreen() {
       <Modal
         visible={languageModalVisible}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setLanguageModalVisible(false)}
       >
         <Pressable
-          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", padding: 16 }}
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" }}
           onPress={() => setLanguageModalVisible(false)}
         >
           <Pressable
-            style={{ backgroundColor: c.surface, borderRadius: 12, padding: 16, width: "100%", maxWidth: 384 }}
+            style={{
+              backgroundColor: c.surface,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              padding: 16,
+              width: "100%",
+            }}
             onPress={() => { }}
           >
-            <Text style={{ color: c.text, fontSize: 18, fontWeight: "bold", marginBottom: 16 }}>
-              {t("settings.language")}
-            </Text>
+            <View className="flex-row items-center justify-between mb-3">
+              <Text style={{ color: c.text, fontSize: 18, fontWeight: "bold" }}>
+                {t("settings.language")}
+              </Text>
+              <Pressable onPress={() => setLanguageModalVisible(false)}>
+                <Ionicons name="close" size={22} color={c.iconSecondary} />
+              </Pressable>
+            </View>
             <Pressable
               onPress={() => changeLanguage("en")}
               style={{
@@ -217,6 +233,6 @@ export default function SettingsScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }

@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  password           String
+  name               String
+  dailyCalorieGoal   Int      @default(2000)
+  macroGoals         Json     @default("{\"protein\":120,\"carbs\":200,\"fat\":65}")
+  heightCm           String   @default("")
+  weightKg           String   @default("")
+  conditionTypes     String[] @default([])
+  dietaryPreferences String[] @default([])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  meals              Meal[]
+
+  @@map("users")
+}
+
+model Meal {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  source    String
+  mealType  String
+  portion   String?
+  calories  Int      @default(0)
+  protein   Int      @default(0)
+  carbs     Int      @default(0)
+  fat       Int      @default(0)
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, date])
+  @@map("meals")
+}

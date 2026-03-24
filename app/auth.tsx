@@ -10,7 +10,7 @@ import {
     ActivityIndicator,
     Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import SafeAreaWrapper from "../components/SafeAreaWrapper";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -31,6 +31,9 @@ export default function AuthScreen() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [focusedField, setFocusedField] = useState<
+        "name" | "email" | "password" | null
+    >(null);
 
     const canSubmit =
         email.trim().length > 0 &&
@@ -66,7 +69,7 @@ export default function AuthScreen() {
     };
 
     return (
-        <SafeAreaView
+        <SafeAreaWrapper
             style={{ backgroundColor: c.background }}
             className="flex-1"
             edges={["top", "bottom"]}
@@ -159,7 +162,8 @@ export default function AuthScreen() {
                                 <View
                                     style={{
                                         backgroundColor: c.surface,
-                                        borderColor: c.border,
+                                        borderColor:
+                                            focusedField === "name" ? c.accent : c.border,
                                     }}
                                     className="flex-row items-center border rounded-xl px-4"
                                 >
@@ -171,10 +175,17 @@ export default function AuthScreen() {
                                     <TextInput
                                         value={name}
                                         onChangeText={setName}
+                                        onFocus={() => setFocusedField("name")}
+                                        onBlur={() => setFocusedField(null)}
                                         placeholder={t("auth.namePlaceholder")}
                                         placeholderTextColor={c.placeholder}
-                                        style={{ color: c.text }}
-                                        className="flex-1 py-4 ml-3 text-base"
+                                        style={{
+                                            color: c.text,
+                                            textAlignVertical: "center",
+                                            includeFontPadding: false,
+                                            paddingVertical: 0,
+                                        }}
+                                        className="flex-1 h-14 ml-3 text-base"
                                         autoCapitalize="words"
                                     />
                                 </View>
@@ -192,7 +203,8 @@ export default function AuthScreen() {
                             <View
                                 style={{
                                     backgroundColor: c.surface,
-                                    borderColor: c.border,
+                                    borderColor:
+                                        focusedField === "email" ? c.accent : c.border,
                                 }}
                                 className="flex-row items-center border rounded-xl px-4"
                             >
@@ -204,10 +216,17 @@ export default function AuthScreen() {
                                 <TextInput
                                     value={email}
                                     onChangeText={setEmail}
+                                    onFocus={() => setFocusedField("email")}
+                                    onBlur={() => setFocusedField(null)}
                                     placeholder={t("auth.emailPlaceholder")}
                                     placeholderTextColor={c.placeholder}
-                                    style={{ color: c.text }}
-                                    className="flex-1 py-4 ml-3 text-base"
+                                    style={{
+                                        color: c.text,
+                                        textAlignVertical: "center",
+                                        includeFontPadding: false,
+                                        paddingVertical: 0,
+                                    }}
+                                    className="flex-1 h-14 ml-3 text-base"
                                     keyboardType="email-address"
                                     autoCapitalize="none"
                                     autoCorrect={false}
@@ -226,7 +245,8 @@ export default function AuthScreen() {
                             <View
                                 style={{
                                     backgroundColor: c.surface,
-                                    borderColor: c.border,
+                                    borderColor:
+                                        focusedField === "password" ? c.accent : c.border,
                                 }}
                                 className="flex-row items-center border rounded-xl px-4"
                             >
@@ -238,10 +258,17 @@ export default function AuthScreen() {
                                 <TextInput
                                     value={password}
                                     onChangeText={setPassword}
+                                    onFocus={() => setFocusedField("password")}
+                                    onBlur={() => setFocusedField(null)}
                                     placeholder={t("auth.passwordPlaceholder")}
                                     placeholderTextColor={c.placeholder}
-                                    style={{ color: c.text }}
-                                    className="flex-1 py-4 ml-3 text-base"
+                                    style={{
+                                        color: c.text,
+                                        textAlignVertical: "center",
+                                        includeFontPadding: false,
+                                        paddingVertical: 0,
+                                    }}
+                                    className="flex-1 h-14 ml-3 text-base"
                                     secureTextEntry={!showPassword}
                                 />
                                 <Pressable onPress={() => setShowPassword(!showPassword)}>
@@ -285,6 +312,6 @@ export default function AuthScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </SafeAreaWrapper>
     );
 }

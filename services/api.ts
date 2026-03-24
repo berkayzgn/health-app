@@ -1,8 +1,21 @@
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-// iOS simulator can use localhost, physical devices need the machine's local IP
-const API_BASE_URL = Platform.OS === 'ios' ? 'http://172.20.10.12:3000' : 'http://172.20.10.12:3000';
+// Priority: explicit env var -> simulator defaults -> Metro host -> fallback
+const envBaseUrl = process.env.EXPO_PUBLIC_API_URL;
+const expoHost = Constants.expoConfig?.hostUri?.split(':')[0];
+const scriptURL: string | undefined = NativeModules.SourceCode?.scriptURL;
+const scriptHost = scriptURL?.match(/https?:\/\/([^/:]+)/)?.[1];
+const isSimulator = !Constants.isDevice;
+
+const fallbackHost = Platform.select({
+    ios: isSimulator ? 'localhost' : scriptHost ?? expoHost ?? 'localhost',
+    android: isSimulator ? '10.0.2.2' : scriptHost ?? expoHost ?? '10.0.2.2',
+    default: scriptHost ?? expoHost ?? 'localhost',
+});
+
+const API_BASE_URL = envBaseUrl ?? `http://${fallbackHost}:3000`;
 const TOKEN_KEY = '@health_app_token';
 
 async function getToken(): Promise<string | null> {
@@ -32,10 +45,15 @@ async function request<T>(
         (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        ...options,
-        headers,
-    });
+    let response: Response;
+    try {
+        response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers,
+        });
+    } catch (err) {
+        throw new Error(`Sunucuya ulaşılamadı (${API_BASE_URL})`);
+    }
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Bir hata oluştu' }));

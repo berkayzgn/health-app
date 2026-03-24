@@ -9,6 +9,16 @@ interface AuthResponse {
     };
 }
 
+interface ProfileResponse {
+    id: string;
+    email: string;
+    name: string;
+    heightCm?: string;
+    weightKg?: string;
+    conditionTypes?: string[];
+    dietaryPreferences?: string[];
+}
+
 export async function register(
     email: string,
     password: string,
@@ -37,4 +47,8 @@ export async function login(
 
 export async function logout(): Promise<void> {
     await removeToken();
+}
+
+export async function getMe(): Promise<ProfileResponse | null> {
+    return api.get<ProfileResponse | null>('/users/me');
 }

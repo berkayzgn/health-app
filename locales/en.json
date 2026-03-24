@@ -56,8 +56,10 @@
     "portion": "Portion",
     "portionOptional": "(optional)",
     "portionPlaceholder": "e.g. 1 bowl, 200g",
-    "quickAdd": "Quick add",
     "addMeal": "Add Meal",
+    "addFoodItem": "+ Add",
+    "addItem": "Add",
+    "noItemsAdded": "No food item added yet.",
     "quickSuggestions": {
       "grilledChicken": "Grilled chicken salad",
       "oatmeal": "Oatmeal with berries",
@@ -65,7 +67,8 @@
       "greekYogurt": "Greek yogurt",
       "riceVegetables": "Rice and vegetables",
       "eggsToast": "Eggs and toast"
-    }
+    },
+    "midSnack": "Mid Snack"
   },
   "history": {
     "yesterday": "Yesterday",
@@ -74,14 +77,43 @@
     "noMealsLogged": "No meals logged yet",
     "scanOrAddFirst": "Scan or manually add your first meal to get started.",
     "scanned": "Scanned",
-    "manual": "Manual"
+    "manual": "Manual",
+    "editMeal": "Edit Meal",
+    "cancel": "Cancel",
+    "save": "Save"
   },
   "profile": {
     "title": "Profile",
     "subtitle": "Manage your account and preferences",
     "personalInfo": "Personal Info",
     "dietaryPreferences": "Dietary Preferences",
-    "healthGoals": "Health Goals"
+    "height": "Height (cm)",
+    "weight": "Weight (kg)",
+    "heightPlaceholder": "e.g. 175",
+    "weightPlaceholder": "e.g. 72",
+    "conditions": "Condition Type",
+    "save": "Save",
+    "noSelection": "No selection",
+    "dietaryPreferencesHint": "Select dietary preferences that match your needs.",
+    "conditionsList": {
+      "none": "None",
+      "celiac": "Celiac",
+      "diabetes": "Diabetes",
+      "cholesterol": "Cholesterol",
+      "hypertension": "Hypertension",
+      "thyroid": "Thyroid",
+      "ibs": "IBS"
+    },
+    "dietList": {
+      "balanced": "Balanced",
+      "highProtein": "High Protein",
+      "lowCarb": "Low Carb",
+      "keto": "Keto",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "glutenFree": "Gluten Free",
+      "lowSodium": "Low Sodium"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -98,7 +130,10 @@
     "on": "On",
     "off": "Off",
     "english": "English",
-    "turkish": "Türkçe"
+    "turkish": "Türkçe",
+    "preferences": "Preferences",
+    "languageSection": "Language",
+    "about": "About"
   },
   "mealDescription": {
     "title": "Meal Details",

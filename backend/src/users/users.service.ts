@@ -1,29 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User, UserDocument } from './schemas/user.schema';
+import { User } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-    constructor(
-        @InjectModel(User.name) private userModel: Model<UserDocument>,
-    ) { }
+    constructor(private readonly prisma: PrismaService) { }
 
-    async findByEmail(email: string): Promise<UserDocument | null> {
-        return this.userModel.findOne({ email: email.toLowerCase() }).exec();
+    async findByEmail(email: string): Promise<User | null> {
+        return this.prisma.user.findUnique({
+            where: { email: email.toLowerCase() },
+        });
     }
 
-    async findById(id: string): Promise<UserDocument | null> {
-        return this.userModel.findById(id).exec();
+    async findById(id: string): Promise<User | null> {
+        return this.prisma.user.findUnique({ where: { id } });
     }
 
     async create(data: {
         email: string;
         password: string;
         name: string;
-    }): Promise<UserDocument> {
-        const user = new this.userModel(data);
-        return user.save();
+    }): Promise<User> {
+        return this.prisma.user.create({
+            data: {
+                email: data.email.toLowerCase(),
+                password: data.password,
+                name: data.name,
+                conditionTypes: ['none'],
+            },
+        });
     }
 
     async update(
@@ -32,10 +37,19 @@ export class UsersService {
             name: string;
             dailyCalorieGoal: number;
             macroGoals: { protein: number; carbs: number; fat: number };
+            heightCm: string;
+            weightKg: string;
+            conditionTypes: string[];
+            dietaryPreferences: string[];
         }>,
-    ): Promise<UserDocument | null> {
-        return this.userModel
-            .findByIdAndUpdate(id, { $set: data }, { new: true })
-            .exec();
+    ): Promise<User | null> {
+        try {
+            return await this.prisma.user.update({
+                where: { id },
+                data,
+            });
+        } catch {
+            return null;
+        }
     }
 }

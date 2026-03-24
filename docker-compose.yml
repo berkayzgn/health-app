@@ -1,0 +1,70 @@
+# health-ai-app: Postgres + Nest backend + pgAdmin (tek ağ)
+networks:
+  healthai:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: health-ai-postgres
+    restart: unless-stopped
+    networks:
+      - healthai
+    environment:
+      POSTGRES_USER: healthai
+      POSTGRES_PASSWORD: healthai
+      POSTGRES_DB: healthai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U healthai -d healthai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    # 9.x bazı ortamlarda CONFIG env + volume kombinasyonunda sorun çıkarabiliyor; 8.14 LTS daha stabil
+    image: dpage/pgadmin4:8.14
+    container_name: health-ai-pgadmin
+    restart: unless-stopped
+    networks:
+      - healthai
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5050:80"
+    environment:
+      # .local TLD pgAdmin/email-validator tarafından reddedilir; çökme döngüsüne yol açar
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    # pgAdmin bazen /dev/shm düşük kalınca worker ölüyor; desktop modunda iyi pratik
+    shm_size: "256mb"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: health-ai-backend
+    restart: unless-stopped
+    networks:
+      - healthai
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://healthai:healthai@postgres:5432/healthai?schema=public
+      JWT_SECRET: health-ai-app-jwt-secret-change-in-production
+      JWT_EXPIRATION: 7d
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+  pgadmin_data:

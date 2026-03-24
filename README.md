@@ -52,6 +52,47 @@ npm install
 npm start
 ```
 
+## Docker (`postgres` + `backend` + `pgadmin`)
+
+Tek ağ (`healthai`): servisler birbirine **compose servis adıyla** bağlanır (`postgres`, `backend` → API).
+
+```bash
+npm run docker:up
+```
+
+Servisler:
+
+| Servis | Port / URL | Not |
+|--------|------------|-----|
+| **Backend (Nest)** | `http://localhost:3000` | `DATABASE_URL` → `postgres:5432` |
+| **PostgreSQL** | `localhost:5432` | kullanıcı / şifre / DB: `healthai` |
+| **pgAdmin** | `http://localhost:5050` | Giriş: `admin@example.com` / `admin123` |
+
+**pgAdmin:** Sunucuyu arayüzden bir kez ekle — **Host `postgres`**, port `5432`, veritabanı / kullanıcı / şifre `healthai`. (`localhost` yazma.) Adımlar: `docker/pgadmin/README.md`.
+
+pgAdmin konteyneri sürekli düşüyorsa bozuk volume veya eski imaj kalıntısı olabilir:
+
+```bash
+docker compose down
+docker volume rm health-ai-app_pgadmin_data
+docker compose pull pgadmin
+docker compose up -d
+```
+
+(`docker volume ls` ile `_pgadmin_data` sonekli tam ismi doğrula.)
+
+Yardimci komutlar:
+
+```bash
+# loglari izle
+npm run docker:logs
+
+# containerlari kapat
+npm run docker:down
+```
+
+Not: React Native iOS/Android simulator yine host makinede calisir. Ancak API artik container icindeki backend'e `localhost:3000` uzerinden ulasir.
+
 ### Running the App
 
 - **iOS**: `npm run ios` or press `i` in the terminal

@@ -1,5 +1,6 @@
-import { View, Text, ScrollView, Pressable } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useState } from "react";
+import { View, Text, ScrollView, Pressable, Modal, TextInput } from "react-native";
+import SafeAreaWrapper from "../components/SafeAreaWrapper";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,8 +10,10 @@ import { getThemeColors } from "../theme";
 export default function EatingHistoryScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { meals, theme } = useStore();
+  const { meals, theme, updateMeal, deleteMeal } = useStore();
   const c = getThemeColors(theme);
+  const [editingMealId, setEditingMealId] = useState<string | null>(null);
+  const [editingMealName, setEditingMealName] = useState("");
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -29,11 +32,29 @@ export default function EatingHistoryScreen() {
     });
   };
 
+  const openEditModal = (mealId: string, currentName: string) => {
+    setEditingMealId(mealId);
+    setEditingMealName(currentName);
+  };
+
+  const closeEditModal = () => {
+    setEditingMealId(null);
+    setEditingMealName("");
+  };
+
+  const saveEdit = () => {
+    if (!editingMealId) return;
+    const trimmed = editingMealName.trim();
+    if (!trimmed) return;
+    updateMeal(editingMealId, trimmed);
+    closeEditModal();
+  };
+
   return (
-    <SafeAreaView style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
+    <SafeAreaWrapper style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
       <View style={{ borderBottomColor: c.border, backgroundColor: c.surface }} className="flex-row items-center px-4 py-3 border-b">
         <Pressable
-          onPress={() => router.replace("/")}
+          onPress={() => router.back()}
           className="flex-row items-center"
         >
           <Ionicons name="arrow-back" size={24} color={c.accent} />
@@ -87,13 +108,72 @@ export default function EatingHistoryScreen() {
                       {formatDate(meal.date)} • {meal.source === "scan" ? t("history.scanned") : t("history.manual")}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color={c.iconSecondary} />
+                  <View className="flex-row items-center ml-2">
+                    <Pressable onPress={() => openEditModal(meal.id, meal.name)} className="mr-3">
+                      <Ionicons name="create-outline" size={20} color={c.iconSecondary} />
+                    </Pressable>
+                    <Pressable onPress={() => deleteMeal(meal.id)}>
+                      <Ionicons name="trash-outline" size={20} color={c.danger} />
+                    </Pressable>
+                  </View>
                 </View>
               ))}
             </View>
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+
+      <Modal
+        visible={editingMealId !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={closeEditModal}
+      >
+        <Pressable
+          className="flex-1 items-center justify-center px-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+          onPress={closeEditModal}
+        >
+          <Pressable
+            onPress={() => { }}
+            style={{ backgroundColor: c.surface, width: "100%", maxWidth: 420, borderRadius: 14, padding: 16 }}
+          >
+            <Text style={{ color: c.text }} className="text-base font-semibold mb-3">
+              {t("history.editMeal")}
+            </Text>
+            <TextInput
+              value={editingMealName}
+              onChangeText={setEditingMealName}
+              placeholder={t("scan.foodPlaceholder")}
+              placeholderTextColor={c.placeholder}
+              style={{
+                backgroundColor: c.surfaceAlt,
+                borderColor: c.border,
+                color: c.text,
+                textAlignVertical: "center",
+                includeFontPadding: false,
+                paddingVertical: 0,
+                lineHeight: 20,
+              }}
+              className="border rounded-xl px-4 h-12 text-base mb-4"
+            />
+            <View className="flex-row justify-end">
+              <Pressable onPress={closeEditModal} className="px-4 py-2 mr-2">
+                <Text style={{ color: c.textMuted }} className="font-medium">
+                  {t("history.cancel")}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={saveEdit}
+                style={{ backgroundColor: c.accent }}
+                className="px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white font-semibold">{t("history.save")}</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </SafeAreaWrapper>
   );
 }

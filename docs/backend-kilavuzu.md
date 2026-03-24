@@ -2,7 +2,7 @@
 
 ## Genel Bakış
 
-Backend, **NestJS** (Node.js) framework'ü ve **MongoDB** veritabanı üzerine inşa edilmiştir. JWT tabanlı kimlik doğrulama ile kullanıcıya özel yemek takibi ve beslenme hedefleri yönetimi sağlar.
+Backend, **NestJS** (Node.js) framework'ü ve **PostgreSQL** veritabanı üzerine inşa edilmiştir (**Prisma ORM**). JWT tabanlı kimlik doğrulama ile kullanıcıya özel yemek takibi ve beslenme hedefleri yönetimi sağlar.
 
 ---
 
@@ -10,9 +10,12 @@ Backend, **NestJS** (Node.js) framework'ü ve **MongoDB** veritabanı üzerine i
 
 ```
 backend/
+├── prisma/
+│   ├── schema.prisma              # Prisma modelleri (User, Meal)
+│   └── migrations/                # SQL migrasyonlar
 ├── src/
 │   ├── main.ts                    # Uygulama giriş noktası
-│   ├── app.module.ts              # Root modül (Config, Mongoose, tüm modüller)
+│   ├── app.module.ts              # Root modül (Config, Prisma, tüm modüller)
 │   │
 │   ├── auth/                      # 🔐 Kimlik Doğrulama
 │   │   ├── auth.module.ts
@@ -24,19 +27,17 @@ backend/
 │   │       ├── register.dto.ts
 │   │       └── login.dto.ts
 │   │
+│   ├── prisma/                    # PrismaModule + PrismaService (global)
+│   │
 │   ├── users/                     # 👤 Kullanıcı Yönetimi
 │   │   ├── users.module.ts
 │   │   ├── users.controller.ts    # GET/PATCH /users/me
-│   │   ├── users.service.ts
-│   │   └── schemas/
-│   │       └── user.schema.ts     # email, password, name, kalori/makro hedefleri
+│   │   └── users.service.ts
 │   │
 │   └── meals/                     # 🍽️ Yemek Takibi
 │       ├── meals.module.ts
 │       ├── meals.controller.ts    # CRUD + /meals/today
 │       ├── meals.service.ts
-│       ├── schemas/
-│       │   └── meal.schema.ts     # name, source, mealType, kalori, makrolar
 │       └── dto/
 │           ├── create-meal.dto.ts
 │           └── update-meal.dto.ts
@@ -45,7 +46,7 @@ backend/
 ### Akış Diyagramı
 
 ```
-[Mobile App]  ──HTTP──▶  [NestJS Backend :3000]  ──Mongoose──▶  [MongoDB :27017]
+[Mobile App]  ──HTTP──▶  [NestJS Backend :3000]  ──Prisma──▶  [PostgreSQL :5432]
                               │
                          ┌────┴────┐
                      Auth Module  Meals Module
@@ -59,7 +60,7 @@ backend/
 ### Gereksinimler
 
 - **Node.js** ≥ 18
-- **MongoDB** (local veya Atlas)
+- **PostgreSQL** (local veya Docker; `docker-compose` ile `5432`)
 - **npm**
 
 ### Adımlar
@@ -71,9 +72,12 @@ npm install
 
 # 2. Ortam değişkenlerini ayarla
 cp .env.example .env
-# .env dosyasını düzenle (MongoDB URI, JWT secret vb.)
+# .env: DATABASE_URL, JWT_SECRET vb.
 
-# 3. Geliştirme modunda başlat
+# 3. Şemayı veritabanına uygula (PostgreSQL ayakta olmalı)
+npx prisma migrate dev
+
+# 4. Geliştirme modunda başlat
 npm run start:dev
 
 # 4. Üretim build
@@ -85,7 +89,7 @@ npm run start:prod
 
 | Değişken | Açıklama | Varsayılan |
 |----------|----------|------------|
-| `MONGODB_URI` | MongoDB bağlantı URI'si | `mongodb://localhost:27017/health-ai-app` |
+| `DATABASE_URL` | PostgreSQL bağlantı URI'si (Prisma) | `postgresql://healthai:healthai@localhost:5432/healthai?schema=public` |
 | `JWT_SECRET` | JWT imzalama anahtarı | — (üretimde güçlü bir key kullanın) |
 | `JWT_EXPIRATION` | Token geçerlilik süresi | `7d` |
 | `PORT` | Sunucu portu | `3000` |
@@ -147,12 +151,17 @@ GET /users/me
 **Yanıt (200):**
 ```json
 {
-  "_id": "64a...",
+  "id": "550e8400-e29b-41d4-a716-446655440000",
   "email": "kullanici@email.com",
   "name": "Kullanıcı Adı",
   "dailyCalorieGoal": 2000,
   "macroGoals": { "protein": 120, "carbs": 200, "fat": 65 },
-  "createdAt": "2026-03-06T13:48:26.664Z"
+  "heightCm": "",
+  "weightKg": "",
+  "conditionTypes": [],
+  "dietaryPreferences": [],
+  "createdAt": "2026-03-06T13:48:26.664Z",
+  "updatedAt": "2026-03-06T13:48:26.664Z"
 }
 ```
 
@@ -180,7 +189,7 @@ Content-Type: application/json
 {
   "name": "Tavuk Izgara",
   "source": "manual",          // "scan" | "manual"
-  "mealType": "lunch",         // "breakfast" | "lunch" | "dinner" | "snack"
+  "mealType": "lunch",         // breakfast | lunch | dinner | snack | midSnack
   "portion": "200g",           // opsiyonel
   "calories": 350,
   "protein": 40,
@@ -227,6 +236,7 @@ DELETE /meals/:id
 ### User
 | Alan | Tip | Açıklama |
 |------|-----|----------|
+| `id` | UUID (PK) | Kullanıcı kimliği |
 | `email` | String (unique) | Kullanıcı e-postası |
 | `password` | String | bcrypt ile hashlenmiş şifre |
 | `name` | String | Kullanıcı adı |
@@ -237,10 +247,11 @@ DELETE /meals/:id
 ### Meal
 | Alan | Tip | Açıklama |
 |------|-----|----------|
-| `userId` | ObjectId | Kullanıcı referansı |
+| `id` | UUID (PK) | Öğün kaydı |
+| `userId` | UUID (FK) | Kullanıcı referansı |
 | `name` | String | Yemek adı |
 | `source` | Enum | `"scan"` veya `"manual"` |
-| `mealType` | Enum | `"breakfast"`, `"lunch"`, `"dinner"`, `"snack"` |
+| `mealType` | Enum | `breakfast`, `lunch`, `dinner`, `snack`, `midSnack` |
 | `portion` | String | Porsiyon (opsiyonel) |
 | `calories` | Number | Kalori (kcal) |
 | `protein / carbs / fat` | Number | Makro değerleri (gram) |

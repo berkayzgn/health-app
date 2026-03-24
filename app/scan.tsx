@@ -8,8 +8,9 @@ import {
   Platform,
   useWindowDimensions,
   ScrollView,
+  Modal,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import SafeAreaWrapper from "../components/SafeAreaWrapper";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,16 +22,14 @@ const MEAL_TYPES = [
   { id: "lunch", labelKey: "scan.lunch", icon: "restaurant-outline" },
   { id: "dinner", labelKey: "scan.dinner", icon: "moon-outline" },
   { id: "snack", labelKey: "scan.snack", icon: "cafe-outline" },
+  { id: "midSnack", labelKey: "scan.midSnack", icon: "fast-food-outline" },
 ];
 
-const QUICK_SUGGESTION_KEYS = [
-  "scan.quickSuggestions.grilledChicken",
-  "scan.quickSuggestions.oatmeal",
-  "scan.quickSuggestions.turkeySandwich",
-  "scan.quickSuggestions.greekYogurt",
-  "scan.quickSuggestions.riceVegetables",
-  "scan.quickSuggestions.eggsToast",
-] as const;
+interface FoodItem {
+  id: string;
+  name: string;
+  portion: string;
+}
 
 export default function ScanScreen() {
   const { t } = useTranslation();
@@ -39,9 +38,12 @@ export default function ScanScreen() {
   const { addMeal, incrementScanCount, theme } = useStore();
   const c = getThemeColors(theme);
   const [activeMode, setActiveMode] = useState<"scan" | "input">("input");
-  const [mealName, setMealName] = useState("");
   const [mealType, setMealType] = useState("lunch");
-  const [portion, setPortion] = useState("");
+  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+  const [draftName, setDraftName] = useState("");
+  const [draftPortion, setDraftPortion] = useState("");
+  const [mealTypeSheetVisible, setMealTypeSheetVisible] = useState(false);
+  const [addItemFormVisible, setAddItemFormVisible] = useState(false);
 
   const cameraSize = Math.min(width - 32, 360);
 
@@ -55,17 +57,13 @@ export default function ScanScreen() {
     });
   };
 
-  const handleSuggestionPress = (suggestion: string) => {
-    setMealName(suggestion);
-  };
-
   const handleManualSubmit = () => {
-    const trimmed = mealName.trim();
-    if (!trimmed) return;
-
-    const displayName = portion.trim()
-      ? `${trimmed} (${portion.trim()})`
-      : trimmed;
+    if (foodItems.length === 0) return;
+    const displayName = foodItems
+      .map((item) =>
+        item.portion ? `${item.name} (${item.portion})` : item.name
+      )
+      .join(", ");
 
     addMeal(displayName, "manual");
     router.push({
@@ -73,17 +71,40 @@ export default function ScanScreen() {
       params: { meal: displayName, source: "manual" },
     });
 
-    setMealName("");
-    setPortion("");
+    setFoodItems([]);
+    setDraftName("");
+    setDraftPortion("");
   };
 
-  const canSubmit = mealName.trim().length > 0;
+  const addFoodItem = () => {
+    const trimmed = draftName.trim();
+    const trimmedPortion = draftPortion.trim();
+    if (!trimmed || !trimmedPortion) return;
+    setFoodItems((prev) => [
+      ...prev,
+      {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name: trimmed,
+        portion: trimmedPortion,
+      },
+    ]);
+    setDraftName("");
+    setDraftPortion("");
+  };
+
+  const removeFoodItem = (id: string) => {
+    setFoodItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const canSubmit = foodItems.length > 0;
+  const selectedMealType =
+    MEAL_TYPES.find((type) => type.id === mealType) ?? MEAL_TYPES[1];
 
   return (
-    <SafeAreaView style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
+    <SafeAreaWrapper style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
       <View style={{ borderBottomColor: c.border, backgroundColor: c.surface }} className="flex-row items-center px-4 py-3 border-b">
         <Pressable
-          onPress={() => router.replace("/")}
+          onPress={() => router.back()}
           className="flex-row items-center"
         >
           <Ionicons name="arrow-back" size={24} color={c.accent} />
@@ -174,73 +195,149 @@ export default function ScanScreen() {
               <Text style={{ color: c.textSecondary }} className="text-sm font-semibold mb-2">
                 {t("scan.mealType")}
               </Text>
-              <View className="flex-row flex-wrap mb-4">
-                {MEAL_TYPES.map((type) => (
-                  <Pressable
-                    key={type.id}
-                    onPress={() => setMealType(type.id)}
-                    style={{
-                      backgroundColor: mealType === type.id ? c.accent : c.surface,
-                    }}
-                    className="flex-row items-center px-4 py-2.5 rounded-xl mr-2 mb-2"
-                  >
-                    <Ionicons
-                      name={type.icon as any}
-                      size={18}
-                      color={mealType === type.id ? "white" : c.iconMuted}
-                    />
-                    <Text
-                      style={{ color: mealType === type.id ? "white" : c.textSecondary }}
-                      className="ml-2 font-medium text-sm"
-                    >
-                      {t(type.labelKey)}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <Pressable
+                onPress={() => setMealTypeSheetVisible(true)}
+                style={{ backgroundColor: c.surface, borderColor: c.border }}
+                className="border rounded-xl px-4 py-4 mb-4 flex-row items-center justify-between"
+              >
+                <View className="flex-row items-center flex-1 min-w-0">
+                  <Ionicons name={selectedMealType.icon as any} size={18} color={c.iconMuted} />
+                  <Text style={{ color: c.text }} className="ml-2 font-medium text-sm" numberOfLines={1}>
+                    {t(selectedMealType.labelKey)}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={c.iconSecondary} />
+              </Pressable>
 
               <Text style={{ color: c.textSecondary }} className="text-sm font-semibold mb-2">
                 {t("scan.whatDidYouEat")}
               </Text>
-              <TextInput
-                value={mealName}
-                onChangeText={setMealName}
-                placeholder={t("scan.foodPlaceholder")}
-                placeholderTextColor={c.placeholder}
-                style={{ backgroundColor: c.surface, borderColor: c.border, color: c.text }}
-                className="border rounded-xl px-4 py-4 text-base mb-4"
-                autoCapitalize="words"
-                returnKeyType="next"
-              />
+              <Pressable
+                onPress={() => setAddItemFormVisible((prev) => !prev)}
+                style={{ backgroundColor: c.surface, borderColor: c.border }}
+                className="border rounded-xl px-4 py-4 mb-4 flex-row items-center justify-between"
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="add-circle-outline" size={20} color={c.accent} />
+                  <Text style={{ color: c.text }} className="ml-2 text-sm font-medium">
+                    {t("scan.addFoodItem")}
+                  </Text>
+                </View>
+                <Ionicons
+                  name={addItemFormVisible ? "chevron-up" : "chevron-forward"}
+                  size={20}
+                  color={c.iconSecondary}
+                />
+              </Pressable>
 
-              <Text style={{ color: c.textSecondary }} className="text-sm font-semibold mb-2">
-                {t("scan.portion")} <Text style={{ color: c.textMuted }} className="font-normal">{t("scan.portionOptional")}</Text>
-              </Text>
-              <TextInput
-                value={portion}
-                onChangeText={setPortion}
-                placeholder={t("scan.portionPlaceholder")}
-                placeholderTextColor={c.placeholder}
-                style={{ backgroundColor: c.surface, borderColor: c.border, color: c.text }}
-                className="border rounded-xl px-4 py-4 text-base mb-4"
-                autoCapitalize="none"
-              />
+              {addItemFormVisible ? (
+                <View
+                  style={{ backgroundColor: c.surface, borderColor: c.border }}
+                  className="border rounded-xl p-4 mb-4"
+                >
+                  <Text style={{ color: c.textSecondary }} className="text-sm font-semibold mb-2">
+                    {t("scan.whatDidYouEat")}
+                  </Text>
+                  <TextInput
+                    value={draftName}
+                    onChangeText={setDraftName}
+                    placeholder={t("scan.foodPlaceholder")}
+                    placeholderTextColor={c.placeholder}
+                    style={{
+                      backgroundColor: c.surfaceAlt,
+                      borderColor: c.border,
+                      color: c.text,
+                      textAlignVertical: "center",
+                      includeFontPadding: false,
+                      paddingVertical: 0,
+                      lineHeight: 20,
+                    }}
+                    className="border rounded-xl px-4 h-14 text-base mb-4"
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                  />
 
-              <Text style={{ color: c.textSecondary }} className="text-sm font-semibold mb-2">
-                {t("scan.quickAdd")}
-              </Text>
-              <View className="flex-row flex-wrap mb-6">
-                {QUICK_SUGGESTION_KEYS.map((key) => (
+                  <Text style={{ color: c.textSecondary }} className="text-sm font-semibold mb-2">
+                    {t("scan.portion")}
+                  </Text>
+                  <TextInput
+                    value={draftPortion}
+                    onChangeText={setDraftPortion}
+                    placeholder={t("scan.portionPlaceholder")}
+                    placeholderTextColor={c.placeholder}
+                    style={{
+                      backgroundColor: c.surfaceAlt,
+                      borderColor: c.border,
+                      color: c.text,
+                      textAlignVertical: "center",
+                      includeFontPadding: false,
+                      paddingVertical: 0,
+                      lineHeight: 20,
+                    }}
+                    className="border rounded-xl px-4 h-14 text-base mb-4"
+                    autoCapitalize="none"
+                  />
+
                   <Pressable
-                    key={key}
-                    onPress={() => handleSuggestionPress(t(key))}
-                    style={{ backgroundColor: c.surface, borderColor: c.border }}
-                    className="border rounded-lg px-3 py-2 mr-2 mb-2"
+                    onPress={addFoodItem}
+                    disabled={
+                      draftName.trim().length === 0 ||
+                      draftPortion.trim().length === 0
+                    }
+                    style={{
+                      backgroundColor:
+                        draftName.trim().length > 0 &&
+                        draftPortion.trim().length > 0
+                          ? c.accent
+                          : c.surfaceAlt,
+                    }}
+                    className="py-3 rounded-xl"
                   >
-                    <Text style={{ color: c.textSecondary }} className="text-sm">{t(key)}</Text>
+                    <Text
+                      style={{
+                        color:
+                          draftName.trim().length > 0 &&
+                          draftPortion.trim().length > 0
+                            ? "white"
+                            : c.textMuted,
+                      }}
+                      className="font-semibold text-center"
+                    >
+                      {t("scan.addItem")}
+                    </Text>
                   </Pressable>
-                ))}
-              </View>
+                </View>
+              ) : null}
+
+              {foodItems.length > 0 ? (
+                <View className="mb-4">
+                  {foodItems.map((item) => (
+                    <View
+                      key={item.id}
+                      style={{ backgroundColor: c.surface, borderColor: c.border }}
+                      className="border rounded-xl px-4 py-3 mb-2 flex-row items-center justify-between"
+                    >
+                      <View className="flex-1 min-w-0 mr-2">
+                        <Text style={{ color: c.text }} className="text-sm font-semibold" numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                        {item.portion ? (
+                          <Text style={{ color: c.textMuted }} className="text-xs mt-0.5" numberOfLines={1}>
+                            {item.portion}
+                          </Text>
+                        ) : null}
+                      </View>
+                      <Pressable onPress={() => removeFoodItem(item.id)}>
+                        <Ionicons name="trash-outline" size={18} color={c.danger} />
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={{ color: c.textMuted }} className="text-xs mb-4">
+                  {t("scan.noItemsAdded")}
+                </Text>
+              )}
 
               <Pressable
                 onPress={handleManualSubmit}
@@ -259,6 +356,39 @@ export default function ScanScreen() {
           )}
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+
+      <Modal visible={mealTypeSheetVisible} transparent animationType="slide" onRequestClose={() => setMealTypeSheetVisible(false)}>
+        <Pressable className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.35)" }} onPress={() => setMealTypeSheetVisible(false)}>
+          <Pressable onPress={() => { }} style={{ backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, maxHeight: "60%" }}>
+            <View className="flex-row items-center justify-between mb-3">
+              <Text style={{ color: c.text }} className="text-base font-semibold">{t("scan.mealType")}</Text>
+              <Pressable onPress={() => setMealTypeSheetVisible(false)}>
+                <Ionicons name="close" size={22} color={c.iconSecondary} />
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {MEAL_TYPES.map((type) => {
+                const selected = mealType === type.id;
+                return (
+                  <Pressable
+                    key={type.id}
+                    onPress={() => setMealType(type.id)}
+                    style={{ borderColor: c.border }}
+                    className="flex-row items-center justify-between py-3 border-b"
+                  >
+                    <View className="flex-row items-center">
+                      <Ionicons name={type.icon as any} size={18} color={c.iconMuted} />
+                      <Text style={{ color: c.text }} className="text-base ml-2">{t(type.labelKey)}</Text>
+                    </View>
+                    {selected ? <Ionicons name="checkmark-circle" size={22} color={c.accent} /> : <Ionicons name="ellipse-outline" size={22} color={c.iconSecondary} />}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+    </SafeAreaWrapper>
   );
 }

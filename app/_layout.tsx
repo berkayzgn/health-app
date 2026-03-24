@@ -53,6 +53,7 @@ function RootLayoutContent() {
         screenOptions={{
           headerShown: false,
           animation: "slide_from_right",
+          animationTypeForReplace: "push",
           gestureEnabled: true,
         }}
       >
@@ -61,6 +62,8 @@ function RootLayoutContent() {
         <Stack.Screen name="scan" />
         <Stack.Screen name="history" />
         <Stack.Screen name="profile" />
+        <Stack.Screen name="personal-info" />
+        <Stack.Screen name="diet-preferences" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="meal-description" />
       </Stack>

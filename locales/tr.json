@@ -56,8 +56,10 @@
     "portion": "Porsiyon",
     "portionOptional": "(isteğe bağlı)",
     "portionPlaceholder": "örn. 1 kase, 200g",
-    "quickAdd": "Hızlı ekle",
     "addMeal": "Öğün Ekle",
+    "addFoodItem": "+ Ekle",
+    "addItem": "Ekle",
+    "noItemsAdded": "Henüz yiyecek eklenmedi.",
     "quickSuggestions": {
       "grilledChicken": "Izgara tavuk salatası",
       "oatmeal": "Yulaf lapası ve meyveler",
@@ -65,7 +67,8 @@
       "greekYogurt": "Yunan yoğurdu",
       "riceVegetables": "Pilav ve sebzeler",
       "eggsToast": "Yumurta ve tost"
-    }
+    },
+    "midSnack": "Ara Öğün"
   },
   "history": {
     "yesterday": "Dün",
@@ -74,14 +77,43 @@
     "noMealsLogged": "Henüz öğün kaydedilmedi",
     "scanOrAddFirst": "Başlamak için ilk öğününü tara veya manuel ekle.",
     "scanned": "Tarandı",
-    "manual": "Manuel"
+    "manual": "Manuel",
+    "editMeal": "Öğünü Düzenle",
+    "cancel": "Vazgeç",
+    "save": "Kaydet"
   },
   "profile": {
     "title": "Profil",
     "subtitle": "Hesabını ve tercihlerini yönet",
     "personalInfo": "Kişisel Bilgiler",
     "dietaryPreferences": "Diyet Tercihleri",
-    "healthGoals": "Sağlık Hedefleri"
+    "height": "Boy (cm)",
+    "weight": "Kilo (kg)",
+    "heightPlaceholder": "örn. 175",
+    "weightPlaceholder": "örn. 72",
+    "conditions": "Rahatsızlık Tipi",
+    "save": "Kaydet",
+    "noSelection": "Seçim yok",
+    "dietaryPreferencesHint": "Uygun diyet tercihlerini seçebilirsin.",
+    "conditionsList": {
+      "none": "Yok",
+      "celiac": "Çölyak",
+      "diabetes": "Diyabet",
+      "cholesterol": "Kolestrol",
+      "hypertension": "Hipertansiyon",
+      "thyroid": "Tiroid",
+      "ibs": "IBS"
+    },
+    "dietList": {
+      "balanced": "Dengeli Beslenme",
+      "highProtein": "Yüksek Protein",
+      "lowCarb": "Düşük Karbonhidrat",
+      "keto": "Keto",
+      "vegetarian": "Vejetaryen",
+      "vegan": "Vegan",
+      "glutenFree": "Glütensiz",
+      "lowSodium": "Düşük Sodyum"
+    }
   },
   "settings": {
     "title": "Ayarlar",
@@ -98,7 +130,10 @@
     "on": "Açık",
     "off": "Kapalı",
     "english": "English",
-    "turkish": "Türkçe"
+    "turkish": "Türkçe",
+    "preferences": "Tercihler",
+    "languageSection": "Dil",
+    "about": "Hakkında"
   },
   "mealDescription": {
     "title": "Öğün Detayları",

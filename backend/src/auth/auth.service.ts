@@ -30,13 +30,13 @@ export class AuthService {
             name: dto.name,
         });
 
-        const payload = { sub: user._id, email: user.email };
+        const payload = { sub: user.id, email: user.email };
         const token = this.jwtService.sign(payload);
 
         return {
             access_token: token,
             user: {
-                id: user._id,
+                id: user.id,
                 email: user.email,
                 name: user.name,
             },
@@ -54,13 +54,13 @@ export class AuthService {
             throw new UnauthorizedException('Geçersiz e-posta veya şifre');
         }
 
-        const payload = { sub: user._id, email: user.email };
+        const payload = { sub: user.id, email: user.email };
         const token = this.jwtService.sign(payload);
 
         return {
             access_token: token,
             user: {
-                id: user._id,
+                id: user.id,
                 email: user.email,
                 name: user.name,
             },

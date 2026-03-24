@@ -19,7 +19,7 @@ export class UpdateMealDto {
     source?: string;
 
     @IsOptional()
-    @IsEnum(['breakfast', 'lunch', 'dinner', 'snack'])
+    @IsEnum(['breakfast', 'lunch', 'dinner', 'snack', 'midSnack'])
     mealType?: string;
 
     @IsOptional()

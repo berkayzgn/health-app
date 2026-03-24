@@ -1,11 +1,11 @@
 import { api } from './api';
 
 export interface MealResponse {
-    _id: string;
+    id: string;
     userId: string;
     name: string;
     source: 'scan' | 'manual';
-    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'midSnack';
     portion?: string;
     calories: number;
     protein: number;
@@ -29,7 +29,7 @@ export interface TodayMealsResponse {
 export interface CreateMealInput {
     name: string;
     source: 'scan' | 'manual';
-    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'midSnack';
     portion?: string;
     calories?: number;
     protein?: number;

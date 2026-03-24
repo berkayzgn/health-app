@@ -1,43 +1,52 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { Meal, MealDocument } from './schemas/meal.schema';
+import { Meal, Prisma } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateMealDto } from './dto/create-meal.dto';
 import { UpdateMealDto } from './dto/update-meal.dto';
 
 @Injectable()
 export class MealsService {
-    constructor(
-        @InjectModel(Meal.name) private mealModel: Model<MealDocument>,
-    ) { }
+    constructor(private readonly prisma: PrismaService) { }
 
-    async create(userId: string, dto: CreateMealDto): Promise<MealDocument> {
-        const meal = new this.mealModel({
-            ...dto,
-            userId: new Types.ObjectId(userId),
-            date: dto.date ? new Date(dto.date) : new Date(),
+    async create(userId: string, dto: CreateMealDto): Promise<Meal> {
+        return this.prisma.meal.create({
+            data: {
+                userId,
+                name: dto.name,
+                source: dto.source,
+                mealType: dto.mealType,
+                portion: dto.portion ?? null,
+                calories: dto.calories ?? 0,
+                protein: dto.protein ?? 0,
+                carbs: dto.carbs ?? 0,
+                fat: dto.fat ?? 0,
+                date: dto.date ? new Date(dto.date) : new Date(),
+            },
         });
-        return meal.save();
     }
 
     async findAllByUser(
         userId: string,
         dateFrom?: string,
         dateTo?: string,
-    ): Promise<MealDocument[]> {
-        const query: any = { userId: new Types.ObjectId(userId) };
+    ): Promise<Meal[]> {
+        const dateFilter: Prisma.DateTimeFilter = {};
+        if (dateFrom) dateFilter.gte = new Date(dateFrom);
+        if (dateTo) dateFilter.lte = new Date(dateTo);
 
-        if (dateFrom || dateTo) {
-            query.date = {};
-            if (dateFrom) query.date.$gte = new Date(dateFrom);
-            if (dateTo) query.date.$lte = new Date(dateTo);
-        }
-
-        return this.mealModel.find(query).sort({ date: -1 }).exec();
+        return this.prisma.meal.findMany({
+            where: {
+                userId,
+                ...(Object.keys(dateFilter).length > 0
+                    ? { date: dateFilter }
+                    : {}),
+            },
+            orderBy: { date: 'desc' },
+        });
     }
 
     async findTodayByUser(userId: string): Promise<{
-        meals: MealDocument[];
+        meals: Meal[];
         totals: { calories: number; protein: number; carbs: number; fat: number };
     }> {
         const today = new Date();
@@ -46,20 +55,20 @@ export class MealsService {
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        const meals = await this.mealModel
-            .find({
-                userId: new Types.ObjectId(userId),
-                date: { $gte: today, $lt: tomorrow },
-            })
-            .sort({ date: -1 })
-            .exec();
+        const meals = await this.prisma.meal.findMany({
+            where: {
+                userId,
+                date: { gte: today, lt: tomorrow },
+            },
+            orderBy: { date: 'desc' },
+        });
 
         const totals = meals.reduce(
             (acc, meal) => ({
-                calories: acc.calories + (meal.calories || 0),
-                protein: acc.protein + (meal.protein || 0),
-                carbs: acc.carbs + (meal.carbs || 0),
-                fat: acc.fat + (meal.fat || 0),
+                calories: acc.calories + meal.calories,
+                protein: acc.protein + meal.protein,
+                carbs: acc.carbs + meal.carbs,
+                fat: acc.fat + meal.fat,
             }),
             { calories: 0, protein: 0, carbs: 0, fat: 0 },
         );
@@ -67,10 +76,10 @@ export class MealsService {
         return { meals, totals };
     }
 
-    async findOne(id: string, userId: string): Promise<MealDocument> {
-        const meal = await this.mealModel
-            .findOne({ _id: id, userId: new Types.ObjectId(userId) })
-            .exec();
+    async findOne(id: string, userId: string): Promise<Meal> {
+        const meal = await this.prisma.meal.findFirst({
+            where: { id, userId },
+        });
 
         if (!meal) {
             throw new NotFoundException('Yemek bulunamadı');
@@ -83,28 +92,32 @@ export class MealsService {
         id: string,
         userId: string,
         dto: UpdateMealDto,
-    ): Promise<MealDocument> {
-        const meal = await this.mealModel
-            .findOneAndUpdate(
-                { _id: id, userId: new Types.ObjectId(userId) },
-                { $set: dto },
-                { new: true },
-            )
-            .exec();
+    ): Promise<Meal> {
+        await this.findOne(id, userId);
 
-        if (!meal) {
-            throw new NotFoundException('Yemek bulunamadı');
-        }
+        const data: Prisma.MealUpdateInput = {};
+        if (dto.name !== undefined) data.name = dto.name;
+        if (dto.source !== undefined) data.source = dto.source;
+        if (dto.mealType !== undefined) data.mealType = dto.mealType;
+        if (dto.portion !== undefined) data.portion = dto.portion;
+        if (dto.calories !== undefined) data.calories = dto.calories;
+        if (dto.protein !== undefined) data.protein = dto.protein;
+        if (dto.carbs !== undefined) data.carbs = dto.carbs;
+        if (dto.fat !== undefined) data.fat = dto.fat;
+        if (dto.date !== undefined) data.date = new Date(dto.date);
 
-        return meal;
+        return this.prisma.meal.update({
+            where: { id },
+            data,
+        });
     }
 
     async remove(id: string, userId: string): Promise<void> {
-        const result = await this.mealModel
-            .findOneAndDelete({ _id: id, userId: new Types.ObjectId(userId) })
-            .exec();
+        const result = await this.prisma.meal.deleteMany({
+            where: { id, userId },
+        });
 
-        if (!result) {
+        if (result.count === 0) {
             throw new NotFoundException('Yemek bulunamadı');
         }
     }

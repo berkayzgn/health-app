@@ -1,5 +1,5 @@
 import { View, Text, Pressable, ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import SafeAreaWrapper from "../components/SafeAreaWrapper";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,9 +15,6 @@ const macros = {
   carbs: { current: 0, goal: 200, color: "#f59e0b" },
   fat: { current: 0, goal: 65, color: "#a855f7" },
 };
-
-const todayMeals: { type: string; name: string; kcal: number; icon: string }[] =
-  [];
 
 function CalorieCard({ c }: { c: ReturnType<typeof getThemeColors> }) {
   const { t } = useTranslation();
@@ -93,10 +90,10 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
+    <SafeAreaWrapper style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
       <View style={{ borderBottomColor: c.border, backgroundColor: c.surface }} className="flex-row items-center justify-between px-4 py-3 border-b">
         <Pressable
-          onPress={() => router.replace("/profile")}
+          onPress={() => router.push("/profile")}
           className="w-10 h-10 items-center justify-center"
         >
           <Ionicons name="person-outline" size={24} color={c.accent} />
@@ -108,7 +105,7 @@ export default function HomeScreen() {
           </Text>
         </View>
         <Pressable
-          onPress={() => router.replace("/settings")}
+          onPress={() => router.push("/settings")}
           className="w-10 h-10 items-center justify-center"
         >
           <Ionicons name="settings-outline" size={24} color={c.accent} />
@@ -119,6 +116,7 @@ export default function HomeScreen() {
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
       >
         <CalorieCard c={c} />
 
@@ -153,62 +151,32 @@ export default function HomeScreen() {
         </View>
 
         <View className="px-4 mt-4">
-          <View className="flex-row justify-between items-center mb-3">
-            <Text style={{ color: c.text }} className="text-base font-bold">{t("home.todaysMeals")}</Text>
-            <Pressable onPress={() => router.replace("/history")}>
-              <Text style={{ color: c.accent }} className="text-sm font-medium">{t("common.viewAll")}</Text>
-            </Pressable>
-          </View>
-
-          {todayMeals.length === 0 ? (
-            <View style={{ backgroundColor: c.surface }} className="rounded-xl p-6 items-center">
-              <View
-                className="w-14 h-14 rounded-full items-center justify-center mb-3"
-                style={{ backgroundColor: c.accentMuted }}
-              >
-                <Ionicons name="restaurant-outline" size={28} color={c.accent} />
-              </View>
-              <Text style={{ color: c.textSecondary }} className="font-medium mb-1 text-center">
-                {t("home.noMealsYet")}
-              </Text>
-              <Text style={{ color: c.textMuted }} className="text-sm text-center">
-                {t("home.scanOrAddFirst")}
+          <Text style={{ color: c.text }} className="text-base font-bold mb-3">{t("home.todaysMeals")}</Text>
+          <Pressable
+            onPress={() => router.push("/history")}
+            style={{ backgroundColor: c.surface }}
+            className="rounded-xl p-4 flex-row items-center mb-3 shadow-sm active:opacity-90"
+          >
+            <View
+              className="w-12 h-12 rounded-xl items-center justify-center mr-4"
+              style={{ backgroundColor: c.accentMuted }}
+            >
+              <Ionicons name="restaurant-outline" size={24} color={c.accent} />
+            </View>
+            <View className="flex-1">
+              <Text style={{ color: c.text }} className="font-semibold">{t("home.todaysMeals")}</Text>
+              <Text style={{ color: c.textMuted }} className="text-sm">
+                {t("common.viewAll")}
               </Text>
             </View>
-          ) : (
-            <View>
-              {todayMeals.map((meal, i) => (
-                <View
-                  key={i}
-                  style={{ backgroundColor: c.surface }}
-                  className="rounded-xl p-3 flex-row items-center justify-between mb-3"
-                >
-                  <View className="flex-row items-center flex-1 mr-2">
-                    <View
-                      className="p-2 rounded-lg mr-3"
-                      style={{ backgroundColor: c.accentMuted }}
-                    >
-                      <Ionicons name={meal.icon as any} size={20} color={c.accent} />
-                    </View>
-                    <View className="flex-1">
-                      <Text style={{ color: c.text }} className="font-medium text-sm">{meal.type}</Text>
-                      <Text style={{ color: c.textMuted }} className="text-xs">{meal.name}</Text>
-                    </View>
-                  </View>
-                  <View className="items-end">
-                    <Text style={{ color: c.text }} className="font-bold text-sm">{meal.kcal}</Text>
-                    <Text style={{ color: c.textMuted }} className="text-xs">kcal</Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+            <Ionicons name="chevron-forward" size={20} color={c.iconSecondary} />
+          </Pressable>
         </View>
 
-        <View className="px-4 mt-6">
+        <View className="px-4 mt-2">
           <Text style={{ color: c.text }} className="text-base font-bold mb-3">{t("home.quickActions")}</Text>
           <Pressable
-            onPress={() => router.replace("/scan")}
+            onPress={() => router.push("/scan")}
             style={{ backgroundColor: c.surface }}
             className="rounded-xl p-4 flex-row items-center mb-3 shadow-sm active:opacity-90"
           >
@@ -228,7 +196,7 @@ export default function HomeScreen() {
           </Pressable>
 
           <Pressable
-            onPress={() => router.replace("/history")}
+            onPress={() => router.push("/history")}
             style={{ backgroundColor: c.surface }}
             className="rounded-xl p-4 flex-row items-center shadow-sm active:opacity-90"
           >
@@ -248,6 +216,6 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }

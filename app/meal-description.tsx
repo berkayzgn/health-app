@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, Pressable } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import SafeAreaWrapper from "../components/SafeAreaWrapper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,7 +20,7 @@ export default function MealDescriptionScreen() {
   const isFromScan = source === "scan";
 
   return (
-    <SafeAreaView style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
+    <SafeAreaWrapper style={{ backgroundColor: c.background }} className="flex-1" edges={["top"]}>
       <View style={{ borderBottomColor: c.border, backgroundColor: c.surface }} className="flex-row items-center px-4 py-3 border-b">
         <Pressable
           onPress={() => router.back()}
@@ -109,6 +109,6 @@ export default function MealDescriptionScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }

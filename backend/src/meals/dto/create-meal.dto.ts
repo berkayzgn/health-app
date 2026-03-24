@@ -16,7 +16,7 @@ export class CreateMealDto {
     @IsEnum(['scan', 'manual'])
     source: string;
 
-    @IsEnum(['breakfast', 'lunch', 'dinner', 'snack'])
+    @IsEnum(['breakfast', 'lunch', 'dinner', 'snack', 'midSnack'])
     mealType: string;
 
     @IsOptional()
