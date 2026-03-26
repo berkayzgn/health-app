@@ -7,20 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/** Kullanıcıya özel (hesap, hedefler, ölçüler). Hastalık/diyet katalogları ayrı tablolarda. */
 model User {
-  id                 String   @id @default(uuid())
-  email              String   @unique
-  password           String
-  name               String
-  dailyCalorieGoal   Int      @default(2000)
-  macroGoals         Json     @default("{\"protein\":120,\"carbs\":200,\"fat\":65}")
-  heightCm           String   @default("")
-  weightKg           String   @default("")
-  conditionTypes     String[] @default([])
-  dietaryPreferences String[] @default([])
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  meals              Meal[]
+  id               String   @id @default(uuid())
+  email            String   @unique
+  password         String
+  name             String
+  dailyCalorieGoal Int      @default(2000)
+  macroGoals       Json     @default("{\"protein\":120,\"carbs\":200,\"fat\":65}")
+  heightCm         String   @default("")
+  weightKg         String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  meals               Meal[]
+  medicalConditions   UserMedicalCondition[]
+  customHealthTags    UserCustomHealthTag[]
+  dietPreferences     UserDietPreference[]
+  dietMacroTemplateId String?
+  dietMacroTemplate   DietMacroTemplate? @relation(fields: [dietMacroTemplateId], references: [id], onDelete: SetNull)
 
   @@map("users")
 }
@@ -44,4 +49,81 @@ model Meal {
   @@index([userId])
   @@index([userId, date])
   @@map("meals")
+}
+
+/** Sabit hastalık / sağlık koşulları (katalog). */
+model MedicalCondition {
+  id        String                 @id @default(uuid())
+  code      String                 @unique
+  sortOrder Int                    @default(0)
+  users     UserMedicalCondition[]
+
+  @@map("medical_conditions")
+}
+
+/** Sabit diyet / beslenme tercihleri (katalog). */
+model DietType {
+  id        String               @id @default(uuid())
+  code      String               @unique
+  sortOrder Int                  @default(0)
+  users     UserDietPreference[]
+
+  @@map("diet_types")
+}
+
+/**
+ * Makro dağılım şablonları (yüksek protein, düşük karbonhidrat vb.).
+ * `diet_types` ile karıştırma: orası kısıtlama/tercih etiketleri; burası kalori/makro hedefi.
+ */
+model DietMacroTemplate {
+  id                String   @id @default(uuid())
+  code              String   @unique
+  sortOrder         Int      @default(0)
+  /** Şablondaki gram/kcal hesaplarının referans aldığı günlük kalori (ör. 2000). */
+  referenceCalories Int      @default(2000)
+  /** { "en": "...", "tr": "..." } */
+  displayNames      Json
+  /**
+   * { "protein"|"carbohydrate"|"fat": { percentage, grams, calories, kcal_per_gram } }
+   * Yüzde ve gram değerleri referenceCalories ile tutarlı tutulmalıdır.
+   */
+  macros            Json
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  users             User[]
+
+  @@map("diet_macro_templates")
+}
+
+/** Kullanıcı ↔ katalog hastalık (çok-çok, satır başı bir koşul). */
+model UserMedicalCondition {
+  userId      String
+  conditionId String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  condition   MedicalCondition @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, conditionId])
+  @@map("user_medical_conditions")
+}
+
+/** Katalogda olmayan serbest etiketler (eski other:… ile uyumlu). */
+model UserCustomHealthTag {
+  id     String @id @default(uuid())
+  userId String
+  label  String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, label])
+  @@map("user_custom_health_tags")
+}
+
+/** Kullanıcı ↔ diyet tercihi. */
+model UserDietPreference {
+  userId     String
+  dietTypeId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dietType   DietType @relation(fields: [dietTypeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, dietTypeId])
+  @@map("user_diet_preferences")
 }

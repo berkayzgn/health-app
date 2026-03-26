@@ -3,6 +3,8 @@ import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import AmbientCircles from "./AmbientCircles";
+import NavIconButton from "./NavIconButton";
 
 const ICON = "#3a4a00";
 
@@ -17,13 +19,17 @@ type InnerProps = {
 
 export type AppHeaderProps = HomeProps | InnerProps;
 
-function HeaderShell({ children }: { children: ReactNode }) {
+function HeaderShell({
+  children,
+  ambientInstanceId = 0,
+}: {
+  children: ReactNode;
+  /** Ana sayfa (0) ile iç sayfa (1) başlıklarında farklı daire düzeni. */
+  ambientInstanceId?: number;
+}) {
   return (
-    <View className="relative overflow-hidden bg-primary-fixed rounded-b-card border-b border-on-primary-fixed/15">
-      <View
-        className="absolute -right-14 -top-10 h-36 w-36 rounded-full bg-on-primary-fixed/10"
-        pointerEvents="none"
-      />
+    <View className="relative overflow-hidden bg-primary-fixed border-b border-on-primary-fixed/15">
+      <AmbientCircles preset="header" instanceId={ambientInstanceId} />
       <View className="relative z-10">{children}</View>
     </View>
   );
@@ -35,7 +41,7 @@ export default function AppHeader(props: AppHeaderProps) {
 
   if (props.variant === "home") {
     return (
-      <HeaderShell>
+      <HeaderShell ambientInstanceId={0}>
         <View className="px-5 pt-2 pb-3">
           <View className="relative min-h-[44px] w-full max-w-7xl self-center justify-center">
             <View className="absolute left-0 top-0 bottom-0 justify-center z-10">
@@ -85,19 +91,17 @@ export default function AppHeader(props: AppHeaderProps) {
   };
 
   return (
-    <HeaderShell>
+    <HeaderShell ambientInstanceId={1}>
       <View className="px-5 pt-2 pb-3">
         <View className="relative min-h-[44px] w-full max-w-7xl self-center justify-center">
-          <View className="absolute left-0 top-0 bottom-0 justify-center z-10">
-            <Pressable
+          <View className="absolute left-0 top-0 bottom-0 justify-center z-10 -ml-1">
+            <NavIconButton
+              variant="header"
+              icon="arrow-left"
               onPress={handleBack}
-              hitSlop={8}
-              accessibilityRole="button"
               accessibilityLabel={t("layout.back")}
-              className="p-2 -ml-2 rounded-full active:bg-on-primary-fixed/15"
-            >
-              <MaterialCommunityIcons name="arrow-left" size={24} color={ICON} />
-            </Pressable>
+              iconSize={24}
+            />
           </View>
           <Text
             className="text-on-primary-fixed font-headline text-xl tracking-tight text-center px-14"

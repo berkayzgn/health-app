@@ -5,32 +5,74 @@
     "scheme": "health-ai-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/appstore.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/appstore.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.berkayzgn.health-ai-app"
+      "bundleIdentifier": "com.berkayzgn.health-ai-app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Luminous Health uses the camera to take photos of your meals and nutrition labels.",
+        "NSPhotoLibraryUsageDescription": "Luminous Health needs access to your photo library so you can choose meal photos and label images from your gallery.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true,
+          "NSAllowsArbitraryLoads": true
+        },
+        "NSLocalNetworkUsageDescription": "Luminous Health connects to your computer on the local network to sync your account and nutrition data during development.",
+        "NSMicrophoneUsageDescription": "Luminous Health uses the microphone only when you record video with the camera."
+      }
+    },
+    "locales": {
+      "en": {
+        "NSCameraUsageDescription": "Luminous Health uses the camera to take photos of your meals and nutrition labels.",
+        "NSPhotoLibraryUsageDescription": "Luminous Health needs access to your photo library so you can choose meal photos and label images from your gallery.",
+        "NSLocalNetworkUsageDescription": "Luminous Health connects to your computer on the local network to sync your account and nutrition data during development.",
+        "NSMicrophoneUsageDescription": "Luminous Health uses the microphone only when you record video with the camera."
+      },
+      "tr": {
+        "NSCameraUsageDescription": "Luminous Health, öğün ve beslenme etiketi fotoğrafları çekmek için kamerayı kullanır.",
+        "NSPhotoLibraryUsageDescription": "Luminous Health, galeriden öğün veya etiket görseli seçebilmen için fotoğraflarına erişir.",
+        "NSLocalNetworkUsageDescription": "Luminous Health, geliştirme sırasında hesap ve beslenme verilerinizi eşitlemek için bilgisayarınıza yerel ağ üzerinden bağlanır.",
+        "NSMicrophoneUsageDescription": "Luminous Health, kamerayla video kaydı sırasında yalnızca mikrofonu kullanır."
+      }
     },
     "android": {
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/appstore.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/appstore.png",
       "bundler": "metro"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/appstore.png",
+          "color": "#4e6300",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Luminous Health uses the camera to take photos of your meals and nutrition labels.",
+          "photosPermission": "Luminous Health needs access to your photos so you can choose meal photos and label images from your gallery.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

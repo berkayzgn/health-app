@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Switch,
   Platform,
+  Modal,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
@@ -30,6 +31,7 @@ import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SafeAreaWrapper from "../../components/SafeAreaWrapper";
 import AppHeader from "../../components/AppHeader";
+import NavIconButton from "../../components/NavIconButton";
 import { useStore } from "../../store/useStore";
 import * as authService from "../../services/authService";
 import { setStoredLanguage } from "../../i18n";
@@ -182,6 +184,196 @@ function SettingsRow({
   );
 }
 
+function LanguageBottomSheet({
+  visible,
+  currentLang,
+  onClose,
+  onSelectLang,
+}: {
+  visible: boolean;
+  currentLang: "en" | "tr";
+  onClose: () => void;
+  onSelectLang: (lang: "en" | "tr") => void | Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 justify-end">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("common.cancel")}
+          onPress={onClose}
+          className="absolute inset-0"
+          style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+        />
+        <View
+          className="rounded-t-[1.25rem] border border-b-0 border-surface-container bg-surface-container-lowest px-5 pt-3"
+          style={{ paddingBottom: Math.max(insets.bottom, 20) }}
+        >
+          <View className="flex-row items-center">
+            <View className="h-10 w-10" />
+            <View className="flex-1 items-center">
+              <View className="h-1 w-10 rounded-full bg-outline-variant" />
+            </View>
+            <NavIconButton
+              variant="surface"
+              icon="close"
+              onPress={onClose}
+              accessibilityLabel={t("settings.languageSheetClose")}
+              iconSize={22}
+            />
+          </View>
+          <Text
+            className="mt-4 text-on-surface text-lg leading-6"
+            style={{ fontFamily: "Manrope_700Bold" }}
+          >
+            {t("settings.languageSheetTitle")}
+          </Text>
+          <Text
+            className="mt-1 text-[13px] leading-5 text-on-surface-variant"
+            style={{ fontFamily: "Inter_400Regular" }}
+          >
+            {t("settings.languageSheetHint")}
+          </Text>
+
+          <View className="mt-5 overflow-hidden rounded-xl border border-surface-container">
+            <Pressable
+              onPress={() => void onSelectLang("tr")}
+              className={`flex-row items-center border-b border-surface-container px-4 py-3.5 active:bg-surface-container-low/80 ${
+                currentLang === "tr" ? "bg-primary-container/20" : "bg-surface-container-lowest"
+              }`}
+            >
+              <MaterialCommunityIcons
+                name={currentLang === "tr" ? "radiobox-marked" : "radiobox-blank"}
+                size={22}
+                color={currentLang === "tr" ? "#4e6300" : "#acadad"}
+              />
+              <Text
+                className="ml-3 flex-1 text-on-surface text-[15px]"
+                style={{ fontFamily: "Inter_600SemiBold" }}
+              >
+                {t("settings.languageValueTr")}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => void onSelectLang("en")}
+              className={`flex-row items-center px-4 py-3.5 active:bg-surface-container-low/80 ${
+                currentLang === "en" ? "bg-primary-container/20" : "bg-surface-container-lowest"
+              }`}
+            >
+              <MaterialCommunityIcons
+                name={currentLang === "en" ? "radiobox-marked" : "radiobox-blank"}
+                size={22}
+                color={currentLang === "en" ? "#4e6300" : "#acadad"}
+              />
+              <Text
+                className="ml-3 flex-1 text-on-surface text-[15px]"
+                style={{ fontFamily: "Inter_600SemiBold" }}
+              >
+                {t("settings.languageValueEn")}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function DeleteAccountBottomSheet({
+  visible,
+  onClose,
+  onContactSupport,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onContactSupport: () => void;
+}) {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 justify-end">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("common.cancel")}
+          onPress={onClose}
+          className="absolute inset-0"
+          style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+        />
+        <View
+          className="rounded-t-[1.25rem] border border-b-0 border-surface-container bg-surface-container-lowest px-5 pt-2"
+          style={{ paddingBottom: Math.max(insets.bottom, 20) }}
+        >
+          <View className="mb-4 h-1 w-10 self-center rounded-full bg-outline-variant" />
+          <Text
+            className="text-on-surface text-lg leading-6"
+            style={{ fontFamily: "Manrope_700Bold" }}
+          >
+            {t("settings.deleteTitle")}
+          </Text>
+          <Text
+            className="mt-2 text-[15px] leading-[22px] text-on-surface-variant"
+            style={{ fontFamily: "Inter_400Regular" }}
+          >
+            {t("settings.deleteMessage")}
+          </Text>
+          <Text
+            className="mt-3 text-[11px] leading-4 text-outline"
+            style={{ fontFamily: "Inter_500Medium" }}
+          >
+            {t("settings.deleteDisclaimer")}
+          </Text>
+
+          <View className="mt-6 overflow-hidden rounded-xl border border-surface-container">
+            <Pressable
+              onPress={() => {
+                onClose();
+                onContactSupport();
+              }}
+              className="flex-row items-center justify-center border-b border-surface-container bg-surface-container-lowest py-3.5 active:bg-surface-container-low/80"
+            >
+              <MaterialCommunityIcons name="message-outline" size={20} color="#4e6300" />
+              <Text
+                className="ml-2 text-on-surface text-[15px]"
+                style={{ fontFamily: "Inter_600SemiBold" }}
+              >
+                {t("settings.deleteSheetSupport")}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={onClose}
+              className="items-center justify-center bg-surface-container-lowest py-3.5 active:bg-surface-container-low/80"
+            >
+              <Text
+                className="text-on-surface-variant text-[15px]"
+                style={{ fontFamily: "Inter_600SemiBold" }}
+              >
+                {t("common.cancel")}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -192,6 +384,8 @@ export default function SettingsScreen() {
   const setTheme = useStore((s) => s.setTheme);
   const [signingOut, setSigningOut] = useState(false);
   const [notificationsOn, setNotificationsOn] = useState(true);
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false);
+  const [languageSheetVisible, setLanguageSheetVisible] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Manrope_700Bold,
@@ -224,10 +418,10 @@ export default function SettingsScreen() {
     }
   };
 
-  const toggleLanguage = async () => {
-    const next = i18n.language?.startsWith("tr") ? "en" : "tr";
-    await i18n.changeLanguage(next);
-    await setStoredLanguage(next);
+  const applyLanguage = async (lang: "en" | "tr") => {
+    await i18n.changeLanguage(lang);
+    await setStoredLanguage(lang);
+    setLanguageSheetVisible(false);
   };
 
   const setNotifications = async (next: boolean) => {
@@ -239,12 +433,10 @@ export default function SettingsScreen() {
     ? t("settings.languageValueTr")
     : t("settings.languageValueEn");
 
+  const languageCode: "en" | "tr" = i18n.language?.startsWith("tr") ? "tr" : "en";
+
   const themeSubtitle =
     theme === "dark" ? t("settings.themeValueDark") : t("settings.themeValueLight");
-
-  const deleteAccount = () => {
-    Alert.alert(t("settings.deleteTitle"), t("settings.deleteMessage"));
-  };
 
   if (!fontsLoaded) {
     return <View className="flex-1 bg-surface" />;
@@ -257,18 +449,21 @@ export default function SettingsScreen() {
 
   return (
     <View className="flex-1 bg-surface">
+      <LanguageBottomSheet
+        visible={languageSheetVisible}
+        currentLang={languageCode}
+        onClose={() => setLanguageSheetVisible(false)}
+        onSelectLang={applyLanguage}
+      />
+      <DeleteAccountBottomSheet
+        visible={deleteSheetVisible}
+        onClose={() => setDeleteSheetVisible(false)}
+        onContactSupport={comingSoon}
+      />
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
       <SafeAreaWrapper className="flex-1 bg-surface" edges={["top"]}>
         <View className="flex-1">
-          <AppHeader
-            variant="inner"
-            title={t("settings.title")}
-            right={
-              <Pressable onPress={comingSoon} hitSlop={8} className="p-2 -mr-2 rounded-full active:bg-on-primary-fixed/15">
-                <MaterialCommunityIcons name="dots-vertical" size={20} color="#3a4a00" />
-              </Pressable>
-            }
-          />
+          <AppHeader variant="inner" title={t("settings.title")} />
 
           <ScrollView
             className="flex-1"
@@ -316,7 +511,7 @@ export default function SettingsScreen() {
                   icon="translate"
                   title={t("settings.language")}
                   subtitle={languageSubtitle}
-                  onPress={toggleLanguage}
+                  onPress={() => setLanguageSheetVisible(true)}
                 />
               </SettingsSection>
 
@@ -375,7 +570,7 @@ export default function SettingsScreen() {
                 </Pressable>
 
                 <View className="items-center gap-1.5 px-1">
-                  <Pressable onPress={deleteAccount}>
+                  <Pressable onPress={() => setDeleteSheetVisible(true)}>
                     <Text className="text-outline text-xs font-label uppercase tracking-widest active:text-error">
                       {t("settings.deleteAccount")}
                     </Text>

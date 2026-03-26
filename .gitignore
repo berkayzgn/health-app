@@ -30,8 +30,10 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files (EXPO_PUBLIC_* — makine IP’si)
+.env
 .env*.local
+backend/.env
 
 # typescript
 *.tsbuildinfo

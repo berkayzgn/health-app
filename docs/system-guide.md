@@ -72,7 +72,7 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 
 Root seviyede `docker-compose.yml` ile tek ağ (`healthai`):
 
-- `postgres` — iç hostname: `postgres`, dış port `5432`
+- `postgres` — iç hostname: `postgres`, konteyner içi `5432`; Mac’te host’tan erişim için `localhost:5433` (compose `5433:5432`)
 - `pgadmin` — `http://localhost:5050`; DB’ye bağlanırken Host **`postgres`** (localhost değil)
 - `backend` — `DATABASE_URL` içinde host `postgres`
 
@@ -90,7 +90,7 @@ Komutlar:
 
 ### Backend `.env`
 
-- `DATABASE_URL` (PostgreSQL; örn. `postgresql://healthai:healthai@localhost:5432/healthai?schema=public`)
+- `DATABASE_URL` (PostgreSQL; örn. `postgresql://healthai:healthai@localhost:5433/healthai?schema=public`)
 - `JWT_SECRET`
 - `JWT_EXPIRATION`
 - `PORT`

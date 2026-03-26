@@ -46,7 +46,7 @@ backend/
 ### Akış Diyagramı
 
 ```
-[Mobile App]  ──HTTP──▶  [NestJS Backend :3000]  ──Prisma──▶  [PostgreSQL :5432]
+[Mobile App]  ──HTTP──▶  [NestJS Backend :3000]  ──Prisma──▶  [PostgreSQL Docker: host :5433]
                               │
                          ┌────┴────┐
                      Auth Module  Meals Module
@@ -60,7 +60,7 @@ backend/
 ### Gereksinimler
 
 - **Node.js** ≥ 18
-- **PostgreSQL** (local veya Docker; `docker-compose` ile `5432`)
+- **PostgreSQL** (Docker `docker-compose`: Mac’te `localhost:5433` → konteyner `5432`)
 - **npm**
 
 ### Adımlar
@@ -89,7 +89,7 @@ npm run start:prod
 
 | Değişken | Açıklama | Varsayılan |
 |----------|----------|------------|
-| `DATABASE_URL` | PostgreSQL bağlantı URI'si (Prisma) | `postgresql://healthai:healthai@localhost:5432/healthai?schema=public` |
+| `DATABASE_URL` | PostgreSQL bağlantı URI'si (Prisma) | `postgresql://healthai:healthai@localhost:5433/healthai?schema=public` |
 | `JWT_SECRET` | JWT imzalama anahtarı | — (üretimde güçlü bir key kullanın) |
 | `JWT_EXPIRATION` | Token geçerlilik süresi | `7d` |
 | `PORT` | Sunucu portu | `3000` |
@@ -234,6 +234,8 @@ DELETE /meals/:id
 ## Veritabanı Şemaları
 
 ### User
+Kullanıcıya özel alanlar; hastalık/diyet **katalog tabloları** + **ilişki tabloları** ile tutulur (users üzerinde dizi kolonu yok).
+
 | Alan | Tip | Açıklama |
 |------|-----|----------|
 | `id` | UUID (PK) | Kullanıcı kimliği |
@@ -242,7 +244,14 @@ DELETE /meals/:id
 | `name` | String | Kullanıcı adı |
 | `dailyCalorieGoal` | Number | Günlük kalori hedefi (default: 2000) |
 | `macroGoals` | Object | `{ protein, carbs, fat }` gram cinsinden hedefler |
+| `heightCm` / `weightKg` | String | Boy / kilo (metrik giriş) |
 | `createdAt / updatedAt` | Date | Otomatik zaman damgaları |
+
+**Katalog:** `medical_conditions` (`code`: diabetes, hypertension, asthma), `diet_types` (`code`: gluten_free, keto, lactose_intolerant, vegan).
+
+**İlişkiler:** `user_medical_conditions`, `user_diet_preferences`, serbest etiketler `user_custom_health_tags` (`label`; mobilde `other:…` ile uyumlu).
+
+**API:** `GET/PATCH /users/me` yanıtında hâlâ `conditionTypes[]` ve `dietaryPreferences[]` (birleştirilmiş string kodlar) döner; PATCH gövdesi aynı formatta kalır.
 
 ### Meal
 | Alan | Tip | Açıklama |

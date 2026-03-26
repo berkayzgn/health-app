@@ -53,7 +53,7 @@ Servisler:
 | Servis | Port / URL | Not |
 |--------|------------|-----|
 | **Backend (Nest)** | `http://localhost:3000` | `DATABASE_URL` → `postgres:5432` |
-| **PostgreSQL** | `localhost:5432` | kullanıcı / şifre / DB: `healthai` |
+| **PostgreSQL** | `localhost:5433` (Docker; host port) | kullanıcı / şifre / DB: `healthai` |
 | **pgAdmin** | `http://localhost:5050` | Giriş: `admin@example.com` / `admin123` |
 
 **pgAdmin:** Sunucuyu arayüzden bir kez ekle — **Host `postgres`**, port `5432`, veritabanı / kullanıcı / şifre `healthai`. (`localhost` yazma.) Adımlar: `docker/pgadmin/README.md`.

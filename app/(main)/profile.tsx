@@ -127,12 +127,6 @@ export default function ProfileScreen() {
 
                 <View className={`min-w-0 flex-1 ${isWide ? "items-start" : "items-center"}`}>
                   <Text
-                    className="mb-2 font-label text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
-                    style={{ fontFamily: "Inter_600SemiBold" }}
-                  >
-                    {t("profile.memberBadge")}
-                  </Text>
-                  <Text
                     className="text-on-surface"
                     style={{
                       fontFamily: "Manrope_800ExtraBold",
@@ -168,28 +162,30 @@ export default function ProfileScreen() {
                 </Text>
                 <MaterialCommunityIcons name="shield-check" size={24} color="#767777" />
               </View>
-              <View className="flex-row gap-2">
-                <View className="flex-1 bg-surface-container-lowest p-5 rounded-[0.75rem] min-w-0">
-                  <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-1">
-                    {t("profile.heightLabel")}
-                  </Text>
-                  <Text className="text-xl font-headline text-on-surface" numberOfLines={1}>
-                    {heightDisplay}
-                  </Text>
+              <View className="gap-3">
+                <View className="flex-row gap-2">
+                  <View className="flex-1 bg-surface-container-lowest p-5 rounded-[0.75rem] min-w-0">
+                    <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-1">
+                      {t("profile.heightLabel")}
+                    </Text>
+                    <Text className="text-xl font-headline text-on-surface" numberOfLines={1}>
+                      {heightDisplay}
+                    </Text>
+                  </View>
+                  <View className="flex-1 bg-surface-container-lowest p-5 rounded-[0.75rem] min-w-0">
+                    <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-1">
+                      {t("profile.weightLabel")}
+                    </Text>
+                    <Text className="text-xl font-headline text-on-surface" numberOfLines={1}>
+                      {weightDisplay}
+                    </Text>
+                  </View>
                 </View>
-                <View className="flex-1 bg-surface-container-lowest p-5 rounded-[0.75rem] min-w-0">
-                  <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-1">
-                    {t("profile.weightLabel")}
-                  </Text>
-                  <Text className="text-xl font-headline text-on-surface" numberOfLines={1}>
-                    {weightDisplay}
-                  </Text>
-                </View>
-                <View className="flex-1 bg-surface-container-lowest p-5 rounded-[0.75rem] min-w-0">
-                  <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-1">
+                <View className="w-full bg-surface-container-lowest p-5 rounded-[0.75rem]">
+                  <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-2">
                     {t("profile.diseaseType")}
                   </Text>
-                  <Text className="text-xl font-headline text-on-surface" numberOfLines={3}>
+                  <Text className="text-xl font-headline text-on-surface leading-7">
                     {diseaseDisplay}
                   </Text>
                 </View>

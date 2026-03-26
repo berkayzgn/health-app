@@ -26,6 +26,7 @@ import { useTranslation } from "react-i18next";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import SafeAreaWrapper from "../components/SafeAreaWrapper";
+import AmbientCircles from "../components/AmbientCircles";
 import { useStore } from "../store/useStore";
 import * as authService from "../services/authService";
 import { DARK_RGB, LIGHT_RGB, rgbTripletToHex } from "../theme/designRgb";
@@ -106,18 +107,10 @@ export default function AuthScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
-        <View className="flex-1">
-          {/* Ambient blobs */}
-          <View
-            className="absolute left-4 top-16 h-64 w-64 rounded-full bg-primary-container/25"
-            pointerEvents="none"
-          />
-          <View
-            className="absolute bottom-32 right-2 h-96 w-96 rounded-full bg-secondary-container/15"
-            pointerEvents="none"
-          />
+        <View className="relative flex-1 overflow-hidden">
+          <AmbientCircles preset="auth" instanceId={0} />
 
-          <View className="flex-1">
+          <View className="relative z-10 flex-1">
             {/* Header */}
             <View className="mx-auto w-full max-w-7xl flex-row items-center justify-between px-6 py-6">
               <Text

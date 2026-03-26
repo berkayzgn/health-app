@@ -37,15 +37,21 @@ i18n.use(initReactI18next).init({
   },
 });
 
-export const loadStoredLanguage = async () => {
+export const loadStoredLanguage = async (opts?: { isActive?: () => boolean }) => {
+  const alive = () => opts?.isActive?.() !== false;
+
   const stored = await getStoredLanguage();
+  if (!alive()) return;
+
   if (stored && (stored === "en" || stored === "tr")) {
     await i18n.changeLanguage(stored);
-  } else {
-    const deviceLocale = Localization.getLocales()[0]?.languageCode ?? "en";
-    const lang = deviceLocale.startsWith("tr") ? "tr" : "en";
-    await i18n.changeLanguage(lang);
+    return;
   }
+
+  if (!alive()) return;
+  const deviceLocale = Localization.getLocales()[0]?.languageCode ?? "en";
+  const lang = deviceLocale.startsWith("tr") ? "tr" : "en";
+  await i18n.changeLanguage(lang);
 };
 
 export default i18n;

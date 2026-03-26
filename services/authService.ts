@@ -13,6 +13,8 @@ export interface ProfileResponse {
     id: string;
     email: string;
     name: string;
+    dailyCalorieGoal?: number;
+    macroGoals?: { protein: number; carbs: number; fat: number };
     heightCm?: string;
     weightKg?: string;
     conditionTypes?: string[];

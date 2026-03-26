@@ -14,8 +14,9 @@ services:
       POSTGRES_USER: healthai
       POSTGRES_PASSWORD: healthai
       POSTGRES_DB: healthai
+    # Mac’te yerel PostgreSQL 5432’yi kullanıyorsa çakışma olur; host 5433 → konteyner 5432
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -57,11 +58,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # JWT / PORT: backend/.env — konteyner içi DB adresi aşağıda override (localhost .env’de kalır)
+    env_file:
+      - ./backend/.env
     environment:
       PORT: 3000
       DATABASE_URL: postgresql://healthai:healthai@postgres:5432/healthai?schema=public
-      JWT_SECRET: health-ai-app-jwt-secret-change-in-production
-      JWT_EXPIRATION: 7d
     ports:
       - "3000:3000"
 

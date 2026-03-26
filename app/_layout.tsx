@@ -1,6 +1,6 @@
 import "react-native-gesture-handler";
-import { useEffect, useRef } from "react";
-import { ActivityIndicator, InteractionManager, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 import "../global.css";
 import * as SplashScreen from "expo-splash-screen";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -29,16 +29,49 @@ function RootLayoutContent() {
   const userProfile = useStore((s) => s.userProfile);
   const router = useRouter();
   const segments = useSegments();
-  const pendingNav = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(null);
+  const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notificationsSetupRef = useRef(false);
+  /**
+   * authLoading biter bitmez router.replace bazen Stack henüz mount olmadan çalışıyor (React 19:
+   * "state update on component that hasn't mounted yet"). Bir kare bekleyip sonra yönlendir.
+   */
+  const [stackReadyForNav, setStackReadyForNav] = useState(false);
 
   useEffect(() => {
-    loadStoredLanguage();
+    let active = true;
+    const timer = setTimeout(() => {
+      void loadStoredLanguage({ isActive: () => active });
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
-    loadStoredTheme();
-    loadStoredAuth();
+    let active = true;
+    const timer = setTimeout(() => {
+      if (!active) return;
+      void loadStoredTheme();
+      void loadStoredAuth();
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, []);
+
+  /** Bildirim izni + Android kanalı; dil yüklendikten sonra, yalnızca oturum açıkken bir kez. */
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
+    if (notificationsSetupRef.current) return;
+    notificationsSetupRef.current = true;
+    void (async () => {
+      await loadStoredLanguage();
+      const { ensureNotificationSetup } = await import("../services/notifications");
+      await ensureNotificationSetup();
+    })();
+  }, [authLoading, isAuthenticated]);
 
   /** Native splash: auth bittikten sonra açık kaldıysa kapat (simülatörde “takılı” hissi). */
   useEffect(() => {
@@ -46,15 +79,28 @@ function RootLayoutContent() {
     SplashScreen.hideAsync().catch(() => {});
   }, [authLoading]);
 
-  /**
-   * Auth yönlendirmesi: NavigationContainer + ilk layout hazır olsun diye InteractionManager ile geciktiriyoruz.
-   * Aksi halde `router.replace` bazen ilk karede sessizce etkisiz kalabiliyor (boş ekran).
-   */
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading) {
+      setStackReadyForNav(false);
+      return;
+    }
+    const raf = requestAnimationFrame(() => {
+      setStackReadyForNav(true);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [authLoading]);
 
-    pendingNav.current?.cancel?.();
-    pendingNav.current = InteractionManager.runAfterInteractions(() => {
+  /** Auth yönlendirmesi: Stack commit edildikten sonra (stackReadyForNav + microtask). */
+  useEffect(() => {
+    if (authLoading || !stackReadyForNav) return;
+
+    if (navTimeoutRef.current != null) {
+      clearTimeout(navTimeoutRef.current);
+      navTimeoutRef.current = null;
+    }
+
+    navTimeoutRef.current = setTimeout(() => {
+      navTimeoutRef.current = null;
       if (__DEV__) {
         const seg = [...segments];
         console.log("[boot] auth hazır → segment:", seg, "giriş:", isAuthenticated);
@@ -81,12 +127,15 @@ function RootLayoutContent() {
       if (!needsOnboarding && onOnboarding) {
         router.replace("/");
       }
-    });
+    }, 0);
 
     return () => {
-      pendingNav.current?.cancel?.();
+      if (navTimeoutRef.current != null) {
+        clearTimeout(navTimeoutRef.current);
+        navTimeoutRef.current = null;
+      }
     };
-  }, [isAuthenticated, authLoading, segments, router, userProfile]);
+  }, [stackReadyForNav, authLoading, isAuthenticated, segments, router, userProfile]);
 
   const accentSpinner = rgbTripletToHex(theme === "dark" ? DARK_RGB.primary : LIGHT_RGB.primary);
 
