@@ -30,10 +30,11 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files (EXPO_PUBLIC_* — makine IP’si)
+# local env files (EXPO_PUBLIC_* — makine IP'si, production URL)
 .env
-.env*.local
+.env.*
 backend/.env
+backend/.env.*
 
 # typescript
 *.tsbuildinfo

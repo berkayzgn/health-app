@@ -131,6 +131,17 @@ if (__DEV__) {
 const TOKEN_KEY = '@health_app_token';
 const REQUEST_TIMEOUT_MS = __DEV__ ? 25_000 : 12_000;
 
+/**
+ * 401 alındığında çağrılacak callback (döngüsel import olmadan store entegrasyonu).
+ * app/_layout.tsx içinde clearAuth ile register edilir.
+ */
+type UnauthorizedCallback = () => void;
+let _onUnauthorized: UnauthorizedCallback | null = null;
+
+export function registerUnauthorizedCallback(cb: UnauthorizedCallback): void {
+    _onUnauthorized = cb;
+}
+
 async function getToken(): Promise<string | null> {
     return AsyncStorage.getItem(TOKEN_KEY);
 }
@@ -205,6 +216,12 @@ async function request<T>(
     }
 
     if (!response.ok) {
+        // 401 → token geçersiz / süresi dolmuş: token temizle ve global callback'i tetikle
+        if (response.status === 401) {
+            await removeToken().catch(() => {});
+            _onUnauthorized?.();
+            throw new Error('Oturum süreniz doldu. Lütfen tekrar giriş yapın.');
+        }
         const error = await response
             .json()
             .catch(() => ({ message: 'Bir hata oluştu' }));

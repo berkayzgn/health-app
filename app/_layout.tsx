@@ -13,6 +13,7 @@ import { useStore } from "../store/useStore";
 import { profileNeedsOnboarding } from "../utils/profileNeedsOnboarding";
 import { getDesignVars } from "../theme/designVars";
 import { DARK_RGB, LIGHT_RGB, rgbTripletToHex } from "../theme/designRgb";
+import { registerUnauthorizedCallback } from "../services/api";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,10 +28,19 @@ function RootLayoutContent() {
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const authLoading = useStore((s) => s.authLoading);
   const userProfile = useStore((s) => s.userProfile);
+  const clearAuth = useStore((s) => s.clearAuth);
   const router = useRouter();
   const segments = useSegments();
   const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notificationsSetupRef = useRef(false);
+
+  /** 401 global handler: token geçersizleşince clearAuth tetiklenir, router auth'a yönlendirir. */
+  useEffect(() => {
+    registerUnauthorizedCallback(() => {
+      clearAuth();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only
+  }, []);
   /**
    * authLoading biter bitmez router.replace bazen Stack henüz mount olmadan çalışıyor (React 19:
    * "state update on component that hasn't mounted yet"). Bir kare bekleyip sonra yönlendir.

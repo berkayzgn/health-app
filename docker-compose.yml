@@ -1,4 +1,3 @@
-# health-ai-app: Postgres + Nest backend + pgAdmin (tek ağ)
 networks:
   healthai:
     driver: bridge
@@ -11,41 +10,23 @@ services:
     networks:
       - healthai
     environment:
-      POSTGRES_USER: healthai
-      POSTGRES_PASSWORD: healthai
-      POSTGRES_DB: healthai
-    # Mac’te yerel PostgreSQL 5432’yi kullanıyorsa çakışma olur; host 5433 → konteyner 5432
-    ports:
-      - "5433:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-healthai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-healthai}
+    # Production: do NOT expose 5432 externally. Remove the ports block below if not needed for local debugging.
+    # ports:
+    #   - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U healthai -d healthai"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-healthai} -d ${POSTGRES_DB:-healthai}"]
+      interval: 10s
       timeout: 5s
       retries: 5
-
-  pgadmin:
-    # 9.x bazı ortamlarda CONFIG env + volume kombinasyonunda sorun çıkarabiliyor; 8.14 LTS daha stabil
-    image: dpage/pgadmin4:8.14
-    container_name: health-ai-pgadmin
-    restart: unless-stopped
-    networks:
-      - healthai
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "5050:80"
-    environment:
-      # .local TLD pgAdmin/email-validator tarafından reddedilir; çökme döngüsüne yol açar
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    # pgAdmin bazen /dev/shm düşük kalınca worker ölüyor; desktop modunda iyi pratik
-    shm_size: "256mb"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 
   backend:
     build:
@@ -58,14 +39,39 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # JWT / PORT: backend/.env — konteyner içi DB adresi aşağıda override (localhost .env’de kalır)
     env_file:
       - ./backend/.env
     environment:
+      NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://healthai:healthai@postgres:5432/healthai?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-healthai}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-healthai}?schema=public
     ports:
       - "3000:3000"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  # ── pgAdmin: LOCAL DEV ONLY — DO NOT run in production ───────────────────────
+  # Uncomment only locally. Never expose port 5050 on a public droplet.
+  # pgadmin:
+  #   image: dpage/pgadmin4:8.14
+  #   container_name: health-ai-pgadmin
+  #   restart: unless-stopped
+  #   networks:
+  #     - healthai
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   ports:
+  #     - "5050:80"
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@example.com
+  #     PGADMIN_DEFAULT_PASSWORD: admin123
+  #     PGADMIN_CONFIG_SERVER_MODE: "False"
+  #   volumes:
+  #     - pgadmin_data:/var/lib/pgadmin
+  #   shm_size: "256mb"
 
 volumes:
   postgres_data:

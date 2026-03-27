@@ -36,8 +36,8 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 | `app/` | Ekranlar ve route dosyaları (Expo Router) |
 | `app/(main)/` | Ana uygulama ekranları (index, profile, settings, scan, vb.) |
 | `components/` | Paylaşılan React Native bileşenleri |
-| `components/scanner/` | ⚠️ Şu an **boş** — gerçek kamera bileşeni henüz yok (bkz. Taslak Özellikler) |
-| `components/ui/` | ⚠️ Şu an **boş** — UI primitive'leri için ayrılmış, henüz doldurulmadı |
+| `components/scanner/` | ⚠️ Şu an **boş** — gerçek kamera bileşeni henüz yok |
+| `components/ui/` | ⚠️ Şu an **boş** — UI primitive'leri için ayrılmış |
 | `services/` | API ve servis katmanı (`api.ts`, `authService.ts`, `mealsService.ts`) |
 | `store/` | Zustand store (`useStore.ts`) |
 | `utils/` | Yardımcı fonksiyonlar (nutrition hesaplama, media pick, vb.) |
@@ -68,15 +68,147 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 
 ### Ana Endpoint Grupları
 
-- `POST /auth/register` — kayıt
-- `POST /auth/login` — giriş
-- `GET  /users/me` — profil getir
-- `PATCH /users/me` — profil güncelle
-- `GET  /meals/today` — bugünkü öğünler
-- `POST /meals` — öğün ekle
-- `GET  /meals` — tüm öğünler (dateFrom / dateTo filtresi)
-- `PATCH /meals/:id` — öğün güncelle
-- `DELETE /meals/:id` — öğün sil
+| Method | Endpoint | Auth |
+|---|---|---|
+| POST | `/auth/register` | Yok |
+| POST | `/auth/login` | Yok |
+| GET | `/users/me` | Bearer token |
+| PATCH | `/users/me` | Bearer token |
+| GET | `/meals/today` | Bearer token |
+| POST | `/meals` | Bearer token |
+| GET | `/meals` | Bearer token |
+| PATCH | `/meals/:id` | Bearer token |
+| DELETE | `/meals/:id` | Bearer token |
+| GET | `/health` | Yok |
+
+---
+
+## API Bağlantı Mimarisi
+
+### Dosyalar
+
+| Dosya | Görev |
+|---|---|
+| `services/api.ts` | Base URL çözümü, token yönetimi, auth header, 401 interceptor |
+| `services/authService.ts` | Register, login, logout, getMe, updateProfile |
+| `services/mealsService.ts` | Öğün CRUD ve günlük toplamları |
+| `app/_layout.tsx` | `registerUnauthorizedCallback` → `clearAuth` kaydı |
+
+### 401 Otomatik Logout
+
+`services/api.ts` → 401 alınca:
+1. Token AsyncStorage'dan silinir
+2. `registerUnauthorizedCallback` ile kayıtlı `clearAuth()` çağrılır
+3. Mevcut auth navigation flow /auth'a yönlendirir
+
+---
+
+## Environment Yönetimi
+
+### Env Dosyaları (git'e commit edilmez)
+
+| Dosya | Ne zaman okunur | Kullanım |
+|---|---|---|
+| `.env` | Her zaman (base) | Boş — override edilir |
+| `.env.development` | `expo start` (dev mode) | Local backend |
+| `.env.production` | `eas build` / `expo start --no-dev` | Production server |
+
+### URL Çözüm Sırası (`services/api.ts`)
+
+```
+1. EXPO_PUBLIC_API_URL (env dosyasından)
+   └── Dolu → doğrudan kullan
+   └── Boş → otomatik çözüm:
+       ├── Fiziksel cihaz + __DEV__ → Metro LAN IP (otomatik okunur)
+       ├── iOS Simülatör → http://localhost:3000
+       ├── Android Emülatör → http://10.0.2.2:3000
+       └── Production build → hata (URL zorunlu)
+```
+
+---
+
+## Nerede Çalışırken Nasıl Çalışmalısın?
+
+### 1. 📱 iOS Simülatör — Local Backend
+
+```bash
+# Backend'i başlat (Docker)
+npm run docker:up
+
+# .env.development içinde EXPO_PUBLIC_API_URL= (boş bırak)
+
+# Metro başlat
+npx expo start -c
+# → Sonra [i] tuşu (iOS simülatör)
+```
+`api.ts` otomatik `http://localhost:3000` kullanır.
+
+---
+
+### 2. 🤖 Android Emülatör — Local Backend
+
+```bash
+# Backend'i başlat
+npm run docker:up
+
+# .env.development içinde EXPO_PUBLIC_API_URL= (boş bırak)
+
+npx expo start -c
+# → Sonra [a] tuşu (Android emülatör)
+```
+`api.ts` otomatik `http://10.0.2.2:3000` kullanır.
+
+---
+
+### 3. 📲 Fiziksel Cihaz — Local Backend (aynı Wi-Fi)
+
+```bash
+# Mac IP'ni öğren
+ipconfig getifaddr en0
+# Çıktı: örn. 192.168.1.45
+
+# .env.development dosyasına yaz:
+# EXPO_PUBLIC_API_URL=http://192.168.1.45:3000
+
+# Metro'yu yeniden başlat
+npx expo start -c
+```
+
+---
+
+### 4. 🌐 Fiziksel Cihaz — Production Backend
+
+```bash
+# .env.development içinde:
+# EXPO_PUBLIC_API_URL=http://165.245.209.17:3000
+
+npx expo start -c
+```
+
+---
+
+### 5. 🚀 Production Build (EAS)
+
+```bash
+# .env.production dosyası otomatik okunur:
+# EXPO_PUBLIC_API_URL=http://165.245.209.17:3000
+
+eas build --platform ios --profile production
+# veya
+eas build --platform android --profile production
+```
+
+Manuel URL değişikliğine gerek yok — `.env.production` otomatik kullanılır.
+
+---
+
+### 6. 🍎 production'ı simülatörde test et
+
+```bash
+# .env.development geçici olarak:
+EXPO_PUBLIC_API_URL=http://165.245.209.17:3000
+npx expo start -c
+```
 
 ---
 
@@ -94,63 +226,54 @@ cd backend && npm run start:dev
 
 ### Docker ile Geliştirme
 
-Root seviyede `docker-compose.yml` ile tek ağ (`healthai`):
-
-- `postgres` — iç hostname: `postgres`, konteyner içi `5432`; Mac'te `localhost:5433`
-- `pgadmin` — `http://localhost:5050` (DB bağlantısında host: `postgres`)
-- `backend` — `DATABASE_URL` içinde host `postgres`
-
 ```bash
 npm run docker:up
 npm run docker:logs
 npm run docker:down
 ```
 
+- `postgres` — iç hostname: `postgres`, Mac'te `localhost:5433`
+- `backend` — `http://localhost:3000`
+- pgAdmin — **production'da kapalı** (yalnızca local: yorumu kaldır)
+
 ---
 
 ## Konfigürasyon
 
-### Backend `.env`
+### Backend `.env` (backend/.env)
 
 ```env
-DATABASE_URL=postgresql://healthai:healthai@localhost:5433/healthai?schema=public
-JWT_SECRET=...
+DATABASE_URL=postgresql://healthai:STRONG_PASS@localhost:5433/healthai?schema=public
+POSTGRES_USER=healthai
+POSTGRES_PASSWORD=STRONG_PASS
+POSTGRES_DB=healthai
+JWT_SECRET=<openssl rand -hex 64>
 JWT_EXPIRATION=7d
 PORT=3000
+NODE_ENV=production
+ALLOWED_ORIGINS=   # web client varsa ekle
 ```
-
-### Frontend API URL Stratejisi
-
-`services/api.ts` şu sırayla API adresini belirler:
-
-1. `EXPO_PUBLIC_API_URL` ortam değişkeni (varsa)
-2. Expo `hostUri` veya Metro LAN IP (geliştirme, fiziksel cihaz)
-3. Platform loopback: iOS → `localhost`, Android → `10.0.2.2`
-4. Fallback placeholder (üretim için hata fırlatır)
 
 ---
 
 ## Taslak / Mock Özellikler
 
-Aşağıdaki özellikler henüz gerçek API'ye bağlanmamıştır:
-
 | Özellik | Dosya | Durum |
 |---|---|---|
-| Etiket tarama (Label Scan) | `app/(main)/scan.tsx` | Mock veri (`utils/labelScanMock.ts`) |
+| Etiket tarama | `app/(main)/scan.tsx` | Mock veri (`utils/labelScanMock.ts`) |
 | AI Meal Chat | `app/(main)/meal-description.tsx` | Frontend-only, AI yanıtı yok |
-| Abonelik (Subscription) | `app/(main)/subscription.tsx` | "Coming soon" placeholder |
-| Bildirimler | `services/notifications.ts` | Expo notifications kurulumu var, içerik yok |
+| Abonelik | `app/(main)/subscription.tsx` | "Coming soon" placeholder |
+| Bildirimler | `services/notifications.ts` | Expo setup var, içerik yok |
 
 ---
 
 ## Kod Kalitesi Kuralları
 
 - TypeScript zorunlu kullanım
-- DTO tabanlı validation backend'de aktif
 - i18n anahtarları tüm yeni UI metinlerinde zorunlu
-- Tema (light/dark) değişkenleri merkezi `theme/` üzerinden
-- Yeni string sabitleri `constants/` altında tanımlanmalı (örn. storage key'leri)
-- Backend hata mesajları şu an hardcoded Türkçe; frontend override eder
+- Tema token'ları merkezi `theme/` üzerinden
+- Yeni storage key'leri → `constants/` (şu an boş, düzenlenecek)
+- Tüm API çağrıları → `services/api.ts` üzerinden
 
 ---
 
@@ -158,19 +281,18 @@ Aşağıdaki özellikler henüz gerçek API'ye bağlanmamıştır:
 
 | Konu | Detay |
 |---|---|
-| `TOKEN_KEY` çift tanım | `services/api.ts` ve `store/useStore.ts`'de ayrı; ileride `constants/` dosyasına taşınmalı |
-| Font yükleme tekrarı | `useFonts` çağrısı 8+ ekranda tekrar ediyor; `hooks/useAppFonts.ts` hook'u oluşturulmalı |
-| Boş stub dizinler | `components/ui/`, `hooks/`, `types/`, `constants/`, `providers/` henüz boş |
-| Scanner bileşeni | `components/scanner/` boş; gerçek kamera tabanlı bileşen yazılmalı |
+| `TOKEN_KEY` çift tanım | `services/api.ts` ve `store/useStore.ts`'de ayrı; `constants/` dosyasına taşınmalı |
+| Font yükleme tekrarı | `useFonts` 8+ ekranda tekrar ediyor; `hooks/useAppFonts.ts` oluşturulmalı |
+| Boş stub dizinler | `components/ui/`, `hooks/`, `types/`, `constants/`, `providers/` boş |
+| Scanner bileşeni | `components/scanner/` boş; gerçek kamera bileşeni yazılmalı |
 
 ---
 
 ## Gelecek İyileştirmeler
 
 - CI pipeline (lint + test + build)
-- Ortamlara göre `.env` ayrımı (`dev`, `staging`, `prod`)
+- Ortamlara göre `.env` ayrımı eksiksiz hale getir (staging ortamı)
 - Backend centralized logging (Winston / Pino)
 - Frontend error tracking (Sentry)
-- API health-check ve readiness endpoint
-- `TOKEN_KEY` ve diğer storage key'leri `constants/` altında topla
+- API health-check ve readiness endpoint (mevcut `/health` endpoint'i genişlet)
 - `hooks/useAppFonts.ts` ile ekran başına font yükleme tekrarını kaldır
