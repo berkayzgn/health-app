@@ -188,7 +188,6 @@ export default function MealChatScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           className="flex-1"
-          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
         >
           <View className="flex-1">
             <AppHeader variant="inner" title={t("nutritionMeal.chatTitle")} />

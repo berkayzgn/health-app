@@ -13,7 +13,6 @@ import {
 } from "@expo-google-fonts/manrope";
 import {
   Inter_400Regular,
-  Inter_500Medium,
   Inter_600SemiBold,
 } from "@expo-google-fonts/inter";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -51,7 +50,6 @@ export default function ProfileScreen() {
     Manrope_700Bold,
     Manrope_800ExtraBold,
     Inter_400Regular,
-    Inter_500Medium,
     Inter_600SemiBold,
   });
 

@@ -1,17 +1,17 @@
-# Health AI App - System Guide
+# Health AI App — System Guide
 
-## Amac
+## Amaç
 
-Bu dokuman, projenin teknoloji stack'ini ve sistemin ana bilesenlerini tek bir yerden ozetlemek icin hazirlandi.
+Bu döküman projenin teknoloji stack'ini, mimari kararlarını ve geliştirme notlarını tek bir referans noktasında toplar.
 
 ---
 
 ## Genel Mimari
 
-Sistem iki ana bolumden olusur:
+Sistem iki ana bölümden oluşur:
 
-1. **Mobile App (Expo + React Native)**
-2. **Backend API (NestJS + PostgreSQL)**
+1. **Mobile App (Expo + React Native)** — repo kökünde
+2. **Backend API (NestJS + PostgreSQL)** — `backend/` alt dizininde
 
 Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri kalıcılığını sağlar (**Prisma ORM**).
 
@@ -19,22 +19,35 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 
 ## Frontend Stack (Mobile)
 
-- **Expo (SDK 55)**: React Native gelistirme ortami
-- **React Native (0.83.2)**: Mobil arayuz
-- **Expo Router**: Dosya tabanli navigasyon
-- **TypeScript**: Tip guvenligi
+- **Expo (SDK 55)**: React Native geliştirme ortamı
+- **React Native (0.83.2)**: Mobil arayüz
+- **Expo Router**: Dosya tabanlı navigasyon
+- **TypeScript**: Tip güvenliği
 - **NativeWind + TailwindCSS**: Stil sistemi
-- **Zustand**: Global state yonetimi (tema, auth, uygulama state'i)
-- **TanStack Query**: Server state / API cache yonetimi
-- **react-i18next + i18next**: Coklu dil destegi (TR/EN)
-- **AsyncStorage**: Token, dil ve tema gibi yerel kalici veriler
+- **Zustand**: Global state yönetimi (tema, auth, uygulama state'i)
+- **TanStack Query**: Server state / API cache yönetimi
+- **react-i18next + i18next**: Çoklu dil desteği (TR / EN)
+- **AsyncStorage**: Token, dil ve tema gibi yerel kalıcı veriler
 
-### Frontend Dizinleri (repo kökü)
+### Frontend Dizin Yapısı (repo kökü)
 
-- `app/`: Ekranlar ve route dosyalari
-- `services/`: API ve servis katmani (`api.ts`, `authService.ts`)
-- `store/`: Zustand store'lari
-- `locales/`: i18n json dosyalari
+| Dizin | Açıklama |
+|---|---|
+| `app/` | Ekranlar ve route dosyaları (Expo Router) |
+| `app/(main)/` | Ana uygulama ekranları (index, profile, settings, scan, vb.) |
+| `components/` | Paylaşılan React Native bileşenleri |
+| `components/scanner/` | ⚠️ Şu an **boş** — gerçek kamera bileşeni henüz yok (bkz. Taslak Özellikler) |
+| `components/ui/` | ⚠️ Şu an **boş** — UI primitive'leri için ayrılmış, henüz doldurulmadı |
+| `services/` | API ve servis katmanı (`api.ts`, `authService.ts`, `mealsService.ts`) |
+| `store/` | Zustand store (`useStore.ts`) |
+| `utils/` | Yardımcı fonksiyonlar (nutrition hesaplama, media pick, vb.) |
+| `theme/` | Tasarım token'ları ve renk sistemi |
+| `locales/` | i18n JSON dosyaları (TR / EN) |
+| `hooks/` | ⚠️ Şu an **boş** — özel React hook'ları için ayrılmış |
+| `types/` | ⚠️ Şu an **boş** — global TypeScript tipleri için ayrılmış |
+| `constants/` | ⚠️ Şu an **boş** — paylaşılan sabitler için ayrılmış |
+| `providers/` | ⚠️ Şu an **boş** — React context provider'ları için ayrılmış |
+| `docs/` | Proje dökümantasyonu |
 
 ---
 
@@ -43,81 +56,121 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 - **NestJS (v11)**: Modüler Node.js backend framework
 - **Prisma**: PostgreSQL ORM ve migrasyonlar
 - **PostgreSQL**: İlişkisel veritabanı
-- **JWT (nestjs/jwt + passport-jwt)**: Kimlik dogrulama
-- **bcrypt**: Sifre hashleme
+- **JWT (nestjs/jwt + passport-jwt)**: Kimlik doğrulama
+- **bcrypt**: Şifre hashleme
 - **class-validator / class-transformer**: DTO validation
 
-### Backend Modulleri
+### Backend Modülleri
 
-- `auth`: Register/Login ve token uretimi
-- `users`: Kullanici profili ve hedefler
-- `meals`: Ogun CRUD ve gunluk toplamlari
+- `auth`: Register / Login ve token üretimi
+- `users`: Kullanıcı profili ve sağlık bilgileri
+- `meals`: Öğün CRUD ve günlük toplamları
 
-### Ana Endpoint Gruplari
+### Ana Endpoint Grupları
 
-- `/auth` -> login/register
-- `/users` -> kullanici bilgileri
-- `/meals` -> ogun kayitlari
+- `POST /auth/register` — kayıt
+- `POST /auth/login` — giriş
+- `GET  /users/me` — profil getir
+- `PATCH /users/me` — profil güncelle
+- `GET  /meals/today` — bugünkü öğünler
+- `POST /meals` — öğün ekle
+- `GET  /meals` — tüm öğünler (dateFrom / dateTo filtresi)
+- `PATCH /meals/:id` — öğün güncelle
+- `DELETE /meals/:id` — öğün sil
 
 ---
 
-## Altyapi ve Calistirma
+## Altyapı ve Çalıştırma
 
-### Lokal Gelistirme
+### Lokal Geliştirme
 
-- Frontend: repo kökünde `npm start`
-- Backend: `cd backend && npm run start:dev`
+```bash
+# Frontend (repo kökünde)
+npm start
 
-### Dockerize Gelistirme
+# Backend
+cd backend && npm run start:dev
+```
+
+### Docker ile Geliştirme
 
 Root seviyede `docker-compose.yml` ile tek ağ (`healthai`):
 
-- `postgres` — iç hostname: `postgres`, konteyner içi `5432`; Mac’te host’tan erişim için `localhost:5433` (compose `5433:5432`)
-- `pgadmin` — `http://localhost:5050`; DB’ye bağlanırken Host **`postgres`** (localhost değil)
+- `postgres` — iç hostname: `postgres`, konteyner içi `5432`; Mac'te `localhost:5433`
+- `pgadmin` — `http://localhost:5050` (DB bağlantısında host: `postgres`)
 - `backend` — `DATABASE_URL` içinde host `postgres`
 
-pgAdmin sunucusu otomatik eklenmez; `docker/pgadmin/README.md` ile elle `postgres` host’u tanımlanır.
-
-Komutlar:
-
-- `npm run docker:up`
-- `npm run docker:logs`
-- `npm run docker:down`
+```bash
+npm run docker:up
+npm run docker:logs
+npm run docker:down
+```
 
 ---
 
-## Konfigurasyon
+## Konfigürasyon
 
 ### Backend `.env`
 
-- `DATABASE_URL` (PostgreSQL; örn. `postgresql://healthai:healthai@localhost:5433/healthai?schema=public`)
-- `JWT_SECRET`
-- `JWT_EXPIRATION`
-- `PORT`
+```env
+DATABASE_URL=postgresql://healthai:healthai@localhost:5433/healthai?schema=public
+JWT_SECRET=...
+JWT_EXPIRATION=7d
+PORT=3000
+```
 
 ### Frontend API URL Stratejisi
 
-`services/api.ts` tarafinda API adresi su sirayla belirlenir:
+`services/api.ts` şu sırayla API adresini belirler:
 
-1. `EXPO_PUBLIC_API_URL` (varsa)
-2. Platform/simulator bilgisine gore otomatik host
-3. Fallback host
-
----
-
-## Kalite ve Gelistirme Notlari
-
-- TypeScript zorunlu kullanim hedeflenir
-- DTO tabanli validation backend'de aktif
-- i18n anahtarlari tum yeni UI metinlerinde zorunlu olmali
-- Tema (light/dark) degiskenleri merkezi `theme.ts` uzerinden yonetilmeli
+1. `EXPO_PUBLIC_API_URL` ortam değişkeni (varsa)
+2. Expo `hostUri` veya Metro LAN IP (geliştirme, fiziksel cihaz)
+3. Platform loopback: iOS → `localhost`, Android → `10.0.2.2`
+4. Fallback placeholder (üretim için hata fırlatır)
 
 ---
 
-## Gelecek Iyilestirmeler
+## Taslak / Mock Özellikler
+
+Aşağıdaki özellikler henüz gerçek API'ye bağlanmamıştır:
+
+| Özellik | Dosya | Durum |
+|---|---|---|
+| Etiket tarama (Label Scan) | `app/(main)/scan.tsx` | Mock veri (`utils/labelScanMock.ts`) |
+| AI Meal Chat | `app/(main)/meal-description.tsx` | Frontend-only, AI yanıtı yok |
+| Abonelik (Subscription) | `app/(main)/subscription.tsx` | "Coming soon" placeholder |
+| Bildirimler | `services/notifications.ts` | Expo notifications kurulumu var, içerik yok |
+
+---
+
+## Kod Kalitesi Kuralları
+
+- TypeScript zorunlu kullanım
+- DTO tabanlı validation backend'de aktif
+- i18n anahtarları tüm yeni UI metinlerinde zorunlu
+- Tema (light/dark) değişkenleri merkezi `theme/` üzerinden
+- Yeni string sabitleri `constants/` altında tanımlanmalı (örn. storage key'leri)
+- Backend hata mesajları şu an hardcoded Türkçe; frontend override eder
+
+---
+
+## Teknik Borç
+
+| Konu | Detay |
+|---|---|
+| `TOKEN_KEY` çift tanım | `services/api.ts` ve `store/useStore.ts`'de ayrı; ileride `constants/` dosyasına taşınmalı |
+| Font yükleme tekrarı | `useFonts` çağrısı 8+ ekranda tekrar ediyor; `hooks/useAppFonts.ts` hook'u oluşturulmalı |
+| Boş stub dizinler | `components/ui/`, `hooks/`, `types/`, `constants/`, `providers/` henüz boş |
+| Scanner bileşeni | `components/scanner/` boş; gerçek kamera tabanlı bileşen yazılmalı |
+
+---
+
+## Gelecek İyileştirmeler
 
 - CI pipeline (lint + test + build)
-- Ortamlara gore `.env` ayrimi (`dev`, `staging`, `prod`)
-- Centralized logging (backend)
-- Error tracking (frontend/backend)
-- API health-check endpoint ve readiness check
+- Ortamlara göre `.env` ayrımı (`dev`, `staging`, `prod`)
+- Backend centralized logging (Winston / Pino)
+- Frontend error tracking (Sentry)
+- API health-check ve readiness endpoint
+- `TOKEN_KEY` ve diğer storage key'leri `constants/` altında topla
+- `hooks/useAppFonts.ts` ile ekran başına font yükleme tekrarını kaldır

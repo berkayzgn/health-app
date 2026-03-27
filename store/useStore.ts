@@ -5,6 +5,7 @@ import * as authService from "../services/authService";
 import type { ProfileResponse } from "../services/authService";
 
 const THEME_KEY = "@health_app_theme";
+// NOTE: aynı anahtar services/api.ts içinde de tanımlı — ileride ortak bir constants dosyasına taşınmalı.
 const TOKEN_KEY = "@health_app_token";
 
 interface AuthUser {

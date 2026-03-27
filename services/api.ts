@@ -127,6 +127,7 @@ if (__DEV__) {
     });
 }
 
+// NOTE: aynı anahtar store/useStore.ts içinde de tanımlı — ileride ortak bir constants dosyasına taşınmalı.
 const TOKEN_KEY = '@health_app_token';
 const REQUEST_TIMEOUT_MS = __DEV__ ? 25_000 : 12_000;
 
