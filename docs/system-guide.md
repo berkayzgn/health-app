@@ -109,89 +109,40 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 
 | Dosya | Ne zaman okunur | Kullanım |
 |---|---|---|
-| `.env` | Her zaman (base) | Boş — override edilir |
-| `.env.development` | `expo start` (dev mode) | Local backend |
-| `.env.production` | `eas build` / `expo start --no-dev` | Production server |
+| `.env` | Her zaman (base) | Uzak sunucu URL |
+| `.env.development` | `expo start` (dev mode) | Uzak sunucu URL |
+| `.env.production` | `eas build` / `expo start --no-dev` | Uzak sunucu URL |
 
-### URL Çözüm Sırası (`services/api.ts`)
+### URL Çözümü (`services/api.ts`)
+
+`EXPO_PUBLIC_API_URL` env değişkeni doğrudan kullanılır. Lokal sunucu fallback'i yoktur.
 
 ```
-1. EXPO_PUBLIC_API_URL (env dosyasından)
-   └── Dolu → doğrudan kullan
-   └── Boş → otomatik çözüm:
-       ├── Fiziksel cihaz + __DEV__ → Metro LAN IP (otomatik okunur)
-       ├── iOS Simülatör → http://localhost:3000
-       ├── Android Emülatör → http://10.0.2.2:3000
-       └── Production build → hata (URL zorunlu)
+EXPO_PUBLIC_API_URL=http://165.245.209.17
 ```
+
+> **Not:** Tüm ortamlarda (simülatör, emülatör, fiziksel cihaz, production) uzak sunucuya bağlanır.
 
 ---
 
 ## Nerede Çalışırken Nasıl Çalışmalısın?
 
-### 1. 📱 iOS Simülatör — Local Backend
+### 1. 📱 Geliştirme (Simülatör / Emülatör / Fiziksel Cihaz)
 
 ```bash
-# Backend'i başlat (Docker)
-npm run docker:up
-
-# .env.development içinde EXPO_PUBLIC_API_URL= (boş bırak)
-
 # Metro başlat
 npx expo start -c
-# → Sonra [i] tuşu (iOS simülatör)
 ```
-`api.ts` otomatik `http://localhost:3000` kullanır.
+
+`.env.development` dosyasındaki `EXPO_PUBLIC_API_URL` uzak sunucuyu gösterir.
 
 ---
 
-### 2. 🤖 Android Emülatör — Local Backend
-
-```bash
-# Backend'i başlat
-npm run docker:up
-
-# .env.development içinde EXPO_PUBLIC_API_URL= (boş bırak)
-
-npx expo start -c
-# → Sonra [a] tuşu (Android emülatör)
-```
-`api.ts` otomatik `http://10.0.2.2:3000` kullanır.
-
----
-
-### 3. 📲 Fiziksel Cihaz — Local Backend (aynı Wi-Fi)
-
-```bash
-# Mac IP'ni öğren
-ipconfig getifaddr en0
-# Çıktı: örn. 192.168.1.45
-
-# .env.development dosyasına yaz:
-# EXPO_PUBLIC_API_URL=http://192.168.1.45:3000
-
-# Metro'yu yeniden başlat
-npx expo start -c
-```
-
----
-
-### 4. 🌐 Fiziksel Cihaz — Production Backend
-
-```bash
-# .env.development içinde:
-# EXPO_PUBLIC_API_URL=http://165.245.209.17:3000
-
-npx expo start -c
-```
-
----
-
-### 5. 🚀 Production Build (EAS)
+### 2. 🚀 Production Build (EAS)
 
 ```bash
 # .env.production dosyası otomatik okunur:
-# EXPO_PUBLIC_API_URL=http://165.245.209.17:3000
+# EXPO_PUBLIC_API_URL=http://165.245.209.17
 
 eas build --platform ios --profile production
 # veya
@@ -199,16 +150,6 @@ eas build --platform android --profile production
 ```
 
 Manuel URL değişikliğine gerek yok — `.env.production` otomatik kullanılır.
-
----
-
-### 6. 🍎 production'ı simülatörde test et
-
-```bash
-# .env.development geçici olarak:
-EXPO_PUBLIC_API_URL=http://165.245.209.17:3000
-npx expo start -c
-```
 
 ---
 
