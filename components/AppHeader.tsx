@@ -104,13 +104,18 @@ export default function AppHeader(props: AppHeaderProps) {
             />
           </View>
           <Text
-            className="text-on-primary-fixed font-headline text-xl tracking-tight text-center px-14"
+            className={`text-on-primary-fixed font-headline text-xl tracking-tight text-center pl-14 ${
+              props.right ? "pr-[72px]" : "pr-14"
+            }`}
             numberOfLines={1}
           >
             {props.title}
           </Text>
           {props.right ? (
-            <View className="absolute right-0 top-0 bottom-0 justify-center z-10 flex-row items-center">
+            <View
+              className="absolute right-0 top-0 bottom-0 z-[30] flex-row items-center justify-center"
+              style={{ elevation: 6 }}
+            >
               {props.right}
             </View>
           ) : null}

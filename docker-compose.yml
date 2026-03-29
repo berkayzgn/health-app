@@ -13,9 +13,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-healthai}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:-healthai}
-    # Production: do NOT expose 5432 externally. Remove the ports block below if not needed for local debugging.
-    # ports:
-    #   - "5433:5432"
+    # Lokal geliştirme: host’tan Prisma / pgAdmin için 5433. Production compose’ta kapalı.
+    ports:
+      - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -30,8 +30,8 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: health-ai-backend
     restart: unless-stopped
     networks:
@@ -52,26 +52,29 @@ services:
         limits:
           memory: 512m
 
-  # ── pgAdmin: LOCAL DEV ONLY — DO NOT run in production ───────────────────────
-  # Uncomment only locally. Never expose port 5050 on a public droplet.
-  # pgadmin:
-  #   image: dpage/pgadmin4:8.14
-  #   container_name: health-ai-pgadmin
-  #   restart: unless-stopped
-  #   networks:
-  #     - healthai
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   ports:
-  #     - "5050:80"
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@example.com
-  #     PGADMIN_DEFAULT_PASSWORD: admin123
-  #     PGADMIN_CONFIG_SERVER_MODE: "False"
-  #   volumes:
-  #     - pgadmin_data:/var/lib/pgadmin
-  #   shm_size: "256mb"
+  # ── pgAdmin: yalnızca lokal geliştirme — production’da kullanma / dışarı açma ──
+  pgadmin:
+    image: dpage/pgadmin4:8.14
+    container_name: health-ai-pgadmin
+    restart: unless-stopped
+    networks:
+      - healthai
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@healthai.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    shm_size: "256mb"
+    deploy:
+      resources:
+        limits:
+          memory: 256m
 
 volumes:
   postgres_data:

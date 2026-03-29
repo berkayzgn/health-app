@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NutritionService } from '../nutrition/nutrition.service';
 import {
   userProfileInclude,
   userToProfileResponse,
@@ -31,7 +32,10 @@ function splitConditionPayload(conditionTypes: string[]): {
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly nutritionService: NutritionService,
+  ) {}
 
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({
@@ -64,10 +68,15 @@ export class UsersService {
     id: string,
     data: Partial<{
       name: string;
+      gender: string;
       dailyCalorieGoal: number;
       macroGoals: { protein: number; carbs: number; fat: number };
       heightCm: string;
       weightKg: string;
+      age: number;
+      activityLevel: number;
+      goal: string;
+      selectedDietTypeCode: string | null;
       conditionTypes: string[];
       dietaryPreferences: string[];
     }>,
@@ -77,6 +86,16 @@ export class UsersService {
       dietaryPreferences,
       ...scalarFields
     } = data;
+
+    const nutritionFieldChanged =
+      scalarFields.gender !== undefined ||
+      scalarFields.heightCm !== undefined ||
+      scalarFields.weightKg !== undefined ||
+      scalarFields.age !== undefined ||
+      scalarFields.activityLevel !== undefined ||
+      scalarFields.goal !== undefined ||
+      scalarFields.selectedDietTypeCode !== undefined ||
+      dietaryPreferences !== undefined;
 
     try {
       const updated = await this.prisma.$transaction(async (tx) => {
@@ -88,10 +107,26 @@ export class UsersService {
             prismaData.dailyCalorieGoal = scalarFields.dailyCalorieGoal;
           if (scalarFields.macroGoals !== undefined)
             prismaData.macroGoals = scalarFields.macroGoals as object;
+          if (scalarFields.gender !== undefined)
+            prismaData.gender = scalarFields.gender;
           if (scalarFields.heightCm !== undefined)
             prismaData.heightCm = scalarFields.heightCm;
           if (scalarFields.weightKg !== undefined)
             prismaData.weightKg = scalarFields.weightKg;
+          if (scalarFields.age !== undefined)
+            prismaData.age = scalarFields.age;
+          if (scalarFields.activityLevel !== undefined)
+            prismaData.activityLevel = scalarFields.activityLevel;
+          if (scalarFields.goal !== undefined)
+            prismaData.goal = scalarFields.goal;
+          if (scalarFields.selectedDietTypeCode !== undefined) {
+            const raw = scalarFields.selectedDietTypeCode;
+            prismaData.selectedDietTypeCode =
+              raw === null ||
+              (typeof raw === 'string' && raw.trim().length === 0)
+                ? null
+                : String(raw).trim();
+          }
 
           await tx.user.update({
             where: { id },
@@ -148,6 +183,20 @@ export class UsersService {
               });
             }
           }
+          if (scalarFields.selectedDietTypeCode === undefined) {
+            let macroCode: string | null = null;
+            for (const code of uniqueCodes) {
+              const dt = await tx.dietType.findUnique({ where: { code } });
+              if (dt?.category === 'macro_plan') {
+                macroCode = code;
+                break;
+              }
+            }
+            await tx.user.update({
+              where: { id },
+              data: { selectedDietTypeCode: macroCode },
+            });
+          }
         }
 
         const full = await tx.user.findUnique({
@@ -158,9 +207,23 @@ export class UsersService {
       });
 
       if (!updated) return null;
+
+      if (nutritionFieldChanged) {
+        await this.nutritionService.recalculateForUser(id);
+        const refreshed = await this.prisma.user.findUnique({
+          where: { id },
+          include: userProfileInclude,
+        });
+        if (refreshed) return userToProfileResponse(refreshed);
+      }
+
       return userToProfileResponse(updated);
     } catch {
       return null;
     }
+  }
+
+  async removeAccount(userId: string): Promise<void> {
+    await this.prisma.user.delete({ where: { id: userId } });
   }
 }

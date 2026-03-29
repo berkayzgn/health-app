@@ -13,6 +13,11 @@ export interface ProfileResponse {
     id: string;
     email: string;
     name: string;
+    gender?: string;
+    age?: number;
+    activityLevel?: number;
+    goal?: string;
+    selectedDietTypeCode?: string | null;
     dailyCalorieGoal?: number;
     macroGoals?: { protein: number; carbs: number; fat: number };
     heightCm?: string;
@@ -57,6 +62,11 @@ export async function getMe(): Promise<ProfileResponse | null> {
 
 export type UpdateProfileBody = {
     name?: string;
+    gender?: string;
+    age?: number;
+    activityLevel?: number;
+    goal?: 'lose' | 'gain' | 'maintain';
+    selectedDietTypeCode?: string | null;
     heightCm?: string;
     weightKg?: string;
     conditionTypes?: string[];
@@ -66,4 +76,8 @@ export type UpdateProfileBody = {
 
 export async function updateProfile(body: UpdateProfileBody): Promise<ProfileResponse | null> {
     return api.patch<ProfileResponse | null>('/users/me', body);
+}
+
+export async function deleteAccount(): Promise<void> {
+    await api.delete<{ ok: boolean }>('/users/me');
 }

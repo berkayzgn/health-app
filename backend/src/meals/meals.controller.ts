@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MealsService } from './meals.service';
 import { CreateMealDto } from './dto/create-meal.dto';
 import { UpdateMealDto } from './dto/update-meal.dto';
+import { AnalyzeMealImageDto } from './dto/analyze-meal-image.dto';
 
 @Controller('meals')
 @UseGuards(JwtAuthGuard)
@@ -23,6 +24,12 @@ export class MealsController {
     @Post()
     async create(@Req() req: any, @Body() dto: CreateMealDto) {
         return this.mealsService.create(req.user.userId, dto);
+    }
+
+    /** Öğün sohbeti: yemek fotoğrafı → Gemini ile dil-duyarlı metin açıklaması */
+    @Post('analyze-image')
+    async analyzeMealImage(@Body() dto: AnalyzeMealImageDto) {
+        return this.mealsService.analyzeMealImage(dto);
     }
 
     @Get()

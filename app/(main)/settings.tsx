@@ -288,92 +288,6 @@ function LanguageBottomSheet({
   );
 }
 
-function DeleteAccountBottomSheet({
-  visible,
-  onClose,
-  onContactSupport,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  onContactSupport: () => void;
-}) {
-  const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
-      <View className="flex-1 justify-end">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("common.cancel")}
-          onPress={onClose}
-          className="absolute inset-0"
-          style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
-        />
-        <View
-          className="rounded-t-[1.25rem] border border-b-0 border-surface-container bg-surface-container-lowest px-5 pt-2"
-          style={{ paddingBottom: Math.max(insets.bottom, 20) }}
-        >
-          <View className="mb-4 h-1 w-10 self-center rounded-full bg-outline-variant" />
-          <Text
-            className="text-on-surface text-lg leading-6"
-            style={{ fontFamily: "Manrope_700Bold" }}
-          >
-            {t("settings.deleteTitle")}
-          </Text>
-          <Text
-            className="mt-2 text-[15px] leading-[22px] text-on-surface-variant"
-            style={{ fontFamily: "Inter_400Regular" }}
-          >
-            {t("settings.deleteMessage")}
-          </Text>
-          <Text
-            className="mt-3 text-[11px] leading-4 text-outline"
-            style={{ fontFamily: "Inter_500Medium" }}
-          >
-            {t("settings.deleteDisclaimer")}
-          </Text>
-
-          <View className="mt-6 overflow-hidden rounded-xl border border-surface-container">
-            <Pressable
-              onPress={() => {
-                onClose();
-                onContactSupport();
-              }}
-              className="flex-row items-center justify-center border-b border-surface-container bg-surface-container-lowest py-3.5 active:bg-surface-container-low/80"
-            >
-              <MaterialCommunityIcons name="message-outline" size={20} color="#4e6300" />
-              <Text
-                className="ml-2 text-on-surface text-[15px]"
-                style={{ fontFamily: "Inter_600SemiBold" }}
-              >
-                {t("settings.deleteSheetSupport")}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={onClose}
-              className="items-center justify-center bg-surface-container-lowest py-3.5 active:bg-surface-container-low/80"
-            >
-              <Text
-                className="text-on-surface-variant text-[15px]"
-                style={{ fontFamily: "Inter_600SemiBold" }}
-              >
-                {t("common.cancel")}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -384,7 +298,7 @@ export default function SettingsScreen() {
   const setTheme = useStore((s) => s.setTheme);
   const [signingOut, setSigningOut] = useState(false);
   const [notificationsOn, setNotificationsOn] = useState(true);
-  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [languageSheetVisible, setLanguageSheetVisible] = useState(false);
 
   const [fontsLoaded] = useFonts({
@@ -416,6 +330,37 @@ export default function SettingsScreen() {
     } finally {
       setSigningOut(false);
     }
+  };
+
+  const executeAccountDeletion = async () => {
+    if (deletingAccount) return;
+    setDeletingAccount(true);
+    try {
+      await authService.deleteAccount();
+      clearAuth();
+      router.replace("/auth");
+    } catch {
+      Alert.alert(t("auth.errorTitle"), t("settings.deleteFailed"));
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
+  const promptDeleteAccount = () => {
+    if (deletingAccount) return;
+    // iOS: Alert from ScrollView onPress is unreliable without deferring (RN touch pipeline).
+    setTimeout(() => {
+      Alert.alert(t("settings.deleteSecondTitle"), t("settings.deleteSecondMessage"), [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("settings.deleteYes"),
+          style: "destructive",
+          onPress: () => {
+            void executeAccountDeletion();
+          },
+        },
+      ]);
+    }, 0);
   };
 
   const applyLanguage = async (lang: "en" | "tr") => {
@@ -454,11 +399,6 @@ export default function SettingsScreen() {
         currentLang={languageCode}
         onClose={() => setLanguageSheetVisible(false)}
         onSelectLang={applyLanguage}
-      />
-      <DeleteAccountBottomSheet
-        visible={deleteSheetVisible}
-        onClose={() => setDeleteSheetVisible(false)}
-        onContactSupport={comingSoon}
       />
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
       <SafeAreaWrapper className="flex-1 bg-surface" edges={["top"]}>
@@ -569,13 +509,24 @@ export default function SettingsScreen() {
                   )}
                 </Pressable>
 
-                <View className="items-center gap-1.5 px-1">
-                  <Pressable onPress={() => setDeleteSheetVisible(true)}>
-                    <Text className="text-outline text-xs font-label uppercase tracking-widest active:text-error">
+                <View className="gap-2">
+                  <Pressable
+                    onPress={promptDeleteAccount}
+                    disabled={deletingAccount}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("settings.deleteAccount")}
+                    hitSlop={{ top: 14, bottom: 14, left: 8, right: 8 }}
+                    className="min-h-[48px] w-full items-center justify-center rounded-xl border border-outline-variant/50 bg-surface-container-lowest py-3.5 active:bg-surface-container-low"
+                    style={{ opacity: deletingAccount ? 0.5 : 1 }}
+                  >
+                    <Text
+                      className="text-xs font-label uppercase tracking-widest text-error"
+                      style={{ fontFamily: "Inter_600SemiBold" }}
+                    >
                       {t("settings.deleteAccount")}
                     </Text>
                   </Pressable>
-                  <Text className="text-[10px] text-outline-variant text-center leading-relaxed max-w-xs">
+                  <Text className="text-[10px] text-outline-variant text-center leading-relaxed px-1">
                     {t("settings.deleteDisclaimer")}
                   </Text>
                 </View>

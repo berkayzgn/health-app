@@ -1,23 +1,128 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { NativeModules } from 'react-native';
+
+/** iOS simülatör / Android emülatör: makine = localhost */
+const DEV_FALLBACK_LOCAL = 'http://127.0.0.1:3000';
+
+function normalizeBaseUrl(url: string): string {
+    return url.replace(/\/+$/, '');
+}
+
+function isLoopbackApiUrl(url: string): boolean {
+    return /^(https?:\/\/)?(127\.0\.0\.1|localhost)(:\d+)?(\/|$)/i.test(url);
+}
+
+/** Metro / Expo CLI’nin bağlandığı makinenin hostname’i (genelde Mac LAN IP). */
+function parseDevMachineHostname(raw: string | undefined | null): string | null {
+    if (!raw || typeof raw !== 'string') return null;
+    const t = raw.trim();
+    if (!t) return null;
+    // hostUri: "192.168.1.5:8081"
+    if (/^\d{1,3}(\.\d{1,3}){3}:\d+$/.test(t)) {
+        return t.split(':')[0] ?? null;
+    }
+    try {
+        const withScheme = t.includes('://') ? t : `http://${t}`;
+        const u = new URL(withScheme.replace(/^exp:\/\//i, 'http://'));
+        const h = u.hostname;
+        if (!h || h === 'localhost' || h === '127.0.0.1') return null;
+        return h;
+    } catch {
+        return null;
+    }
+}
+
+function getDevMachineHostnameFromExpo(): string | null {
+    const manifest = Constants.manifest as { debuggerHost?: string } | null;
+    const expoGo = Constants.expoGoConfig as { debuggerHost?: string } | null;
+    const candidates = [
+        Constants.expoConfig?.hostUri,
+        Constants.experienceUrl,
+        manifest?.debuggerHost,
+        expoGo?.debuggerHost,
+    ];
+    for (const c of candidates) {
+        const h = parseDevMachineHostname(c);
+        if (h) return h;
+    }
+    return null;
+}
+
+function readMetroScriptUrl(): string | undefined {
+    const nm = NativeModules as { SourceCode?: { scriptURL?: string } };
+    let u = nm.SourceCode?.scriptURL;
+    if (u) return u;
+    try {
+        // RN yeni mimari: TurboModule (NativeModules.SourceCode boş olabilir)
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const NativeSourceCode = require('react-native/Libraries/NativeModules/specs/NativeSourceCode')
+            .default as { getConstants: () => { scriptURL?: string } };
+        u = NativeSourceCode.getConstants()?.scriptURL;
+    } catch {
+        /* noop */
+    }
+    return u;
+}
 
 /**
- * API_BASE_URL — her zaman EXPO_PUBLIC_API_URL env değişkeninden okunur.
- * Lokal sunucu fallback'i yoktur; tüm ortamlarda uzak sunucuya gidilir.
+ * Metro’nun servis ettiği JS bundle URL’si — fiziksel cihazda genelde Mac’in LAN IP’si
+ * (örn. http://192.168.1.5:8081/...). Expo Constants’tan daha güvenilir.
  */
-export const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
+function getHostnameFromMetroScriptUrl(): string | null {
+    const scriptURL = readMetroScriptUrl();
+    if (!scriptURL || typeof scriptURL !== 'string') return null;
+    if (!/^https?:\/\//i.test(scriptURL)) return null;
+    try {
+        const url = new URL(scriptURL);
+        const h = url.hostname;
+        if (!h || h === 'localhost' || h === '127.0.0.1') return null;
+        return h;
+    } catch {
+        return null;
+    }
+}
+
+function getLanDevHost(): string | null {
+    return getHostnameFromMetroScriptUrl() ?? getDevMachineHostnameFromExpo();
+}
+
+function resolveApiBaseUrl(): string {
+    const envUrl = normalizeBaseUrl(process.env.EXPO_PUBLIC_API_URL ?? '');
+
+    if (!__DEV__) {
+        return envUrl;
+    }
+
+    // Açıkça LAN / uzak URL verilmişse her zaman onu kullan
+    if (envUrl && !isLoopbackApiUrl(envUrl)) {
+        return envUrl;
+    }
+
+    // Geliştirme: Metro’nun kullandığı makine IP’si = backend için de aynı host (port 3000)
+    const lanHost = getLanDevHost();
+    if (lanHost) {
+        return `http://${lanHost}:3000`;
+    }
+
+    if (envUrl && isLoopbackApiUrl(envUrl)) {
+        console.warn(
+            '[api] Metro bundle URL’sinden LAN IP okunamadı ve .env localhost kullanılıyor. Fiziksel cihazda çalışmaz. .env: EXPO_PUBLIC_API_URL=http://<Mac-LAN-IP>:3000 veya Metro’yu ağ üzerinden çalıştırın (aynı Wi‑Fi).',
+        );
+    }
+
+    return envUrl || DEV_FALLBACK_LOCAL;
+}
+
+export const API_BASE_URL: string = resolveApiBaseUrl();
 
 if (__DEV__) {
     console.log('[api] API_BASE_URL =', API_BASE_URL);
 }
 
-// NOTE: aynı anahtar store/useStore.ts içinde de tanımlı — ileride ortak bir constants dosyasına taşınmalı.
 const TOKEN_KEY = '@health_app_token';
 const REQUEST_TIMEOUT_MS = __DEV__ ? 25_000 : 12_000;
 
-/**
- * 401 alındığında çağrılacak callback (döngüsel import olmadan store entegrasyonu).
- * app/_layout.tsx içinde clearAuth ile register edilir.
- */
 type UnauthorizedCallback = () => void;
 let _onUnauthorized: UnauthorizedCallback | null = null;
 
@@ -53,7 +158,7 @@ async function request<T>(
 ): Promise<T> {
     if (!API_BASE_URL) {
         throw new Error(
-            'EXPO_PUBLIC_API_URL tanımlı değil. .env dosyasını kontrol edin.',
+            'API_BASE_URL boş. Production build ise EXPO_PUBLIC_API_URL .env dosyasını kontrol edin.',
         );
     }
 
@@ -93,7 +198,6 @@ async function request<T>(
     }
 
     if (!response.ok) {
-        // 401 → token geçersiz / süresi dolmuş: token temizle ve global callback'i tetikle
         if (response.status === 401) {
             await removeToken().catch(() => {});
             _onUnauthorized?.();

@@ -1,11 +1,10 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
   Pressable,
   ScrollView,
-  Image,
   ActivityIndicator,
   Alert,
   useWindowDimensions,
@@ -20,7 +19,6 @@ import {
   Inter_500Medium,
   Inter_600SemiBold,
 } from "@expo-google-fonts/inter";
-import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -28,48 +26,39 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useStore } from "../store/useStore";
 import * as authService from "../services/authService";
-import { DARK_RGB, LIGHT_RGB, rgbTripletToHex, rgbTripletToRgba } from "../theme/designRgb";
+import { DARK_RGB, LIGHT_RGB, rgbTripletToHex } from "../theme/designRgb";
+import MultiSelectSheet from "../components/MultiSelectSheet";
 
 const STEP_CURRENT = 2;
 const STEP_TOTAL = 4;
 const PROGRESS = 0.5;
 
-const CONDITION_IDS = ["diabetes", "hypertension", "asthma"] as const;
-const DIETARY_IDS = ["gluten_free", "keto", "lactose_intolerant", "vegan"] as const;
-
-const ALL_TAG_IDS = [...CONDITION_IDS, ...DIETARY_IDS] as const;
-
-const TAG_I18N: Record<(typeof ALL_TAG_IDS)[number], string> = {
-  diabetes: "onboarding.tagDiabetes",
-  hypertension: "onboarding.tagHypertension",
-  asthma: "onboarding.tagAsthma",
-  gluten_free: "onboarding.tagGlutenFree",
-  keto: "onboarding.tagKeto",
-  lactose_intolerant: "onboarding.tagLactose",
-  vegan: "onboarding.tagVegan",
-};
-
-const LAB_IMAGE_URI =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAWZyIeX06itlFl4PIOT58B_73-YH9faJho0XsTAWUAU3u4YpQE1PRabVQ_p2ZVXsM16X0fEKXwQ0xclIppjrn5GK8J0r53UWABrV82LUJ5I_UDCbl6BywUwsqPPTriEMJb_s4cFER1_q8JCYzB5Sq7oOuAJPWyqQjR6f5VOU0TukzWuI9MjEGHlPf0Va_XK7_nwkHXBHI0U7RnkM6xk7lVQS7ISA3DcSkOksHNc4uHaaoch1UE732E-SPuRKAdxCD8hFq7nfZWqvQ";
-
-function isCondition(id: string): boolean {
-  return (CONDITION_IDS as readonly string[]).includes(id);
-}
-
 export default function OnboardingScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const refreshProfile = useStore((s) => s.refreshProfile);
   const clearAuth = useStore((s) => s.clearAuth);
   const theme = useStore((s) => s.theme);
+
+  const medicalConditions = useStore((s) => s.medicalConditions);
+  const medicalConditionsLoaded = useStore((s) => s.medicalConditionsLoaded);
+  const loadMedicalConditions = useStore((s) => s.loadMedicalConditions);
+  const macroPlans = useStore((s) => s.macroPlans);
+  const macroPlansLoaded = useStore((s) => s.macroPlansLoaded);
+  const loadMacroPlans = useStore((s) => s.loadMacroPlans);
+
+  const lang = i18n.language?.startsWith("tr") ? "tr" : "en";
+
+  useEffect(() => {
+    if (!medicalConditionsLoaded) loadMedicalConditions();
+    if (!macroPlansLoaded) loadMacroPlans();
+  }, [medicalConditionsLoaded, loadMedicalConditions, macroPlansLoaded, loadMacroPlans]);
+
   const palette = theme === "dark" ? DARK_RGB : LIGHT_RGB;
-  const surfaceHex = rgbTripletToHex(palette.surface);
-  const surfaceFade = rgbTripletToRgba(palette.surface, 0.92);
   const onPrimaryFixed = rgbTripletToHex(palette["on-primary-fixed"]);
   const limeHex = rgbTripletToHex(palette["primary-fixed"]);
-  const outlineHex = rgbTripletToHex(palette.outline);
   const placeholderMuted = rgbTripletToHex(palette["outline-variant"]);
 
   const [fontsLoaded] = useFonts({
@@ -83,63 +72,114 @@ export default function OnboardingScreen() {
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(["diabetes", "keto"]),
-  );
-  const [customTags, setCustomTags] = useState<string[]>([]);
-  const [otherDraft, setOtherDraft] = useState("");
-  const [showOther, setShowOther] = useState(false);
+  const [gender, setGender] = useState<"" | "male" | "female">("");
+  const [selectedConditions, setSelectedConditions] = useState<Set<string>>(() => new Set());
+  const [selectedDiets, setSelectedDiets] = useState<Set<string>>(() => new Set());
   const [saving, setSaving] = useState(false);
+  const [diseaseSheetOpen, setDiseaseSheetOpen] = useState(false);
+  const [allergySheetOpen, setAllergySheetOpen] = useState(false);
+  const [dietSheetOpen, setDietSheetOpen] = useState(false);
 
   const metricsRow = width >= 720;
 
-  const toggleTag = useCallback((id: string) => {
-    setSelected((prev) => {
+  const toggleCondition = useCallback((code: string) => {
+    setSelectedConditions((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
       return next;
     });
   }, []);
 
-  const addCustomTag = useCallback(() => {
-    const v = otherDraft.trim();
-    if (!v) return;
-    setCustomTags((prev) => [...prev, v]);
-    setOtherDraft("");
-    setShowOther(false);
-  }, [otherDraft]);
-
-  const removeCustomTag = useCallback((idx: number) => {
-    setCustomTags((prev) => prev.filter((_, i) => i !== idx));
+  const toggleMacroPlan = useCallback((code: string) => {
+    setSelectedDiets((prev) => {
+      if (prev.has(code)) return new Set();
+      return new Set([code]);
+    });
   }, []);
 
-  const { conditionTypes, dietaryPreferences } = useMemo(() => {
-    const cond: string[] = [];
-    const diet: string[] = [];
-    selected.forEach((id) => {
-      if (isCondition(id)) cond.push(id);
-      else diet.push(id);
-    });
-    customTags.forEach((c) => cond.push(`other:${c}`));
-    return { conditionTypes: cond, dietaryPreferences: diet };
-  }, [selected, customTags]);
+  const conditionTypes = useMemo(() => [...selectedConditions], [selectedConditions]);
+
+  const dietaryPreferences = useMemo(() => [...selectedDiets], [selectedDiets]);
+
+  const diseaseCatalog = useMemo(
+    () => medicalConditions.filter((c) => c.kind === "disease"),
+    [medicalConditions],
+  );
+  const allergyCatalog = useMemo(
+    () => medicalConditions.filter((c) => c.kind === "allergy"),
+    [medicalConditions],
+  );
+
+  const diseaseSummary = useMemo(() => {
+    return diseaseCatalog
+      .filter((mc) => selectedConditions.has(mc.code))
+      .map((mc) => mc.displayNames[lang] ?? mc.displayNames.en ?? mc.code)
+      .join(", ");
+  }, [diseaseCatalog, selectedConditions, lang]);
+
+  const allergySummary = useMemo(() => {
+    return allergyCatalog
+      .filter((mc) => selectedConditions.has(mc.code))
+      .map((mc) => mc.displayNames[lang] ?? mc.displayNames.en ?? mc.code)
+      .join(", ");
+  }, [allergyCatalog, selectedConditions, lang]);
+
+  const selectedDiseaseCount = useMemo(
+    () => diseaseCatalog.filter((c) => selectedConditions.has(c.code)).length,
+    [diseaseCatalog, selectedConditions],
+  );
+  const selectedAllergyCount = useMemo(
+    () => allergyCatalog.filter((c) => selectedConditions.has(c.code)).length,
+    [allergyCatalog, selectedConditions],
+  );
+
+  const macroPlanSummary = useMemo(() => {
+    if (selectedDiets.size === 0) return "";
+    return macroPlans
+      .filter((dt) => selectedDiets.has(dt.code))
+      .map((dt) => dt.displayNames[lang] ?? dt.displayNames.en ?? dt.code)
+      .join(", ");
+  }, [selectedDiets, macroPlans, lang]);
 
   const canContinue = useMemo(() => {
     const h = parseFloat(height.replace(",", "."));
     const w = parseFloat(weight.replace(",", "."));
-    return Number.isFinite(h) && h > 0 && Number.isFinite(w) && w > 0;
-  }, [height, weight]);
+    const a = parseInt(age.replace(/\D/g, "") || "0", 10);
+    return (
+      (gender === "male" || gender === "female") &&
+      Number.isFinite(a) &&
+      a >= 1 &&
+      Number.isFinite(h) &&
+      h > 0 &&
+      Number.isFinite(w) &&
+      w > 0
+    );
+  }, [height, weight, age, gender]);
 
   const onContinue = async () => {
-    if (!canContinue || saving) return;
+    if (saving) return;
+    if (!canContinue) {
+      Alert.alert(
+        t("onboarding.requiredFieldsTitle"),
+        t("onboarding.requiredFieldsMessage"),
+      );
+      return;
+    }
     setSaving(true);
     try {
+      const ageNum = parseInt(age.replace(/\D/g, "") || "0", 10);
+      const macroCode = [...selectedDiets][0];
       await authService.updateProfile({
+        gender,
+        age: ageNum,
         heightCm: height.trim(),
         weightKg: weight.trim(),
+        activityLevel: 1.2,
+        goal: "maintain",
         conditionTypes,
-        dietaryPreferences,
+        dietaryPreferences: macroCode ? [macroCode] : [],
+        selectedDietTypeCode: macroCode ?? null,
       });
       await refreshProfile();
       router.replace("/");
@@ -174,10 +214,43 @@ export default function OnboardingScreen() {
   }
 
   const footerPad = Math.max(insets.bottom, 10) + 16;
+  const catalogLoading = !medicalConditionsLoaded || !macroPlansLoaded;
 
   return (
     <View className="flex-1 bg-surface">
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
+
+      <MultiSelectSheet
+        visible={diseaseSheetOpen}
+        title={t("onboarding.diseasesSheetTitle")}
+        hint={t("onboarding.diseasesSheetHint")}
+        items={diseaseCatalog}
+        selected={selectedConditions}
+        lang={lang}
+        onToggle={toggleCondition}
+        onClose={() => setDiseaseSheetOpen(false)}
+      />
+      <MultiSelectSheet
+        visible={allergySheetOpen}
+        title={t("onboarding.allergiesSheetTitle")}
+        hint={t("onboarding.allergiesSheetHint")}
+        items={allergyCatalog}
+        selected={selectedConditions}
+        lang={lang}
+        onToggle={toggleCondition}
+        onClose={() => setAllergySheetOpen(false)}
+      />
+
+      <MultiSelectSheet
+        visible={dietSheetOpen}
+        title={t("onboarding.macroPlanSheetTitle")}
+        hint={t("onboarding.macroPlanSheetHint")}
+        items={macroPlans}
+        selected={selectedDiets}
+        lang={lang}
+        onToggle={toggleMacroPlan}
+        onClose={() => setDietSheetOpen(false)}
+      />
 
       {/* Header + progress */}
       <View
@@ -232,15 +305,16 @@ export default function OnboardingScreen() {
             </Text>
           </View>
 
+          {/* Metrics */}
           <View
             className="mb-10 gap-4"
             style={{ flexDirection: metricsRow ? "row" : "column" }}
           >
             {(
               [
+                { key: "h", label: t("onboarding.height"), value: height, set: setHeight, suffix: t("onboarding.cm"), ph: "182", keyboard: "decimal-pad" as const },
                 { key: "age", label: t("onboarding.age"), value: age, set: setAge, suffix: t("onboarding.yrs"), ph: "28", keyboard: "numeric" as const },
                 { key: "w", label: t("onboarding.weight"), value: weight, set: setWeight, suffix: t("onboarding.kg"), ph: "72", keyboard: "decimal-pad" as const },
-                { key: "h", label: t("onboarding.height"), value: height, set: setHeight, suffix: t("onboarding.cm"), ph: "182", keyboard: "decimal-pad" as const },
               ] as const
             ).map((field) => (
               <View
@@ -275,126 +349,221 @@ export default function OnboardingScreen() {
             ))}
           </View>
 
-          <View className="mb-6 gap-6">
-            <View className="flex-row items-center justify-between">
-              <Text
-                className="text-lg text-on-surface"
-                style={{ fontFamily: "Manrope_700Bold" }}
-              >
-                {t("onboarding.sectionTitle")}
-              </Text>
-              <MaterialIcons name="info-outline" size={22} color={outlineHex} />
-            </View>
-
-            <View className="flex-row flex-wrap gap-3">
-              {ALL_TAG_IDS.map((id) => {
-                const on = selected.has(id);
+          {/* Gender */}
+          <View className="mb-10">
+            <Text
+              className="mb-4 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
+              style={{ fontFamily: "Inter_600SemiBold" }}
+            >
+              {t("onboarding.genderLabel")}
+            </Text>
+            <View className="flex-row gap-3">
+              {(["male", "female"] as const).map((g) => {
+                const on = gender === g;
                 return (
                   <Pressable
-                    key={id}
-                    onPress={() => toggleTag(id)}
-                    className={`flex-row items-center gap-2 rounded-pill border border-transparent px-6 py-3 ${
-                      on ? "bg-primary-fixed" : "bg-surface-container"
+                    key={g}
+                    onPress={() => setGender(g)}
+                    className={`flex-1 rounded-card border px-5 py-4 active:opacity-90 ${
+                      on
+                        ? "border-primary-fixed bg-primary-fixed/15"
+                        : "border-outline-variant/30 bg-surface-container-low"
                     }`}
                   >
                     <Text
-                      className={`text-sm font-medium ${on ? "text-on-primary-fixed" : "text-on-surface-variant"}`}
-                      style={{ fontFamily: "Inter_500Medium" }}
+                      className={`text-center text-base font-bold ${
+                        on ? "text-on-surface" : "text-on-surface-variant"
+                      }`}
+                      style={{ fontFamily: "Manrope_700Bold" }}
                     >
-                      {t(TAG_I18N[id])}
+                      {g === "male" ? t("onboarding.genderMale") : t("onboarding.genderFemale")}
                     </Text>
-                    {on ? (
-                      <MaterialIcons name="check" size={18} color={onPrimaryFixed} />
-                    ) : null}
                   </Pressable>
                 );
               })}
-
-              {customTags.map((tag, idx) => (
-                <Pressable
-                  key={`${tag}-${idx}`}
-                  onPress={() => removeCustomTag(idx)}
-                  className="flex-row items-center gap-1 rounded-pill border border-outline-variant/30 bg-surface-container-lowest px-4 py-3"
-                >
-                  <Text
-                    className="text-sm font-bold text-primary"
-                    style={{ fontFamily: "Inter_600SemiBold" }}
-                  >
-                    {tag}
-                  </Text>
-                  <MaterialIcons name="close" size={16} color={rgbTripletToHex(palette.primary)} />
-                </Pressable>
-              ))}
-
-              {!showOther ? (
-                <Pressable
-                  onPress={() => setShowOther(true)}
-                  className="flex-row items-center gap-2 rounded-pill border border-outline-variant/30 px-5 py-3"
-                >
-                  <MaterialIcons name="add" size={18} color={rgbTripletToHex(palette.primary)} />
-                  <Text
-                    className="text-sm font-bold text-primary"
-                    style={{ fontFamily: "Inter_600SemiBold" }}
-                  >
-                    {t("onboarding.addOther")}
-                  </Text>
-                </Pressable>
-              ) : (
-                <View className="w-full flex-row items-center gap-2">
-                  <TextInput
-                    value={otherDraft}
-                    onChangeText={setOtherDraft}
-                    placeholder={t("onboarding.otherPlaceholder")}
-                    onSubmitEditing={addCustomTag}
-                    className="min-h-12 flex-1 rounded-card border border-outline-variant/40 px-4 text-on-surface"
-                    style={{ fontFamily: "Inter_400Regular" }}
-                    placeholderTextColor={placeholderMuted}
-                  />
-                  <Pressable
-                    onPress={addCustomTag}
-                    className="rounded-full bg-primary px-4 py-3"
-                  >
-                    <MaterialIcons name="check" size={20} color={onPrimaryFixed} />
-                  </Pressable>
-                </View>
-              )}
             </View>
           </View>
 
-          <View className="relative mt-10 overflow-hidden rounded-card" style={{ aspectRatio: 21 / 9 }}>
-            <Image
-              source={{ uri: LAB_IMAGE_URI }}
-              className="h-full w-full"
-              style={{ opacity: 0.2 }}
-              resizeMode="cover"
-            />
-            <LinearGradient
-              colors={["transparent", surfaceFade, surfaceHex]}
-              locations={[0, 0.55, 1]}
-              style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}
-            />
-            <View className="absolute bottom-6 left-6 right-6">
-              <Text
-                className="text-xs font-bold uppercase tracking-widest text-outline"
-                style={{ fontFamily: "Inter_600SemiBold" }}
-              >
-                {t("onboarding.clinicalLabel")}
-              </Text>
-              <Text
-                className="mt-1 text-sm text-on-surface-variant"
-                style={{ fontFamily: "Inter_400Regular" }}
-              >
-                {t("onboarding.clinicalCaption")}
-              </Text>
-            </View>
+          {/* Health Conditions & Dietary section */}
+          <View className="mb-6 gap-6">
+            <Text
+              className="text-lg text-on-surface"
+              style={{ fontFamily: "Manrope_700Bold" }}
+            >
+              {t("onboarding.sectionTitle")}
+            </Text>
+
+            {catalogLoading ? (
+              <ActivityIndicator size="small" color={rgbTripletToHex(palette.primary)} />
+            ) : (
+              <View className="gap-4">
+                {/* Hastalıklar (abc.json diseases) */}
+                <View>
+                  <Text
+                    className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
+                    style={{ fontFamily: "Inter_600SemiBold" }}
+                  >
+                    {t("onboarding.diseasesLabel")}
+                  </Text>
+                  <Pressable
+                    onPress={() => setDiseaseSheetOpen(true)}
+                    className="flex-row items-center rounded-card border border-outline-variant/30 bg-surface-container-low px-5 py-4 active:bg-surface-container"
+                  >
+                    <MaterialIcons name="medical-services" size={20} color="#767777" />
+                    <Text
+                      className={`ml-3 flex-1 text-[15px] ${
+                        selectedDiseaseCount > 0 ? "text-on-surface" : "text-outline"
+                      }`}
+                      style={{ fontFamily: "Inter_500Medium" }}
+                      numberOfLines={2}
+                    >
+                      {selectedDiseaseCount > 0
+                        ? diseaseSummary
+                        : t("onboarding.diseasesPlaceholder")}
+                    </Text>
+                    {selectedDiseaseCount > 0 && (
+                      <View className="mr-2 rounded-full bg-primary-fixed px-2.5 py-0.5">
+                        <Text
+                          className="text-[11px] font-bold text-on-primary-fixed"
+                          style={{ fontFamily: "Inter_600SemiBold" }}
+                        >
+                          {selectedDiseaseCount}
+                        </Text>
+                      </View>
+                    )}
+                    <MaterialIcons name="expand-more" size={22} color="#767777" />
+                  </Pressable>
+                </View>
+
+                {/* Alerjiler (abc.json allergies) */}
+                <View>
+                  <Text
+                    className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
+                    style={{ fontFamily: "Inter_600SemiBold" }}
+                  >
+                    {t("onboarding.allergiesLabel")}
+                  </Text>
+                  <Pressable
+                    onPress={() => setAllergySheetOpen(true)}
+                    className="flex-row items-center rounded-card border border-outline-variant/30 bg-surface-container-low px-5 py-4 active:bg-surface-container"
+                  >
+                    <MaterialIcons name="warning-amber" size={20} color="#767777" />
+                    <Text
+                      className={`ml-3 flex-1 text-[15px] ${
+                        selectedAllergyCount > 0 ? "text-on-surface" : "text-outline"
+                      }`}
+                      style={{ fontFamily: "Inter_500Medium" }}
+                      numberOfLines={2}
+                    >
+                      {selectedAllergyCount > 0
+                        ? allergySummary
+                        : t("onboarding.allergiesPlaceholder")}
+                    </Text>
+                    {selectedAllergyCount > 0 && (
+                      <View className="mr-2 rounded-full bg-primary-fixed px-2.5 py-0.5">
+                        <Text
+                          className="text-[11px] font-bold text-on-primary-fixed"
+                          style={{ fontFamily: "Inter_600SemiBold" }}
+                        >
+                          {selectedAllergyCount}
+                        </Text>
+                      </View>
+                    )}
+                    <MaterialIcons name="expand-more" size={22} color="#767777" />
+                  </Pressable>
+                </View>
+
+                {selectedConditions.size > 0 && (
+                  <View className="flex-row flex-wrap gap-2">
+                    {medicalConditions
+                      .filter((mc) => selectedConditions.has(mc.code))
+                      .map((mc) => (
+                        <Pressable
+                          key={mc.code}
+                          onPress={() => toggleCondition(mc.code)}
+                          className="flex-row items-center gap-1.5 rounded-pill bg-primary-fixed px-4 py-2"
+                        >
+                          <Text
+                            className="text-xs font-medium text-on-primary-fixed"
+                            style={{ fontFamily: "Inter_500Medium" }}
+                          >
+                            {mc.displayNames[lang] ?? mc.displayNames.en ?? mc.code}
+                          </Text>
+                          <MaterialIcons name="close" size={14} color={onPrimaryFixed} />
+                        </Pressable>
+                      ))}
+                  </View>
+                )}
+
+                {/* Diet selector */}
+                <View>
+                  <Text
+                    className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
+                    style={{ fontFamily: "Inter_600SemiBold" }}
+                  >
+                    {t("onboarding.macroPlanLabel")}
+                  </Text>
+                  <Pressable
+                    onPress={() => setDietSheetOpen(true)}
+                    className="flex-row items-center rounded-card border border-outline-variant/30 bg-surface-container-low px-5 py-4 active:bg-surface-container"
+                  >
+                    <MaterialIcons name="restaurant" size={20} color="#767777" />
+                    <Text
+                      className={`ml-3 flex-1 text-[15px] ${
+                        selectedDiets.size > 0 ? "text-on-surface" : "text-outline"
+                      }`}
+                      style={{ fontFamily: "Inter_500Medium" }}
+                      numberOfLines={2}
+                    >
+                      {selectedDiets.size > 0
+                        ? macroPlanSummary
+                        : t("onboarding.macroPlanPlaceholder")}
+                    </Text>
+                    {selectedDiets.size > 0 && (
+                      <View className="mr-2 rounded-full bg-primary-fixed px-2.5 py-0.5">
+                        <Text
+                          className="text-[11px] font-bold text-on-primary-fixed"
+                          style={{ fontFamily: "Inter_600SemiBold" }}
+                        >
+                          {selectedDiets.size}
+                        </Text>
+                      </View>
+                    )}
+                    <MaterialIcons name="expand-more" size={22} color="#767777" />
+                  </Pressable>
+
+                  {/* Selected diet chips */}
+                  {selectedDiets.size > 0 && (
+                    <View className="mt-3 flex-row flex-wrap gap-2">
+                      {macroPlans
+                        .filter((dt) => selectedDiets.has(dt.code))
+                        .map((dt) => (
+                          <Pressable
+                            key={dt.code}
+                            onPress={() => toggleMacroPlan(dt.code)}
+                            className="flex-row items-center gap-1.5 rounded-pill bg-primary-fixed px-4 py-2"
+                          >
+                            <Text
+                              className="text-xs font-medium text-on-primary-fixed"
+                              style={{ fontFamily: "Inter_500Medium" }}
+                            >
+                              {dt.displayNames[lang] ?? dt.displayNames.en ?? dt.code}
+                            </Text>
+                            <MaterialIcons name="close" size={14} color={onPrimaryFixed} />
+                          </Pressable>
+                        ))}
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>
 
-      <LinearGradient
-        colors={["transparent", surfaceHex, surfaceHex]}
-        locations={[0, 0.35, 1]}
-        className="absolute bottom-0 left-0 right-0 px-6 pt-10"
+      {/* Footer buttons */}
+      <View
+        className="absolute bottom-0 left-0 right-0 border-t border-surface-container bg-surface px-6 pt-4"
         style={{ paddingBottom: footerPad }}
       >
         <View className="mx-auto w-full max-w-2xl flex-row gap-4">
@@ -411,10 +580,10 @@ export default function OnboardingScreen() {
           </Pressable>
           <Pressable
             onPress={onContinue}
-            disabled={!canContinue || saving}
+            disabled={saving}
             className="flex-[2] flex-row items-center justify-center gap-2 rounded-pill bg-primary-fixed py-4 active:opacity-90"
             style={{
-              opacity: !canContinue || saving ? 0.5 : 1,
+              opacity: saving ? 0.5 : 1,
               shadowColor: limeHex,
               shadowOffset: { width: 0, height: 8 },
               shadowOpacity: 0.35,
@@ -437,7 +606,7 @@ export default function OnboardingScreen() {
             )}
           </Pressable>
         </View>
-      </LinearGradient>
+      </View>
     </View>
   );
 }

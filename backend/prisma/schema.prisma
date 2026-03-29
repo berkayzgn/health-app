@@ -17,6 +17,11 @@ model User {
   macroGoals       Json     @default("{\"protein\":120,\"carbs\":200,\"fat\":65}")
   heightCm         String   @default("")
   weightKg         String   @default("")
+  age              Int      @default(0)
+  /** 1.2=sedanter, 1.375=hafif, 1.55=orta, 1.725=ağır, 1.9=çok ağır */
+  activityLevel    Float    @default(1.2)
+  /** "lose" | "gain" | "maintain" */
+  goal             String   @default("maintain")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -24,8 +29,12 @@ model User {
   medicalConditions   UserMedicalCondition[]
   customHealthTags    UserCustomHealthTag[]
   dietPreferences     UserDietPreference[]
-  dietMacroTemplateId String?
-  dietMacroTemplate   DietMacroTemplate? @relation(fields: [dietMacroTemplateId], references: [id], onDelete: SetNull)
+  scanHistory         ScanHistory[]
+  gender              String   @default("")
+  activeDietVariantId String?
+  activeDietVariant   DietVariant? @relation(fields: [activeDietVariantId], references: [id], onDelete: SetNull)
+  /** Seçili makro plan kodu (balanced, high_protein vb.) */
+  selectedDietTypeCode String?
 
   @@map("users")
 }
@@ -51,48 +60,76 @@ model Meal {
   @@map("meals")
 }
 
-/** Sabit hastalık / sağlık koşulları (katalog). */
+/** Sabit hastalık / sağlık koşulları (katalog). Kaynak: kök abc.json (diseases + allergies). */
 model MedicalCondition {
-  id        String                 @id @default(uuid())
-  code      String                 @unique
-  sortOrder Int                    @default(0)
-  users     UserMedicalCondition[]
+  id           String                 @id @default(uuid())
+  code         String                 @unique
+  /** "disease" | "allergy" — abc.json diseases / allergies */
+  kind         String                 @default("disease")
+  sortOrder    Int                    @default(0)
+  /** { "en": "…", "tr": "…" } */
+  displayNames Json                   @default("{}")
+  /** ["sugar", "white_bread", …] — etiket tarama tetikleyicileri (abc filters) */
+  triggerFoods Json                   @default("[]")
+  users        UserMedicalCondition[]
 
+  @@index([kind])
   @@map("medical_conditions")
 }
 
-/** Sabit diyet / beslenme tercihleri (katalog). */
+/** Sabit diyet / beslenme tercihleri (katalog). Ana kategori. */
 model DietType {
-  id        String               @id @default(uuid())
-  code      String               @unique
-  sortOrder Int                  @default(0)
-  users     UserDietPreference[]
+  id           String               @id @default(uuid())
+  code         String               @unique
+  sortOrder    Int                  @default(0)
+  /** { "en": "Ketogenic", "tr": "Ketojenik" } */
+  displayNames Json                 @default("{}")
+  /** "restriction" (gluten_free, vegan…) | "macro_plan" (balanced, high_protein…) */
+  category     String               @default("restriction")
+  /** { "proteinRatio": 0.30, "carbRatio": 0.40, "fatRatio": 0.30 } — yalnızca macro_plan için */
+  macros       Json                 @default("{}")
+  users        UserDietPreference[]
+  variants     DietVariant[]
 
   @@map("diet_types")
 }
 
 /**
- * Makro dağılım şablonları (yüksek protein, düşük karbonhidrat vb.).
- * `diet_types` ile karıştırma: orası kısıtlama/tercih etiketleri; burası kalori/makro hedefi.
+ * Bir DietType'ın alt çeşidi. Cinsiyet + BMI aralığına göre makro/kalori hedeflerini tutar.
+ * Kullanıcıya onboarding/profil düzenleme sonrası backend tarafından atanır.
+ *
+ * gender:   "male" | "female" | "any"
+ * bmiMin/bmiMax: Bu variant'ın uygulanacağı BMI aralığı (dahil). NULL = sınırsız uç.
  */
-model DietMacroTemplate {
-  id                String   @id @default(uuid())
-  code              String   @unique
-  sortOrder         Int      @default(0)
-  /** Şablondaki gram/kcal hesaplarının referans aldığı günlük kalori (ör. 2000). */
-  referenceCalories Int      @default(2000)
-  /** { "en": "...", "tr": "..." } */
-  displayNames      Json
-  /**
-   * { "protein"|"carbohydrate"|"fat": { percentage, grams, calories, kcal_per_gram } }
-   * Yüzde ve gram değerleri referenceCalories ile tutarlı tutulmalıdır.
-   */
-  macros            Json
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  users             User[]
+model DietVariant {
+  id             String   @id @default(uuid())
+  dietTypeId     String
+  dietType       DietType @relation(fields: [dietTypeId], references: [id], onDelete: Cascade)
+  code           String   @unique
+  sortOrder      Int      @default(0)
+  /** { "en": "Keto – Weight Loss", "tr": "Keto – Kilo Verme" } */
+  displayNames   Json     @default("{}")
+  /** "male" | "female" | "any" */
+  gender         String   @default("any")
+  bmiMin         Float?
+  bmiMax         Float?
+  /** Günlük hedef kalori */
+  targetCalories Int
+  /** Günlük hedef protein (gram) */
+  targetProtein  Int
+  /** Günlük hedef karbonhidrat (gram) */
+  targetCarbs    Int
+  /** Günlük hedef yağ (gram) */
+  targetFat      Int
+  /** Ek meta veri: { description, tips, restrictions, ... } */
+  meta           Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  users          User[]
 
-  @@map("diet_macro_templates")
+  @@index([dietTypeId])
+  @@index([gender, bmiMin, bmiMax])
+  @@map("diet_variants")
 }
 
 /** Kullanıcı ↔ katalog hastalık (çok-çok, satır başı bir koşul). */
@@ -115,6 +152,27 @@ model UserCustomHealthTag {
 
   @@unique([userId, label])
   @@map("user_custom_health_tags")
+}
+
+/**
+ * Etiket tarama geçmişi.
+ * rawIngredients : AI'ın döndürdüğü İngilizce bileşenler dizisi.
+ * matchedTriggers: Kullanıcının hastalık profiline uyarılan bileşenler.
+ * safetyLabel    : "safe" | "caution" | "avoid"
+ */
+model ScanHistory {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productTitle    String   @default("Scanned Product")
+  rawIngredients  Json     @default("[]")
+  matchedTriggers Json     @default("[]")
+  safetyLabel     String   @default("safe")
+  scannedAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, scannedAt])
+  @@map("scan_history")
 }
 
 /** Kullanıcı ↔ diyet tercihi. */

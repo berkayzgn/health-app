@@ -3,10 +3,29 @@ import { Meal, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMealDto } from './dto/create-meal.dto';
 import { UpdateMealDto } from './dto/update-meal.dto';
+import { AnalyzeMealImageDto } from './dto/analyze-meal-image.dto';
+import { GeminiMealImageService } from './gemini-meal-image.service';
 
 @Injectable()
 export class MealsService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly mealImageGemini: GeminiMealImageService,
+    ) { }
+
+    async analyzeMealImage(dto: AnalyzeMealImageDto): Promise<{
+        description: string;
+        shortTitle: string;
+        nutrition: {
+            calories: number;
+            protein: number;
+            carbs: number;
+            fat: number;
+        };
+    }> {
+        const locale = dto.locale === 'en' ? 'en' : 'tr';
+        return this.mealImageGemini.describeMealImage(dto.imageBase64, locale);
+    }
 
     async create(userId: string, dto: CreateMealDto): Promise<Meal> {
         return this.prisma.meal.create({

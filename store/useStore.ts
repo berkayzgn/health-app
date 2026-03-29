@@ -3,6 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Theme } from "../theme";
 import * as authService from "../services/authService";
 import type { ProfileResponse } from "../services/authService";
+import type { MedicalConditionDTO, MacroPlanDTO } from "../services/catalogService";
+import { getMedicalConditions, getMacroPlans } from "../services/catalogService";
 
 const THEME_KEY = "@health_app_theme";
 // NOTE: aynı anahtar services/api.ts içinde de tanımlı — ileride ortak bir constants dosyasına taşınmalı.
@@ -24,6 +26,14 @@ interface AppState {
   setUserProfile: (p: ProfileResponse | null) => void;
   clearAuth: () => void;
   loadStoredAuth: () => Promise<void>;
+
+  medicalConditions: MedicalConditionDTO[];
+  medicalConditionsLoaded: boolean;
+  loadMedicalConditions: () => Promise<void>;
+
+  macroPlans: MacroPlanDTO[];
+  macroPlansLoaded: boolean;
+  loadMacroPlans: () => Promise<void>;
 
   theme: Theme;
   themeLoaded: boolean;
@@ -88,6 +98,28 @@ export const useStore = create<AppState>((set) => ({
         userProfile: null,
         authLoading: false,
       });
+    }
+  },
+
+  medicalConditions: [],
+  medicalConditionsLoaded: false,
+  loadMedicalConditions: async () => {
+    try {
+      const conditions = await getMedicalConditions();
+      set({ medicalConditions: conditions, medicalConditionsLoaded: true });
+    } catch {
+      set({ medicalConditionsLoaded: true });
+    }
+  },
+
+  macroPlans: [],
+  macroPlansLoaded: false,
+  loadMacroPlans: async () => {
+    try {
+      const plans = await getMacroPlans();
+      set({ macroPlans: plans, macroPlansLoaded: true });
+    } catch {
+      set({ macroPlansLoaded: true });
     }
   },
 

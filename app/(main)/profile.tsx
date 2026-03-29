@@ -21,10 +21,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
+import { useEffect } from "react";
 import SafeAreaWrapper from "../../components/SafeAreaWrapper";
 import AppHeader from "../../components/AppHeader";
 import { useStore } from "../../store/useStore";
-import { formatConditionTypesSummary } from "../../utils/conditionTypesDisplay";
+import {
+  formatConditionTypesSummary,
+  formatDietPlanRowSummary,
+} from "../../utils/conditionTypesDisplay";
 
 const EMPTY = "—";
 
@@ -36,7 +40,7 @@ function initialsFromName(name: string): string {
 }
 
 export default function ProfileScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -45,6 +49,19 @@ export default function ProfileScreen() {
   const authUser = useStore((s) => s.authUser);
   const userProfile = useStore((s) => s.userProfile);
   const theme = useStore((s) => s.theme);
+  const medicalConditions = useStore((s) => s.medicalConditions);
+  const medicalConditionsLoaded = useStore((s) => s.medicalConditionsLoaded);
+  const loadMedicalConditions = useStore((s) => s.loadMedicalConditions);
+  const macroPlans = useStore((s) => s.macroPlans);
+  const macroPlansLoaded = useStore((s) => s.macroPlansLoaded);
+  const loadMacroPlans = useStore((s) => s.loadMacroPlans);
+
+  const lang = i18n.language?.startsWith("tr") ? "tr" : "en";
+
+  useEffect(() => {
+    if (!medicalConditionsLoaded) loadMedicalConditions();
+    if (!macroPlansLoaded) loadMacroPlans();
+  }, [medicalConditionsLoaded, loadMedicalConditions, macroPlansLoaded, loadMacroPlans]);
 
   const [fontsLoaded] = useFonts({
     Manrope_700Bold,
@@ -64,8 +81,21 @@ export default function ProfileScreen() {
 
   const heightDisplay = userProfile?.heightCm?.trim() ? userProfile.heightCm : EMPTY;
   const weightDisplay = userProfile?.weightKg?.trim() ? userProfile.weightKg : EMPTY;
-  const conditionsSummary = formatConditionTypesSummary(userProfile?.conditionTypes, t);
+  const conditionsSummary = formatConditionTypesSummary(userProfile?.conditionTypes, lang, medicalConditions);
+  const macroPlanSummary = formatDietPlanRowSummary(
+    userProfile?.selectedDietTypeCode,
+    userProfile?.dietaryPreferences,
+    lang,
+    macroPlans,
+  );
   const diseaseDisplay = conditionsSummary || EMPTY;
+  const dietDisplay = macroPlanSummary || EMPTY;
+  const genderDisplay =
+    userProfile?.gender === "male"
+      ? t("onboarding.genderMale")
+      : userProfile?.gender === "female"
+        ? t("onboarding.genderFemale")
+        : EMPTY;
 
   const avatarSize = isWide ? 160 : 128;
   const initials = initialsFromName(displayName);
@@ -181,10 +211,26 @@ export default function ProfileScreen() {
                 </View>
                 <View className="w-full bg-surface-container-lowest p-5 rounded-[0.75rem]">
                   <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-2">
+                    {t("profile.genderLabel")}
+                  </Text>
+                  <Text className="text-xl font-headline text-on-surface leading-7">
+                    {genderDisplay}
+                  </Text>
+                </View>
+                <View className="w-full bg-surface-container-lowest p-5 rounded-[0.75rem]">
+                  <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-2">
                     {t("profile.diseaseType")}
                   </Text>
                   <Text className="text-xl font-headline text-on-surface leading-7">
                     {diseaseDisplay}
+                  </Text>
+                </View>
+                <View className="w-full bg-surface-container-lowest p-5 rounded-[0.75rem]">
+                  <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-2">
+                    {t("profile.macroPlanLabel")}
+                  </Text>
+                  <Text className="text-xl font-headline text-on-surface leading-7">
+                    {dietDisplay}
                   </Text>
                 </View>
               </View>

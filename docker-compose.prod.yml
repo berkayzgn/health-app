@@ -1,0 +1,89 @@
+# Production docker-compose — Güvenli Sunucu Yapılandırması
+#
+# Kullanım:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Kurallar (guvenli-sunucu-kilavuzu.md):
+#   K3 — postgres/pgadmin portları asla dışarıya açılmaz
+#   K7 — pgAdmin sadece SSH tüneli ile erişilir
+#   K8 — backend sadece 127.0.0.1'e bind edilir; nginx üzerinden geçer
+
+networks:
+  healthai:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: health-ai-postgres
+    restart: unless-stopped
+    networks:
+      - healthai
+    # ports bloğu YOK — dışarıya kapalı (K3)
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-healthai}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB:       ${POSTGRES_DB:-healthai}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-healthai} -d ${POSTGRES_DB:-healthai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: health-ai-backend
+    restart: unless-stopped
+    networks:
+      - healthai
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV:     production
+      PORT:         3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-healthai}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:-healthai}?schema=public
+    ports:
+      # Sadece localhost'a bind — nginx reverse proxy üzerinden erişilir (K3)
+      - "127.0.0.1:3000:3000"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  pgadmin:
+    image: dpage/pgadmin4:8.14
+    container_name: health-ai-pgadmin
+    restart: unless-stopped
+    networks:
+      - healthai
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      # Sadece localhost — SSH tüneli ile: ssh -L 5050:127.0.0.1:5050 -p 2222 user@SUNUCU_IP (K8)
+      - "127.0.0.1:5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL:      ${PGADMIN_EMAIL:?PGADMIN_EMAIL must be set}
+      PGADMIN_DEFAULT_PASSWORD:   ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD must be set}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+volumes:
+  postgres_data:
+  pgadmin_data:

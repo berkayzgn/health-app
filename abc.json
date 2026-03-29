@@ -1,0 +1,2681 @@
+{
+  "diseases": [
+    {
+      "key": "tip_1_diyabet",
+      "label": "Tip 1 Diyabet",
+      "category": "metabolic",
+      "filters": [
+        "carbohydrate",
+        "simple_sugar",
+        "high_glycemic_load",
+        "white_bread",
+        "fruit_juice",
+        "mashed_potato",
+        "honey",
+        "syrup",
+        "molasses",
+        "jam",
+        "dried_fruit",
+        "energy_drink",
+        "sweetened_beverage",
+        "instant_noodle"
+      ],
+      "red_flag": {
+        "metric": "carbohydrate_g_per_meal",
+        "operator": ">",
+        "value": 75
+      },
+      "watch_out": [
+        {
+          "metric": "simple_sugar_g_per_meal",
+          "operator": ">",
+          "value": 30
+        },
+        {
+          "metric": "high_glycemic_load",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Type 1 Diabetes",
+      "alias": {
+        "en": [
+          "Type 1 Diabetes",
+          "Type 1 diabetes mellitus",
+          "T1DM",
+          "IDDM",
+          "insulin-dependent diabetes"
+        ]
+      },
+      "category_en": "Metabolic"
+    },
+    {
+      "key": "tip_2_diyabet",
+      "label": "Tip 2 Diyabet",
+      "category": "metabolic",
+      "filters": [
+        "sugar",
+        "refined_carb",
+        "fructose",
+        "white_bread",
+        "fruit_juice",
+        "dessert",
+        "sugary_drink",
+        "honey",
+        "syrup",
+        "molasses",
+        "jam",
+        "dried_fruit",
+        "energy_drink",
+        "sweetened_yogurt",
+        "sweetened_beverage"
+      ],
+      "red_flag": {
+        "metric": "sugar_g_per_day",
+        "operator": ">",
+        "value": 50
+      },
+      "watch_out": [
+        {
+          "metric": "refined_carb_g_per_day",
+          "operator": ">",
+          "value": 150
+        },
+        {
+          "metric": "fructose_g_per_day",
+          "operator": ">",
+          "value": 25
+        }
+      ],
+      "label_en": "Type 2 Diabetes",
+      "alias": {
+        "en": [
+          "Type 2 Diabetes",
+          "Type 2 diabetes mellitus",
+          "T2DM",
+          "NIDDM",
+          "adult-onset diabetes"
+        ]
+      },
+      "category_en": "Metabolic"
+    },
+    {
+      "key": "prediyabet",
+      "label": "Prediyabet",
+      "category": "metabolic",
+      "filters": [
+        "sugar",
+        "refined_carb",
+        "white_bread",
+        "dessert",
+        "sugary_drink",
+        "honey",
+        "syrup",
+        "dried_fruit",
+        "energy_drink",
+        "fruit_juice"
+      ],
+      "red_flag": {
+        "metric": "sugar_g_per_day",
+        "operator": ">",
+        "value": 50
+      },
+      "watch_out": [
+        {
+          "metric": "white_bread_slice_per_day",
+          "operator": ">",
+          "value": 4
+        },
+        {
+          "metric": "dessert_portion_per_day",
+          "operator": ">",
+          "value": 1
+        }
+      ],
+      "label_en": "Prediabetes",
+      "alias": {
+        "en": [
+          "Prediabetes",
+          "borderline diabetes",
+          "impaired fasting glucose",
+          "IFG",
+          "IGT"
+        ]
+      },
+      "category_en": "Metabolic"
+    },
+    {
+      "key": "gestasyonel_diyabet",
+      "label": "Gestasyonel Diyabet",
+      "category": "metabolic",
+      "filters": [
+        "carbohydrate",
+        "sugary_drink",
+        "white_bread",
+        "fruit",
+        "cola",
+        "fasting_long",
+        "honey",
+        "syrup",
+        "dried_fruit",
+        "energy_drink",
+        "molasses",
+        "jam"
+      ],
+      "red_flag": {
+        "metric": "carbohydrate_g_per_meal",
+        "operator": ">",
+        "value": 60
+      },
+      "watch_out": [
+        {
+          "metric": "sugary_drink",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "fasting_hours",
+          "operator": ">",
+          "value": 10
+        }
+      ],
+      "label_en": "Gestational Diabetes",
+      "alias": {
+        "en": [
+          "Gestational Diabetes",
+          "GDM",
+          "diabetes in pregnancy",
+          "pregnancy diabetes"
+        ]
+      },
+      "category_en": "Metabolic"
+    },
+    {
+      "key": "insulin_direnci",
+      "label": "İnsülin Direnci",
+      "category": "metabolic",
+      "filters": [
+        "sugar",
+        "refined_carb",
+        "dessert",
+        "white_bread",
+        "late_night_eating",
+        "sugary_drink",
+        "energy_drink",
+        "dried_fruit",
+        "sweetened_beverage"
+      ],
+      "red_flag": {
+        "metric": "sugar_g_per_day",
+        "operator": ">",
+        "value": 50
+      },
+      "watch_out": [
+        {
+          "metric": "refined_carb_g_per_day",
+          "operator": ">",
+          "value": 150
+        },
+        {
+          "metric": "late_night_eating",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Insulin Resistance",
+      "alias": {
+        "en": [
+          "Insulin Resistance",
+          "IR",
+          "hyperinsulinemia",
+          "metabolic insulin resistance"
+        ]
+      },
+      "category_en": "Metabolic"
+    },
+    {
+      "key": "metabolik_sendrom",
+      "label": "Metabolik Sendrom",
+      "category": "metabolic",
+      "filters": [
+        "sugar",
+        "fat",
+        "fast_food",
+        "low_fiber_food",
+        "sugar_fat_combo",
+        "sugary_drink",
+        "energy_drink",
+        "sweetened_beverage"
+      ],
+      "red_flag": {
+        "metric": "sugar_fat_combo_high_meal",
+        "operator": "=",
+        "value": true
+      },
+      "watch_out": [
+        {
+          "metric": "sugar_g_per_day",
+          "operator": ">",
+          "value": 30
+        },
+        {
+          "metric": "fiber_g_per_day",
+          "operator": "<",
+          "value": 20
+        }
+      ],
+      "label_en": "Metabolic Syndrome",
+      "alias": {
+        "en": [
+          "Metabolic Syndrome",
+          "Syndrome X",
+          "insulin resistance syndrome",
+          "MetS"
+        ]
+      },
+      "category_en": "Metabolic"
+    },
+    {
+      "key": "hipertansiyon",
+      "label": "Hipertansiyon",
+      "category": "cardiovascular",
+      "filters": [
+        "sodium",
+        "salt",
+        "caffeine",
+        "processed_meat",
+        "pickle",
+        "instant_soup",
+        "bouillon",
+        "soy_sauce",
+        "sauce",
+        "canned_food",
+        "processed_cheese"
+      ],
+      "red_flag": {
+        "metric": "sodium_mg_per_day",
+        "operator": ">",
+        "value": 2300
+      },
+      "watch_out": [
+        {
+          "metric": "salt_g_per_day",
+          "operator": ">",
+          "value": 5
+        },
+        {
+          "metric": "caffeine_mg_per_day",
+          "operator": ">",
+          "value": 300
+        }
+      ],
+      "label_en": "Hypertension",
+      "alias": {
+        "en": [
+          "Hypertension",
+          "high blood pressure",
+          "HBP",
+          "elevated blood pressure"
+        ]
+      },
+      "category_en": "Cardiovascular"
+    },
+    {
+      "key": "koroner_arter_hastaligi",
+      "label": "Koroner Arter Hastalığı",
+      "category": "cardiovascular",
+      "filters": [
+        "trans_fat",
+        "saturated_fat",
+        "cholesterol",
+        "fried_food",
+        "packaged_food",
+        "processed_meat",
+        "coconut_oil",
+        "charred_meat"
+      ],
+      "red_flag": {
+        "metric": "trans_fat_present",
+        "operator": "=",
+        "value": true
+      },
+      "watch_out": [
+        {
+          "metric": "saturated_fat_g_per_day",
+          "operator": ">",
+          "value": 20
+        },
+        {
+          "metric": "cholesterol_mg_per_day",
+          "operator": ">",
+          "value": 200
+        }
+      ],
+      "label_en": "Coronary Artery Disease",
+      "alias": {
+        "en": [
+          "Coronary Artery Disease",
+          "CAD",
+          "ischemic heart disease",
+          "coronary heart disease",
+          "CHD"
+        ]
+      },
+      "category_en": "Cardiovascular"
+    },
+    {
+      "key": "kalp_yetersizligi",
+      "label": "Kalp Yetersizliği",
+      "category": "cardiovascular",
+      "filters": [
+        "fluid",
+        "salt",
+        "sodium",
+        "canned_food",
+        "instant_soup",
+        "bouillon",
+        "pickle",
+        "processed_meat"
+      ],
+      "red_flag": {
+        "metric": "fluid_l_per_day",
+        "operator": ">",
+        "value": 2
+      },
+      "watch_out": [
+        {
+          "metric": "salt_g_per_day",
+          "operator": ">",
+          "value": 4
+        },
+        {
+          "metric": "sodium_mg_per_day",
+          "operator": ">",
+          "value": 2000
+        }
+      ],
+      "label_en": "Heart Failure",
+      "alias": {
+        "en": [
+          "Heart Failure",
+          "HF",
+          "congestive heart failure",
+          "CHF",
+          "cardiac failure"
+        ]
+      },
+      "category_en": "Cardiovascular"
+    },
+    {
+      "key": "dislipidemi",
+      "label": "Dislipidemi",
+      "category": "cardiovascular",
+      "filters": [
+        "sugar",
+        "saturated_fat",
+        "low_fiber_food",
+        "trans_fat",
+        "processed_meat",
+        "fried_food"
+      ],
+      "red_flag": {
+        "metric": "sugar_g_per_day",
+        "operator": ">",
+        "value": 50
+      },
+      "watch_out": [
+        {
+          "metric": "saturated_fat_g_per_day",
+          "operator": ">",
+          "value": 20
+        },
+        {
+          "metric": "fiber_g_per_day",
+          "operator": "<",
+          "value": 25
+        }
+      ],
+      "label_en": "Dyslipidemia",
+      "alias": {
+        "en": [
+          "Dyslipidemia",
+          "lipid disorder",
+          "abnormal blood lipids"
+        ]
+      },
+      "category_en": "Cardiovascular"
+    },
+    {
+      "key": "yuksek_ldl_kolesterol",
+      "label": "Yüksek LDL Kolesterol",
+      "category": "cardiovascular",
+      "filters": [
+        "saturated_fat",
+        "trans_fat",
+        "low_fiber_food",
+        "fried_food",
+        "packaged_food",
+        "processed_meat",
+        "coconut_oil"
+      ],
+      "red_flag": {
+        "metric": "saturated_fat_g_per_day",
+        "operator": ">",
+        "value": 20
+      },
+      "watch_out": [
+        {
+          "metric": "trans_fat_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "fiber_g_per_day",
+          "operator": "<",
+          "value": 25
+        }
+      ],
+      "label_en": "High LDL Cholesterol",
+      "alias": {
+        "en": [
+          "High LDL Cholesterol",
+          "elevated LDL",
+          "high LDL-C",
+          "hypercholesterolemia"
+        ]
+      },
+      "category_en": "Cardiovascular"
+    },
+    {
+      "key": "hipertrigliseridemi",
+      "label": "Hipertrigliseridemi",
+      "category": "cardiovascular",
+      "filters": [
+        "sugar",
+        "alcohol",
+        "white_flour_food",
+        "cola",
+        "sugary_drink",
+        "fructose",
+        "honey",
+        "syrup",
+        "refined_carb"
+      ],
+      "red_flag": {
+        "metric": "sugar_g_per_day",
+        "operator": ">",
+        "value": 50
+      },
+      "watch_out": [
+        {
+          "metric": "alcohol_g_per_day",
+          "operator": ">",
+          "value": 20
+        },
+        {
+          "metric": "white_flour_food_portion",
+          "operator": ">",
+          "value": 3
+        }
+      ],
+      "label_en": "Hypertriglyceridemia",
+      "alias": {
+        "en": [
+          "Hypertriglyceridemia",
+          "high triglycerides",
+          "elevated TG",
+          "severe hypertriglyceridemia"
+        ]
+      },
+      "category_en": "Cardiovascular"
+    },
+    {
+      "key": "kronik_bobrek_hastaligi",
+      "label": "Kronik Böbrek Hastalığı",
+      "category": "kidney",
+      "filters": [
+        "protein",
+        "potassium",
+        "phosphorus",
+        "banana",
+        "potato",
+        "meat",
+        "tomato",
+        "tomato_paste",
+        "orange",
+        "dried_fruit",
+        "dark_leafy_greens",
+        "cola",
+        "dark_cola",
+        "processed_meat",
+        "dairy",
+        "chocolate",
+        "nuts",
+        "avocado"
+      ],
+      "red_flag": {
+        "metric": "protein_g_per_kg",
+        "operator": ">",
+        "value": 1
+      },
+      "watch_out": [
+        {
+          "metric": "potassium_mg_per_day",
+          "operator": ">",
+          "value": 3000
+        },
+        {
+          "metric": "phosphorus_mg_per_day",
+          "operator": ">",
+          "value": 1000
+        }
+      ],
+      "label_en": "Chronic Kidney Disease",
+      "alias": {
+        "en": [
+          "Chronic Kidney Disease",
+          "CKD",
+          "chronic renal disease",
+          "chronic kidney failure"
+        ]
+      },
+      "category_en": "Kidney / renal"
+    },
+    {
+      "key": "diyabetik_bobrek_hastaligi",
+      "label": "Diyabetik Böbrek Hastalığı",
+      "category": "kidney",
+      "filters": [
+        "sugar",
+        "protein",
+        "salt",
+        "potassium",
+        "phosphorus",
+        "cola",
+        "dark_cola",
+        "processed_meat",
+        "dairy",
+        "tomato",
+        "banana",
+        "orange"
+      ],
+      "red_flag": {
+        "metric": "sugar_g_per_day",
+        "operator": ">",
+        "value": 50
+      },
+      "watch_out": [
+        {
+          "metric": "protein_g_per_kg",
+          "operator": ">",
+          "value": 0.8
+        },
+        {
+          "metric": "salt_g_per_day",
+          "operator": ">",
+          "value": 5
+        }
+      ],
+      "label_en": "Diabetic Kidney Disease",
+      "alias": {
+        "en": [
+          "Diabetic Kidney Disease",
+          "DKD",
+          "diabetic nephropathy",
+          "diabetic renal disease"
+        ]
+      },
+      "category_en": "Kidney / renal"
+    },
+    {
+      "key": "diyaliz_hastasi",
+      "label": "Diyaliz Hastası",
+      "category": "kidney",
+      "filters": [
+        "fluid",
+        "potassium",
+        "phosphorus",
+        "banana",
+        "potato",
+        "tomato",
+        "orange",
+        "dried_fruit",
+        "dark_leafy_greens",
+        "cola",
+        "dark_cola",
+        "processed_meat",
+        "dairy",
+        "chocolate",
+        "nuts",
+        "avocado"
+      ],
+      "red_flag": {
+        "metric": "fluid_ml_per_day",
+        "operator": ">",
+        "value": "urine_plus_500"
+      },
+      "watch_out": [
+        {
+          "metric": "potassium_mg_per_day",
+          "operator": ">",
+          "value": 3000
+        },
+        {
+          "metric": "phosphorus_mg_per_day",
+          "operator": ">",
+          "value": 1000
+        }
+      ],
+      "label_en": "Dialysis Patient",
+      "alias": {
+        "en": [
+          "Dialysis Patient",
+          "on dialysis",
+          "hemodialysis",
+          "peritoneal dialysis",
+          "ESRD on dialysis"
+        ]
+      },
+      "category_en": "Kidney / renal"
+    },
+    {
+      "key": "diyaliz_oncesi_bobrek_yetmezligi",
+      "label": "Diyaliz Öncesi Böbrek Yetmezliği",
+      "category": "kidney",
+      "filters": [
+        "protein",
+        "salt",
+        "potassium",
+        "phosphorus",
+        "tomato",
+        "banana",
+        "orange",
+        "cola",
+        "dark_cola",
+        "processed_meat",
+        "dairy"
+      ],
+      "red_flag": {
+        "metric": "protein_g_per_kg",
+        "operator": ">",
+        "value": 0.8
+      },
+      "watch_out": [
+        {
+          "metric": "salt_g_per_day",
+          "operator": ">",
+          "value": 5
+        },
+        {
+          "metric": "potassium_mg_per_day",
+          "operator": ">",
+          "value": 3000
+        }
+      ],
+      "label_en": "Pre-dialysis Kidney Failure",
+      "alias": {
+        "en": [
+          "Pre-dialysis Kidney Failure",
+          "advanced CKD",
+          "CKD before dialysis",
+          "kidney failure not on dialysis"
+        ]
+      },
+      "category_en": "Kidney / renal"
+    },
+    {
+      "key": "urik_asit_tasi",
+      "label": "Ürik Asit Taşı",
+      "category": "kidney",
+      "filters": [
+        "purine",
+        "red_meat",
+        "protein",
+        "water_low",
+        "organ_meat",
+        "beer",
+        "anchovy",
+        "sardine",
+        "seafood_high_purine",
+        "shellfish"
+      ],
+      "red_flag": {
+        "metric": "purine_mg_per_day",
+        "operator": ">",
+        "value": 200
+      },
+      "watch_out": [
+        {
+          "metric": "water_l_per_day",
+          "operator": "<",
+          "value": 2
+        },
+        {
+          "metric": "protein_g_per_kg",
+          "operator": ">",
+          "value": 1
+        }
+      ],
+      "label_en": "Uric Acid Kidney Stones",
+      "alias": {
+        "en": [
+          "Uric Acid Kidney Stones",
+          "uric acid stones",
+          "uric acid nephrolithiasis",
+          "urate stones"
+        ]
+      },
+      "category_en": "Kidney / renal"
+    },
+    {
+      "key": "colyak",
+      "label": "Çölyak",
+      "category": "gluten_intolerance",
+      "filters": [
+        "gluten",
+        "wheat",
+        "barley",
+        "rye",
+        "breadcrumb",
+        "cross_contamination",
+        "malt",
+        "beer",
+        "oats",
+        "bulgur",
+        "couscous",
+        "spelt",
+        "semolina",
+        "soy_sauce_wheat"
+      ],
+      "red_flag": {
+        "metric": "gluten_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "breadcrumb_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "cross_contamination",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Celiac Disease",
+      "alias": {
+        "en": [
+          "Celiac Disease",
+          "coeliac disease",
+          "celiac sprue",
+          "gluten-sensitive enteropathy"
+        ]
+      },
+      "category_en": "Gluten-related"
+    },
+    {
+      "key": "non_colyak_gluten_hassasiyeti",
+      "label": "Non-Çölyak Gluten Hassasiyeti",
+      "category": "gluten_intolerance",
+      "filters": [
+        "gluten",
+        "wheat",
+        "barley",
+        "rye",
+        "bread",
+        "malt",
+        "beer",
+        "bulgur",
+        "couscous",
+        "oats",
+        "spelt",
+        "semolina"
+      ],
+      "red_flag": {
+        "metric": "gluten_mg",
+        "operator": ">",
+        "value": 100
+      },
+      "watch_out": [
+        {
+          "metric": "gluten_mg",
+          "operator": ">=",
+          "value": 50
+        },
+        {
+          "metric": "bread_slice_gluten_g",
+          "operator": "~",
+          "value": "3_to_4"
+        }
+      ],
+      "label_en": "Non-Celiac Gluten Sensitivity",
+      "alias": {
+        "en": [
+          "Non-Celiac Gluten Sensitivity",
+          "NCGS",
+          "gluten sensitivity",
+          "non-coeliac gluten sensitivity"
+        ]
+      },
+      "category_en": "Gluten-related"
+    },
+    {
+      "key": "laktoz_intoleransi",
+      "label": "Laktoz İntoleransı",
+      "category": "lactose_intolerance",
+      "filters": [
+        "lactose",
+        "milk",
+        "milk_powder",
+        "cream",
+        "ice_cream",
+        "soft_cheese",
+        "yogurt",
+        "butter",
+        "whey"
+      ],
+      "red_flag": {
+        "metric": "lactose_g",
+        "operator": ">",
+        "value": 12
+      },
+      "watch_out": [
+        {
+          "metric": "lactose_g",
+          "operator": ">=",
+          "value": 6
+        },
+        {
+          "metric": "lactose_g",
+          "operator": "<=",
+          "value": 12
+        }
+      ],
+      "label_en": "Lactose Intolerance",
+      "alias": {
+        "en": [
+          "Lactose Intolerance",
+          "lactose malabsorption",
+          "lactase deficiency",
+          "dairy sugar intolerance"
+        ]
+      },
+      "category_en": "Lactose intolerance"
+    },
+    {
+      "key": "ibs",
+      "label": "IBS",
+      "category": "gastrointestinal",
+      "filters": [
+        "fodmap",
+        "onion",
+        "legume",
+        "garlic",
+        "wheat",
+        "apple",
+        "sugar_alcohol",
+        "artificial_sweetener",
+        "cauliflower",
+        "honey"
+      ],
+      "red_flag": {
+        "metric": "fodmap_g",
+        "operator": ">",
+        "value": 5
+      },
+      "watch_out": [
+        {
+          "metric": "onion_portion",
+          "operator": ">=",
+          "value": 1
+        },
+        {
+          "metric": "legume_ladle",
+          "operator": ">=",
+          "value": 1
+        }
+      ],
+      "label_en": "Irritable Bowel Syndrome",
+      "alias": {
+        "en": [
+          "Irritable Bowel Syndrome",
+          "IBS",
+          "spastic colon",
+          "functional bowel disorder"
+        ]
+      },
+      "category_en": "Gastrointestinal"
+    },
+    {
+      "key": "gerd",
+      "label": "GERD",
+      "category": "gastrointestinal",
+      "filters": [
+        "fat",
+        "coffee",
+        "caffeine",
+        "chocolate",
+        "high_fat_food",
+        "alcohol",
+        "spicy_food",
+        "tomato",
+        "citrus",
+        "peppermint",
+        "carbonated_drink",
+        "vinegar"
+      ],
+      "red_flag": {
+        "metric": "fat_g_per_meal",
+        "operator": ">",
+        "value": 30
+      },
+      "watch_out": [
+        {
+          "metric": "coffee_cup",
+          "operator": ">",
+          "value": 2
+        },
+        {
+          "metric": "chocolate_g",
+          "operator": ">",
+          "value": 30
+        }
+      ],
+      "label_en": "GERD",
+      "alias": {
+        "en": [
+          "GERD",
+          "gastroesophageal reflux disease",
+          "acid reflux",
+          "reflux esophagitis"
+        ]
+      },
+      "category_en": "Gastrointestinal"
+    },
+    {
+      "key": "crohn_hastaligi",
+      "label": "Crohn Hastalığı",
+      "category": "gastrointestinal",
+      "filters": [
+        "fiber_high",
+        "raw_vegetable",
+        "high_fat_food",
+        "alcohol",
+        "spicy_food",
+        "caffeine",
+        "dairy",
+        "sweetener"
+      ],
+      "red_flag": {
+        "metric": "fiber_g_during_flare",
+        "operator": ">",
+        "value": 15
+      },
+      "watch_out": [
+        {
+          "metric": "raw_vegetable_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "high_fat_food_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Crohn's Disease",
+      "alias": {
+        "en": [
+          "Crohn's Disease",
+          "Crohn disease",
+          "regional enteritis",
+          "IBD - Crohn"
+        ]
+      },
+      "category_en": "Gastrointestinal"
+    },
+    {
+      "key": "ulseratif_kolit",
+      "label": "Ülseratif Kolit",
+      "category": "gastrointestinal",
+      "filters": [
+        "fiber_high",
+        "lactose",
+        "high_fat_food",
+        "alcohol",
+        "spicy_food",
+        "caffeine"
+      ],
+      "red_flag": {
+        "metric": "fiber_g",
+        "operator": ">",
+        "value": 15
+      },
+      "watch_out": [
+        {
+          "metric": "lactose_g",
+          "operator": ">",
+          "value": 10
+        },
+        {
+          "metric": "high_fat_food_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Ulcerative Colitis",
+      "alias": {
+        "en": [
+          "Ulcerative Colitis",
+          "UC",
+          "IBD - ulcerative colitis"
+        ]
+      },
+      "category_en": "Gastrointestinal"
+    },
+    {
+      "key": "fonksiyonel_siskinlik_gaz",
+      "label": "Fonksiyonel Şişkinlik / Gaz",
+      "category": "gastrointestinal",
+      "filters": [
+        "gas_forming_food",
+        "legume",
+        "carbonated_drink",
+        "gum",
+        "broccoli",
+        "cauliflower",
+        "onion",
+        "apple"
+      ],
+      "red_flag": {
+        "metric": "gas_forming_food_portion",
+        "operator": ">",
+        "value": 2
+      },
+      "watch_out": [
+        {
+          "metric": "carbonated_drink_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "gum_count_per_day",
+          "operator": ">",
+          "value": 5
+        }
+      ],
+      "label_en": "Functional Bloating / Gas",
+      "alias": {
+        "en": [
+          "Functional Bloating / Gas",
+          "abdominal bloating",
+          "functional gas",
+          "functional distension"
+        ]
+      },
+      "category_en": "Gastrointestinal"
+    },
+    {
+      "key": "masld",
+      "label": "MASLD (Yağlı Karaciğer)",
+      "category": "liver",
+      "filters": [
+        "fructose",
+        "fruit_juice",
+        "sugar",
+        "fat_ratio_high",
+        "alcohol",
+        "refined_carb",
+        "fast_food"
+      ],
+      "red_flag": {
+        "metric": "fructose_g",
+        "operator": ">",
+        "value": 30
+      },
+      "watch_out": [
+        {
+          "metric": "sugar_g",
+          "operator": ">",
+          "value": 50
+        },
+        {
+          "metric": "fat_percent",
+          "operator": ">",
+          "value": 35
+        }
+      ],
+      "label_en": "MASLD (Fatty Liver)",
+      "alias": {
+        "en": [
+          "MASLD (Fatty Liver)",
+          "metabolic dysfunction-associated steatotic liver disease",
+          "NAFLD",
+          "fatty liver disease"
+        ]
+      },
+      "category_en": "Liver"
+    },
+    {
+      "key": "mash",
+      "label": "MASH",
+      "category": "liver",
+      "filters": [
+        "alcohol",
+        "sugar",
+        "high_fat_food"
+      ],
+      "red_flag": {
+        "metric": "alcohol_g",
+        "operator": ">",
+        "value": 20
+      },
+      "watch_out": [
+        {
+          "metric": "sugar_g",
+          "operator": ">",
+          "value": 50
+        },
+        {
+          "metric": "high_fat_food_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "MASH",
+      "alias": {
+        "en": [
+          "MASH",
+          "metabolic dysfunction-associated steatohepatitis",
+          "NASH",
+          "steatohepatitis"
+        ]
+      },
+      "category_en": "Liver"
+    },
+    {
+      "key": "obezite",
+      "label": "Obezite",
+      "category": "weight_management",
+      "filters": [
+        "high_calorie_food",
+        "sugar",
+        "low_fiber_food",
+        "sugary_drink",
+        "energy_drink",
+        "fast_food"
+      ],
+      "red_flag": {
+        "metric": "kcal_surplus_per_day",
+        "operator": ">",
+        "value": 500
+      },
+      "watch_out": [
+        {
+          "metric": "sugar_g",
+          "operator": ">",
+          "value": 25
+        },
+        {
+          "metric": "fiber_g",
+          "operator": "<",
+          "value": 20
+        }
+      ],
+      "label_en": "Obesity",
+      "alias": {
+        "en": [
+          "Obesity",
+          "severe obesity",
+          "adiposity",
+          "high BMI"
+        ]
+      },
+      "category_en": "Weight management"
+    },
+    {
+      "key": "fazla_kiloluluk",
+      "label": "Fazla Kiloluluk",
+      "category": "weight_management",
+      "filters": [
+        "high_calorie_food",
+        "sugary_drink",
+        "fast_food",
+        "energy_drink",
+        "dessert"
+      ],
+      "red_flag": {
+        "metric": "kcal_surplus_per_day",
+        "operator": ">",
+        "value": 300
+      },
+      "watch_out": [
+        {
+          "metric": "sugary_drink_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "fast_food_frequency_per_week",
+          "operator": ">",
+          "value": 2
+        }
+      ],
+      "label_en": "Overweight",
+      "alias": {
+        "en": [
+          "Overweight",
+          "excess weight",
+          "pre-obesity",
+          "elevated BMI"
+        ]
+      },
+      "category_en": "Weight management"
+    },
+    {
+      "key": "gut",
+      "label": "Gut (Podagra)",
+      "category": "purine",
+      "filters": [
+        "purine",
+        "red_meat",
+        "alcohol",
+        "organ_meat",
+        "beer",
+        "anchovy",
+        "sardine",
+        "seafood_high_purine",
+        "shellfish",
+        "fructose",
+        "sugary_drink"
+      ],
+      "red_flag": {
+        "metric": "purine_mg",
+        "operator": ">",
+        "value": 200
+      },
+      "watch_out": [
+        {
+          "metric": "red_meat_g",
+          "operator": ">=",
+          "value": 150
+        },
+        {
+          "metric": "alcohol_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Gout (Podagra)",
+      "alias": {
+        "en": [
+          "Gout (Podagra)",
+          "gout",
+          "gouty arthritis",
+          "podagra",
+          "urate arthritis"
+        ]
+      },
+      "category_en": "Purine / uric acid"
+    },
+    {
+      "key": "hiperurisemi",
+      "label": "Hiperürisemi",
+      "category": "purine",
+      "filters": [
+        "fructose",
+        "sugary_drink",
+        "high_meat_intake",
+        "purine",
+        "organ_meat",
+        "beer",
+        "red_meat",
+        "anchovy",
+        "sardine",
+        "seafood_high_purine",
+        "alcohol"
+      ],
+      "red_flag": {
+        "metric": "fructose_g",
+        "operator": ">",
+        "value": 25
+      },
+      "watch_out": [
+        {
+          "metric": "sugary_drink_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "high_meat_intake",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Hyperuricemia",
+      "alias": {
+        "en": [
+          "Hyperuricemia",
+          "elevated uric acid",
+          "high serum urate"
+        ]
+      },
+      "category_en": "Purine / uric acid"
+    },
+    {
+      "key": "safra_tasi_riski",
+      "label": "Safra Taşı Riski",
+      "category": "gallbladder",
+      "filters": [
+        "fat",
+        "high_fat_food",
+        "fasting_long",
+        "rapid_weight_loss"
+      ],
+      "red_flag": {
+        "metric": "fat_g_per_meal",
+        "operator": ">",
+        "value": 40
+      },
+      "watch_out": [
+        {
+          "metric": "fasting_hours",
+          "operator": ">",
+          "value": 12
+        },
+        {
+          "metric": "weight_loss_kg_per_week",
+          "operator": ">",
+          "value": 1.5
+        }
+      ],
+      "label_en": "Gallstone Risk",
+      "alias": {
+        "en": [
+          "Gallstone Risk",
+          "cholelithiasis risk",
+          "gallbladder stone risk",
+          "biliary sludge risk"
+        ]
+      },
+      "category_en": "Gallbladder"
+    }
+  ],
+  "allergies": [
+    {
+      "key": "sut_alerjisi",
+      "label": "Süt Alerjisi",
+      "category": "food_allergy",
+      "filters": [
+        "milk_protein",
+        "milk",
+        "cheese",
+        "yogurt",
+        "whey",
+        "casein",
+        "milk_powder",
+        "hidden_milk",
+        "butter",
+        "ghee",
+        "cream"
+      ],
+      "red_flag": {
+        "metric": "milk_protein_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "cheese_or_yogurt_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "hidden_milk_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Cow's Milk Protein Allergy",
+      "alias": {
+        "en": [
+          "Cow's Milk Protein Allergy",
+          "CMPA",
+          "milk allergy",
+          "cow milk allergy",
+          "IgE milk allergy"
+        ]
+      },
+      "category_en": "Food allergy"
+    },
+    {
+      "key": "yumurta_alerjisi",
+      "label": "Yumurta Alerjisi",
+      "category": "food_allergy",
+      "filters": [
+        "egg_protein",
+        "egg",
+        "cake",
+        "mayonnaise",
+        "processed_food",
+        "pasta_fresh",
+        "glaze",
+        "nougat",
+        "meringue"
+      ],
+      "red_flag": {
+        "metric": "egg_protein_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "cake_or_mayonnaise_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "processed_food_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Egg Allergy",
+      "alias": {
+        "en": [
+          "Egg Allergy",
+          "egg protein allergy",
+          "hen egg allergy"
+        ]
+      },
+      "category_en": "Food allergy"
+    },
+    {
+      "key": "yer_fistigi_alerjisi",
+      "label": "Yer Fıstığı Alerjisi",
+      "category": "food_allergy",
+      "filters": [
+        "peanut",
+        "cross_contamination",
+        "peanut_butter",
+        "peanut_oil"
+      ],
+      "red_flag": {
+        "metric": "peanut_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "single_peanut_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "cross_contamination",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Peanut Allergy",
+      "alias": {
+        "en": [
+          "Peanut Allergy",
+          "peanut hypersensitivity",
+          "groundnut allergy"
+        ]
+      },
+      "category_en": "Food allergy"
+    },
+    {
+      "key": "agac_yemisleri_alerjisi",
+      "label": "Ağaç Yemişleri Alerjisi",
+      "category": "food_allergy",
+      "filters": [
+        "tree_nuts",
+        "hazelnut",
+        "almond",
+        "chocolate",
+        "dessert",
+        "cashew",
+        "walnut",
+        "pistachio",
+        "pecan",
+        "brazil_nut",
+        "macadamia",
+        "pine_nut",
+        "nut_paste"
+      ],
+      "red_flag": {
+        "metric": "tree_nuts_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "single_nut_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "dessert_or_chocolate_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Tree Nut Allergy",
+      "alias": {
+        "en": [
+          "Tree Nut Allergy",
+          "tree nut hypersensitivity",
+          "nuts allergy"
+        ]
+      },
+      "category_en": "Food allergy"
+    },
+    {
+      "key": "soya_alerjisi",
+      "label": "Soya Alerjisi",
+      "category": "food_allergy",
+      "filters": [
+        "soy",
+        "soy_sauce",
+        "processed_food",
+        "tofu",
+        "tempeh",
+        "miso",
+        "edamame",
+        "soy_milk",
+        "soy_lecithin"
+      ],
+      "red_flag": {
+        "metric": "soy_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "soy_sauce_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "processed_food_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Soy Allergy",
+      "alias": {
+        "en": [
+          "Soy Allergy",
+          "soya allergy",
+          "soybean allergy",
+          "soy protein allergy"
+        ]
+      },
+      "category_en": "Food allergy"
+    },
+    {
+      "key": "bugday_alerjisi",
+      "label": "Buğday Alerjisi",
+      "category": "food_allergy",
+      "filters": [
+        "wheat_protein",
+        "wheat",
+        "bread",
+        "pasta",
+        "couscous",
+        "bulgur",
+        "semolina",
+        "cracker"
+      ],
+      "red_flag": {
+        "metric": "wheat_protein_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "bread_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "pasta_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Wheat Allergy",
+      "alias": {
+        "en": [
+          "Wheat Allergy",
+          "wheat protein allergy",
+          "IgE-mediated wheat allergy"
+        ]
+      },
+      "category_en": "Food allergy"
+    },
+    {
+      "key": "balik_alerjisi",
+      "label": "Balık Alerjisi",
+      "category": "food_allergy",
+      "filters": [
+        "fish_protein",
+        "fish",
+        "fish_oil",
+        "anchovy",
+        "sardine",
+        "worcestershire",
+        "fish_sauce",
+        "surimi"
+      ],
+      "red_flag": {
+        "metric": "fish_protein_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "fish_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "fish_oil_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Fish Allergy",
+      "alias": {
+        "en": [
+          "Fish Allergy",
+          "fin fish allergy",
+          "finned fish allergy"
+        ]
+      },
+      "category_en": "Food allergy"
+    },
+    {
+      "key": "kabuklu_deniz_urunu_alerjisi",
+      "label": "Kabuklu Deniz Ürünü Alerjisi",
+      "category": "food_allergy",
+      "filters": [
+        "shellfish",
+        "shrimp",
+        "mussel",
+        "cross_contamination",
+        "crab",
+        "lobster",
+        "octopus",
+        "squid",
+        "crayfish"
+      ],
+      "red_flag": {
+        "metric": "shellfish_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "shrimp_or_mussel_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "cross_contamination",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Shellfish Allergy",
+      "alias": {
+        "en": [
+          "Shellfish Allergy",
+          "crustacean allergy",
+          "shellfish hypersensitivity",
+          "shrimp allergy"
+        ]
+      },
+      "category_en": "Food allergy"
+    },
+    {
+      "key": "susam_alerjisi",
+      "label": "Susam Alerjisi",
+      "category": "food_allergy",
+      "filters": [
+        "sesame",
+        "tahini",
+        "hummus",
+        "bakery",
+        "sushi_goma",
+        "halva",
+        "sesame_oil"
+      ],
+      "red_flag": {
+        "metric": "sesame_mg",
+        "operator": ">",
+        "value": 0
+      },
+      "watch_out": [
+        {
+          "metric": "sesame_teaspoon_present",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "metric": "tahini_present",
+          "operator": "=",
+          "value": true
+        }
+      ],
+      "label_en": "Sesame Allergy",
+      "alias": {
+        "en": [
+          "Sesame Allergy",
+          "sesame seed allergy",
+          "tahini allergy"
+        ]
+      },
+      "category_en": "Food allergy"
+    }
+  ],
+  "filter_alias_en": {
+    "alcohol": {
+      "label": "Alcohol",
+      "alias": []
+    },
+    "almond": {
+      "label": "Almond",
+      "alias": []
+    },
+    "anchovy": {
+      "label": "Anchovy",
+      "alias": []
+    },
+    "apple": {
+      "label": "Apple",
+      "alias": []
+    },
+    "artificial_sweetener": {
+      "label": "Artificial Sweetener",
+      "alias": [
+        "artificial sweetener"
+      ]
+    },
+    "avocado": {
+      "label": "Avocado",
+      "alias": []
+    },
+    "bakery": {
+      "label": "Bakery",
+      "alias": []
+    },
+    "banana": {
+      "label": "Banana",
+      "alias": []
+    },
+    "barley": {
+      "label": "Barley",
+      "alias": []
+    },
+    "beer": {
+      "label": "Beer",
+      "alias": []
+    },
+    "bouillon": {
+      "label": "Bouillon",
+      "alias": []
+    },
+    "brazil_nut": {
+      "label": "Brazil Nut",
+      "alias": [
+        "brazil nut"
+      ]
+    },
+    "bread": {
+      "label": "Bread",
+      "alias": []
+    },
+    "breadcrumb": {
+      "label": "Breadcrumb",
+      "alias": []
+    },
+    "broccoli": {
+      "label": "Broccoli",
+      "alias": []
+    },
+    "bulgur": {
+      "label": "Bulgur",
+      "alias": []
+    },
+    "butter": {
+      "label": "Butter",
+      "alias": []
+    },
+    "caffeine": {
+      "label": "Caffeine",
+      "alias": []
+    },
+    "cake": {
+      "label": "Cake",
+      "alias": []
+    },
+    "canned_food": {
+      "label": "Canned Food",
+      "alias": [
+        "canned food"
+      ]
+    },
+    "carbohydrate": {
+      "label": "Carbohydrate",
+      "alias": []
+    },
+    "carbonated_drink": {
+      "label": "Carbonated Drink",
+      "alias": [
+        "carbonated drink"
+      ]
+    },
+    "casein": {
+      "label": "Casein",
+      "alias": []
+    },
+    "cashew": {
+      "label": "Cashew",
+      "alias": []
+    },
+    "cauliflower": {
+      "label": "Cauliflower",
+      "alias": []
+    },
+    "charred_meat": {
+      "label": "charred / burnt meat",
+      "alias": [
+        "grilled charred meat"
+      ]
+    },
+    "cheese": {
+      "label": "Cheese",
+      "alias": []
+    },
+    "chocolate": {
+      "label": "Chocolate",
+      "alias": []
+    },
+    "cholesterol": {
+      "label": "Cholesterol",
+      "alias": []
+    },
+    "citrus": {
+      "label": "Citrus",
+      "alias": []
+    },
+    "coconut_oil": {
+      "label": "Coconut Oil",
+      "alias": [
+        "coconut oil"
+      ]
+    },
+    "coffee": {
+      "label": "Coffee",
+      "alias": []
+    },
+    "cola": {
+      "label": "cola",
+      "alias": [
+        "cola soft drink",
+        "phosphoric acid soda"
+      ]
+    },
+    "couscous": {
+      "label": "Couscous",
+      "alias": []
+    },
+    "crab": {
+      "label": "Crab",
+      "alias": []
+    },
+    "cracker": {
+      "label": "Cracker",
+      "alias": []
+    },
+    "crayfish": {
+      "label": "Crayfish",
+      "alias": []
+    },
+    "cream": {
+      "label": "Cream",
+      "alias": []
+    },
+    "cross_contamination": {
+      "label": "cross-contamination",
+      "alias": [
+        "may contain traces"
+      ]
+    },
+    "dairy": {
+      "label": "Dairy",
+      "alias": []
+    },
+    "dark_cola": {
+      "label": "dark cola",
+      "alias": [
+        "cola-type soda",
+        "phosphate additives"
+      ]
+    },
+    "dark_leafy_greens": {
+      "label": "Dark Leafy Greens",
+      "alias": [
+        "dark leafy greens"
+      ]
+    },
+    "dessert": {
+      "label": "Dessert",
+      "alias": []
+    },
+    "dried_fruit": {
+      "label": "Dried Fruit",
+      "alias": [
+        "dried fruit"
+      ]
+    },
+    "edamame": {
+      "label": "Edamame",
+      "alias": []
+    },
+    "egg": {
+      "label": "Egg",
+      "alias": []
+    },
+    "egg_protein": {
+      "label": "Egg protein",
+      "alias": [
+        "ovalbumin",
+        "egg white protein",
+        "egg allergens"
+      ]
+    },
+    "energy_drink": {
+      "label": "Energy Drink",
+      "alias": [
+        "energy drink"
+      ]
+    },
+    "fast_food": {
+      "label": "Fast Food",
+      "alias": [
+        "fast food"
+      ]
+    },
+    "fasting_long": {
+      "label": "prolonged fasting",
+      "alias": [
+        "long fast"
+      ]
+    },
+    "fat": {
+      "label": "Fat",
+      "alias": []
+    },
+    "fat_ratio_high": {
+      "label": "high fat percentage",
+      "alias": [
+        "high dietary fat ratio"
+      ]
+    },
+    "fiber_high": {
+      "label": "high-fiber food",
+      "alias": [
+        "high fibre"
+      ]
+    },
+    "fish": {
+      "label": "Fish",
+      "alias": []
+    },
+    "fish_oil": {
+      "label": "Fish Oil",
+      "alias": [
+        "fish oil"
+      ]
+    },
+    "fish_protein": {
+      "label": "Fish protein",
+      "alias": [
+        "parvalbumin",
+        "fin fish allergens"
+      ]
+    },
+    "fish_sauce": {
+      "label": "fish sauce",
+      "alias": [
+        "nam pla",
+        "nuoc mam"
+      ]
+    },
+    "fluid": {
+      "label": "Fluid",
+      "alias": []
+    },
+    "fodmap": {
+      "label": "FODMAP",
+      "alias": [
+        "fermentable oligosaccharides",
+        "high-FODMAP foods"
+      ]
+    },
+    "fried_food": {
+      "label": "Fried Food",
+      "alias": [
+        "fried food"
+      ]
+    },
+    "fructose": {
+      "label": "Fructose",
+      "alias": []
+    },
+    "fruit": {
+      "label": "Fruit",
+      "alias": []
+    },
+    "fruit_juice": {
+      "label": "Fruit Juice",
+      "alias": [
+        "fruit juice"
+      ]
+    },
+    "garlic": {
+      "label": "Garlic",
+      "alias": []
+    },
+    "gas_forming_food": {
+      "label": "gas-forming foods",
+      "alias": [
+        "flatulence-producing foods"
+      ]
+    },
+    "ghee": {
+      "label": "Ghee",
+      "alias": []
+    },
+    "glaze": {
+      "label": "Glaze",
+      "alias": []
+    },
+    "gluten": {
+      "label": "Gluten",
+      "alias": []
+    },
+    "gum": {
+      "label": "Gum",
+      "alias": []
+    },
+    "halva": {
+      "label": "Halva",
+      "alias": []
+    },
+    "hazelnut": {
+      "label": "Hazelnut",
+      "alias": []
+    },
+    "hidden_milk": {
+      "label": "hidden milk ingredients",
+      "alias": [
+        "milk derivatives in labels"
+      ]
+    },
+    "high_calorie_food": {
+      "label": "High Calorie Food",
+      "alias": [
+        "high calorie food"
+      ]
+    },
+    "high_fat_food": {
+      "label": "High Fat Food",
+      "alias": [
+        "high fat food"
+      ]
+    },
+    "high_glycemic_load": {
+      "label": "High Glycemic Load",
+      "alias": [
+        "high glycemic load"
+      ]
+    },
+    "high_meat_intake": {
+      "label": "high meat intake",
+      "alias": [
+        "large meat portions"
+      ]
+    },
+    "honey": {
+      "label": "Honey",
+      "alias": []
+    },
+    "hummus": {
+      "label": "Hummus",
+      "alias": []
+    },
+    "ice_cream": {
+      "label": "Ice Cream",
+      "alias": [
+        "ice cream"
+      ]
+    },
+    "instant_noodle": {
+      "label": "Instant Noodle",
+      "alias": [
+        "instant noodle"
+      ]
+    },
+    "instant_soup": {
+      "label": "Instant Soup",
+      "alias": [
+        "instant soup"
+      ]
+    },
+    "jam": {
+      "label": "Jam",
+      "alias": []
+    },
+    "lactose": {
+      "label": "Lactose",
+      "alias": []
+    },
+    "late_night_eating": {
+      "label": "late-night eating",
+      "alias": [
+        "night eating"
+      ]
+    },
+    "legume": {
+      "label": "Legume",
+      "alias": []
+    },
+    "lobster": {
+      "label": "Lobster",
+      "alias": []
+    },
+    "low_fiber_food": {
+      "label": "Low Fiber Food",
+      "alias": [
+        "low fiber food"
+      ]
+    },
+    "macadamia": {
+      "label": "Macadamia",
+      "alias": []
+    },
+    "malt": {
+      "label": "Malt",
+      "alias": []
+    },
+    "mashed_potato": {
+      "label": "Mashed Potato",
+      "alias": [
+        "mashed potato"
+      ]
+    },
+    "mayonnaise": {
+      "label": "Mayonnaise",
+      "alias": []
+    },
+    "meat": {
+      "label": "Meat",
+      "alias": []
+    },
+    "meringue": {
+      "label": "Meringue",
+      "alias": []
+    },
+    "milk": {
+      "label": "Milk",
+      "alias": []
+    },
+    "milk_powder": {
+      "label": "Milk Powder",
+      "alias": [
+        "milk powder"
+      ]
+    },
+    "milk_protein": {
+      "label": "Milk protein",
+      "alias": [
+        "casein",
+        "whey protein",
+        "CMP",
+        "milk allergens"
+      ]
+    },
+    "miso": {
+      "label": "Miso",
+      "alias": []
+    },
+    "molasses": {
+      "label": "Molasses",
+      "alias": []
+    },
+    "mussel": {
+      "label": "Mussel",
+      "alias": []
+    },
+    "nougat": {
+      "label": "Nougat",
+      "alias": []
+    },
+    "nut_paste": {
+      "label": "nut butter / paste",
+      "alias": [
+        "nut spreads"
+      ]
+    },
+    "nuts": {
+      "label": "Nuts",
+      "alias": []
+    },
+    "oats": {
+      "label": "Oats",
+      "alias": []
+    },
+    "octopus": {
+      "label": "Octopus",
+      "alias": []
+    },
+    "onion": {
+      "label": "Onion",
+      "alias": []
+    },
+    "orange": {
+      "label": "Orange",
+      "alias": []
+    },
+    "organ_meat": {
+      "label": "Organ Meat",
+      "alias": [
+        "organ meat"
+      ]
+    },
+    "packaged_food": {
+      "label": "Packaged Food",
+      "alias": [
+        "packaged food"
+      ]
+    },
+    "pasta": {
+      "label": "Pasta",
+      "alias": []
+    },
+    "pasta_fresh": {
+      "label": "Pasta Fresh",
+      "alias": [
+        "pasta fresh"
+      ]
+    },
+    "peanut": {
+      "label": "Peanut",
+      "alias": []
+    },
+    "peanut_butter": {
+      "label": "Peanut Butter",
+      "alias": [
+        "peanut butter"
+      ]
+    },
+    "peanut_oil": {
+      "label": "Peanut Oil",
+      "alias": [
+        "peanut oil"
+      ]
+    },
+    "pecan": {
+      "label": "Pecan",
+      "alias": []
+    },
+    "peppermint": {
+      "label": "Peppermint",
+      "alias": []
+    },
+    "phosphorus": {
+      "label": "Phosphorus",
+      "alias": []
+    },
+    "pickle": {
+      "label": "Pickle",
+      "alias": []
+    },
+    "pine_nut": {
+      "label": "Pine Nut",
+      "alias": [
+        "pine nut"
+      ]
+    },
+    "pistachio": {
+      "label": "Pistachio",
+      "alias": []
+    },
+    "potassium": {
+      "label": "Potassium",
+      "alias": []
+    },
+    "potato": {
+      "label": "Potato",
+      "alias": []
+    },
+    "processed_cheese": {
+      "label": "Processed Cheese",
+      "alias": [
+        "processed cheese"
+      ]
+    },
+    "processed_food": {
+      "label": "Processed Food",
+      "alias": [
+        "processed food"
+      ]
+    },
+    "processed_meat": {
+      "label": "Processed Meat",
+      "alias": [
+        "processed meat"
+      ]
+    },
+    "protein": {
+      "label": "Protein",
+      "alias": []
+    },
+    "purine": {
+      "label": "Purine",
+      "alias": []
+    },
+    "rapid_weight_loss": {
+      "label": "rapid weight loss",
+      "alias": [
+        "fast weight loss"
+      ]
+    },
+    "raw_vegetable": {
+      "label": "raw vegetables",
+      "alias": [
+        "raw salad",
+        "crudites"
+      ]
+    },
+    "red_meat": {
+      "label": "Red Meat",
+      "alias": [
+        "red meat"
+      ]
+    },
+    "refined_carb": {
+      "label": "Refined Carb",
+      "alias": [
+        "refined carb"
+      ]
+    },
+    "rye": {
+      "label": "Rye",
+      "alias": []
+    },
+    "salt": {
+      "label": "Salt",
+      "alias": []
+    },
+    "sardine": {
+      "label": "Sardine",
+      "alias": []
+    },
+    "saturated_fat": {
+      "label": "Saturated Fat",
+      "alias": [
+        "saturated fat"
+      ]
+    },
+    "sauce": {
+      "label": "Sauce",
+      "alias": []
+    },
+    "seafood_high_purine": {
+      "label": "High-purine seafood",
+      "alias": [
+        "anchovy",
+        "sardine",
+        "mackerel",
+        "herring"
+      ]
+    },
+    "semolina": {
+      "label": "Semolina",
+      "alias": []
+    },
+    "sesame": {
+      "label": "Sesame",
+      "alias": []
+    },
+    "sesame_oil": {
+      "label": "Sesame Oil",
+      "alias": [
+        "sesame oil"
+      ]
+    },
+    "shellfish": {
+      "label": "Shellfish",
+      "alias": [
+        "crustaceans",
+        "mollusks",
+        "shrimp",
+        "crab",
+        "lobster"
+      ]
+    },
+    "shrimp": {
+      "label": "Shrimp",
+      "alias": []
+    },
+    "simple_sugar": {
+      "label": "Simple Sugar",
+      "alias": [
+        "simple sugar"
+      ]
+    },
+    "sodium": {
+      "label": "Sodium",
+      "alias": []
+    },
+    "soft_cheese": {
+      "label": "Soft Cheese",
+      "alias": [
+        "soft cheese"
+      ]
+    },
+    "soy": {
+      "label": "Soy",
+      "alias": []
+    },
+    "soy_lecithin": {
+      "label": "Soy Lecithin",
+      "alias": [
+        "soy lecithin"
+      ]
+    },
+    "soy_milk": {
+      "label": "Soy Milk",
+      "alias": [
+        "soy milk"
+      ]
+    },
+    "soy_sauce": {
+      "label": "Soy Sauce",
+      "alias": [
+        "soy sauce"
+      ]
+    },
+    "soy_sauce_wheat": {
+      "label": "wheat-containing soy sauce",
+      "alias": [
+        "shoyu with wheat"
+      ]
+    },
+    "spelt": {
+      "label": "Spelt",
+      "alias": []
+    },
+    "spicy_food": {
+      "label": "Spicy Food",
+      "alias": [
+        "spicy food"
+      ]
+    },
+    "squid": {
+      "label": "Squid",
+      "alias": []
+    },
+    "sugar": {
+      "label": "Sugar",
+      "alias": []
+    },
+    "sugar_alcohol": {
+      "label": "Sugar Alcohol",
+      "alias": [
+        "sugar alcohol"
+      ]
+    },
+    "sugar_fat_combo": {
+      "label": "high sugar and fat meal",
+      "alias": [
+        "hyperpalatable foods"
+      ]
+    },
+    "sugary_drink": {
+      "label": "Sugary Drink",
+      "alias": [
+        "sugary drink"
+      ]
+    },
+    "surimi": {
+      "label": "surimi",
+      "alias": [
+        "imitation crab",
+        "crab stick"
+      ]
+    },
+    "sushi_goma": {
+      "label": "sushi with sesame",
+      "alias": [
+        "goma",
+        "sesame-topped sushi"
+      ]
+    },
+    "sweetened_beverage": {
+      "label": "Sweetened Beverage",
+      "alias": [
+        "sweetened beverage"
+      ]
+    },
+    "sweetened_yogurt": {
+      "label": "Sweetened Yogurt",
+      "alias": [
+        "sweetened yogurt"
+      ]
+    },
+    "sweetener": {
+      "label": "Sweetener",
+      "alias": []
+    },
+    "syrup": {
+      "label": "Syrup",
+      "alias": []
+    },
+    "tahini": {
+      "label": "Tahini",
+      "alias": []
+    },
+    "tempeh": {
+      "label": "Tempeh",
+      "alias": []
+    },
+    "tofu": {
+      "label": "Tofu",
+      "alias": []
+    },
+    "tomato": {
+      "label": "Tomato",
+      "alias": []
+    },
+    "tomato_paste": {
+      "label": "Tomato Paste",
+      "alias": [
+        "tomato paste"
+      ]
+    },
+    "trans_fat": {
+      "label": "Trans Fat",
+      "alias": [
+        "trans fat"
+      ]
+    },
+    "tree_nuts": {
+      "label": "tree nuts",
+      "alias": [
+        "tree nut mix"
+      ]
+    },
+    "vinegar": {
+      "label": "Vinegar",
+      "alias": []
+    },
+    "walnut": {
+      "label": "Walnut",
+      "alias": []
+    },
+    "water_low": {
+      "label": "low water intake",
+      "alias": [
+        "inadequate hydration"
+      ]
+    },
+    "wheat": {
+      "label": "Wheat",
+      "alias": []
+    },
+    "wheat_protein": {
+      "label": "Wheat protein",
+      "alias": [
+        "gliadin",
+        "glutenin",
+        "wheat allergens"
+      ]
+    },
+    "whey": {
+      "label": "Whey",
+      "alias": []
+    },
+    "white_bread": {
+      "label": "White Bread",
+      "alias": [
+        "white bread"
+      ]
+    },
+    "white_flour_food": {
+      "label": "White Flour Food",
+      "alias": [
+        "white flour food"
+      ]
+    },
+    "worcestershire": {
+      "label": "Worcestershire sauce",
+      "alias": [
+        "Worcester sauce"
+      ]
+    },
+    "yogurt": {
+      "label": "Yogurt",
+      "alias": []
+    }
+  }
+}

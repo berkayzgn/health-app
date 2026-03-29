@@ -24,10 +24,10 @@ export async function ensureCameraPermission(t: TFunction): Promise<boolean> {
 }
 
 export async function ensureMediaLibraryPermission(t: TFunction): Promise<boolean> {
-  const { status: existing } = await ImagePicker.getMediaLibraryPermissionsAsync(false);
-  if (existing === "granted") return true;
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync(false);
-  if (status === "granted") return true;
+  const existing = await ImagePicker.getMediaLibraryPermissionsAsync(false);
+  if (existing.granted) return true;
+  const requested = await ImagePicker.requestMediaLibraryPermissionsAsync(false);
+  if (requested.granted) return true;
   Alert.alert(
     t("nutritionMeal.mediaLibraryPermissionDeniedTitle"),
     t("nutritionMeal.mediaLibraryPermissionDeniedMessage"),
@@ -44,19 +44,27 @@ export async function ensureMediaLibraryPermission(t: TFunction): Promise<boolea
   return false;
 }
 
+const IMAGE_ONLY = ["images"] as const;
+
 export async function launchCameraForMeal() {
   return ImagePicker.launchCameraAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    mediaTypes: IMAGE_ONLY,
     ...(Platform.OS === "android"
       ? { allowsEditing: true, aspect: [1, 1] as [number, number] }
       : { allowsEditing: false }),
     quality: 0.85,
+    ...(Platform.OS === "ios"
+      ? {
+          preferredAssetRepresentationMode:
+            ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        }
+      : {}),
   });
 }
 
 export async function launchCameraForLabelScan() {
   return ImagePicker.launchCameraAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    mediaTypes: IMAGE_ONLY,
     ...(Platform.OS === "android"
       ? { allowsEditing: true, aspect: [4, 3] as [number, number] }
       : { allowsEditing: false }),
@@ -66,8 +74,14 @@ export async function launchCameraForLabelScan() {
 
 export async function launchImageLibrary() {
   return ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    mediaTypes: IMAGE_ONLY,
     allowsEditing: false,
     quality: 0.85,
+    ...(Platform.OS === "ios"
+      ? {
+          preferredAssetRepresentationMode:
+            ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+        }
+      : {}),
   });
 }

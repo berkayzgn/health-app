@@ -1,0 +1,18 @@
+# /etc/fail2ban/jail.local
+#
+# Kopyalama: scp server-config/fail2ban/jail.local user@SUNUCU_IP:/etc/fail2ban/jail.local
+# Aktif et:  sudo systemctl restart fail2ban
+# Durum:     sudo fail2ban-client status sshd
+
+[DEFAULT]
+bantime  = 1h
+findtime = 10m
+maxretry = 5
+backend  = auto
+
+[sshd]
+enabled  = true
+port     = 2222
+logpath  = %(sshd_log)s
+maxretry = 3
+bantime  = 24h
