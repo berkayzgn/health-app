@@ -13,9 +13,10 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-healthai}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:-healthai}
-    # Lokal geliştirme: host’tan Prisma / pgAdmin için 5433. Production compose’ta kapalı.
+    # Host portu: 5433 doluysa proje kökünde .env içine POSTGRES_PUBLISH_PORT=5434 yaz veya
+    # npm run docker:up:alt-port kullan.
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:${POSTGRES_PUBLISH_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

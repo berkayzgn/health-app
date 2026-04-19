@@ -29,24 +29,26 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 - **react-i18next + i18next**: Çoklu dil desteği (TR / EN)
 - **AsyncStorage**: Token, dil ve tema gibi yerel kalıcı veriler
 
-### Frontend Dizin Yapısı (repo kökü)
+### Frontend Dizin Yapısı (`src/`)
+
+Tüm uygulama kaynağı `src/` altında toplanır; kök dizin Expo, Docker ve ortak dosyalar için kalır.
 
 | Dizin | Açıklama |
 |---|---|
-| `app/` | Ekranlar ve route dosyaları (Expo Router) |
-| `app/(main)/` | Ana uygulama ekranları (index, profile, settings, scan, vb.) |
-| `components/` | Paylaşılan React Native bileşenleri |
-| `components/scanner/` | ⚠️ Şu an **boş** — gerçek kamera bileşeni henüz yok |
-| `components/ui/` | ⚠️ Şu an **boş** — UI primitive'leri için ayrılmış |
-| `services/` | API ve servis katmanı (`api.ts`, `authService.ts`, `mealsService.ts`) |
-| `store/` | Zustand store (`useStore.ts`) |
-| `utils/` | Yardımcı fonksiyonlar (nutrition hesaplama, media pick, vb.) |
-| `theme/` | Tasarım token'ları ve renk sistemi |
-| `locales/` | i18n JSON dosyaları (TR / EN) |
-| `hooks/` | ⚠️ Şu an **boş** — özel React hook'ları için ayrılmış |
-| `types/` | ⚠️ Şu an **boş** — global TypeScript tipleri için ayrılmış |
-| `constants/` | ⚠️ Şu an **boş** — paylaşılan sabitler için ayrılmış |
-| `providers/` | ⚠️ Şu an **boş** — React context provider'ları için ayrılmış |
+| `src/app/` | Ekranlar ve route dosyaları (Expo Router) |
+| `src/app/(main)/` | Ana uygulama ekranları (index, profile, settings, scan, scan-history, vb.) |
+| `src/components/` | Paylaşılan React Native bileşenleri |
+| `src/components/scanner/` | ⚠️ Şu an **boş** — kamera yardımcıları `utils/mediaImagePick.ts` içinde |
+| `src/components/ui/` | ⚠️ Şu an **boş** — UI primitive'leri için ayrılmış |
+| `src/services/` | API ve servis katmanı (`api.ts`, `authService.ts`, `labelScanService.ts`, …) |
+| `src/store/` | Zustand store (`useStore.ts`) |
+| `src/utils/` | Yardımcı fonksiyonlar (medya seçimi, profil yükü, etiket metni, mock tarama) |
+| `src/theme/` | Tasarım token'ları ve `palettes.json` |
+| `src/locales/` | i18n JSON dosyaları (TR / EN) |
+| `hooks/` (kök) | ⚠️ Şu an **boş** — özel React hook'ları için ayrılmış |
+| `types/` (kök) | ⚠️ Şu an **boş** — global TypeScript tipleri için ayrılmış |
+| `constants/` (kök) | ⚠️ Şu an **boş** — paylaşılan sabitler için ayrılmış |
+| `providers/` (kök) | ⚠️ Şu an **boş** — React context provider'ları için ayrılmış |
 | `docs/` | Proje dökümantasyonu |
 
 ---
@@ -63,8 +65,9 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 ### Backend Modülleri
 
 - `auth`: Register / Login ve token üretimi
-- `users`: Kullanıcı profili ve sağlık bilgileri
-- `meals`: Öğün CRUD ve günlük toplamları
+- `users`: Kullanıcı profili ve hastalık / alerji ilişkileri
+- `catalog`: Tıbbi koşul listesi (seed ile `abc.json`’dan)
+- `label-scan`: Etiket görüntüsü analizi (OCR / analiz), tarama geçmişi
 
 ### Ana Endpoint Grupları
 
@@ -74,11 +77,11 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 | POST | `/auth/login` | Yok |
 | GET | `/users/me` | Bearer token |
 | PATCH | `/users/me` | Bearer token |
-| GET | `/meals/today` | Bearer token |
-| POST | `/meals` | Bearer token |
-| GET | `/meals` | Bearer token |
-| PATCH | `/meals/:id` | Bearer token |
-| DELETE | `/meals/:id` | Bearer token |
+| DELETE | `/users/me` | Bearer token |
+| GET | `/catalog/medical-conditions` | Yok |
+| POST | `/label-scan` | Bearer token |
+| GET | `/label-scan/history` | Bearer token |
+| GET | `/label-scan/history/:id` | Bearer token |
 | GET | `/health` | Yok |
 
 ---
@@ -89,14 +92,14 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 
 | Dosya | Görev |
 |---|---|
-| `services/api.ts` | Base URL çözümü, token yönetimi, auth header, 401 interceptor |
-| `services/authService.ts` | Register, login, logout, getMe, updateProfile |
-| `services/mealsService.ts` | Öğün CRUD ve günlük toplamları |
-| `app/_layout.tsx` | `registerUnauthorizedCallback` → `clearAuth` kaydı |
+| `src/services/api.ts` | Base URL çözümü, token yönetimi, auth header, 401 interceptor |
+| `src/services/authService.ts` | Register, login, logout, getMe, updateProfile |
+| `src/services/labelScanService.ts` | Etiket tarama API’si ve geçmiş detayı |
+| `src/app/_layout.tsx` | `registerUnauthorizedCallback` → `clearAuth` kaydı |
 
 ### 401 Otomatik Logout
 
-`services/api.ts` → 401 alınca:
+`src/services/api.ts` → 401 alınca:
 1. Token AsyncStorage'dan silinir
 2. `registerUnauthorizedCallback` ile kayıtlı `clearAuth()` çağrılır
 3. Mevcut auth navigation flow /auth'a yönlendirir
@@ -113,7 +116,7 @@ Mobil uygulama HTTP üzerinden backend'e bağlanır. Backend PostgreSQL ile veri
 | `.env.development` | `expo start` (dev mode) | Uzak sunucu URL |
 | `.env.production` | `eas build` / `expo start --no-dev` | Uzak sunucu URL |
 
-### URL Çözümü (`services/api.ts`)
+### URL Çözümü (`src/services/api.ts`)
 
 `EXPO_PUBLIC_API_URL` env değişkeni doğrudan kullanılır. Lokal sunucu fallback'i yoktur.
 
@@ -173,7 +176,7 @@ npm run docker:logs
 npm run docker:down
 ```
 
-- `postgres` — iç hostname: `postgres`, Mac'te `localhost:5433`
+- `postgres` — iç hostname: `postgres`; yayınlanan port `POSTGRES_PUBLISH_PORT` (varsayılan `5433`, çakışmada `.env` ile değiştir)
 - `backend` — `http://localhost:3000`
 - pgAdmin — **production'da kapalı** (yalnızca local: yorumu kaldır)
 
@@ -201,10 +204,8 @@ ALLOWED_ORIGINS=   # web client varsa ekle
 
 | Özellik | Dosya | Durum |
 |---|---|---|
-| Etiket tarama | `app/(main)/scan.tsx` | Mock veri (`utils/labelScanMock.ts`) |
-| AI Meal Chat | `app/(main)/meal-description.tsx` | Frontend-only, AI yanıtı yok |
-| Abonelik | `app/(main)/subscription.tsx` | "Coming soon" placeholder |
-| Bildirimler | `services/notifications.ts` | Expo setup var, içerik yok |
+| Etiket tarama | `src/app/(main)/scan.tsx` | `POST /label-scan` (sunucuda Gemini Vision); simülatörde `__DEV__` mock akışı |
+| Bildirimler | `src/services/notifications.ts` | Expo setup var, içerik yok |
 
 ---
 
@@ -212,9 +213,9 @@ ALLOWED_ORIGINS=   # web client varsa ekle
 
 - TypeScript zorunlu kullanım
 - i18n anahtarları tüm yeni UI metinlerinde zorunlu
-- Tema token'ları merkezi `theme/` üzerinden
+- Tema token'ları merkezi `src/theme/` üzerinden
 - Yeni storage key'leri → `constants/` (şu an boş, düzenlenecek)
-- Tüm API çağrıları → `services/api.ts` üzerinden
+- Tüm API çağrıları → `src/services/api.ts` üzerinden
 
 ---
 
@@ -222,7 +223,7 @@ ALLOWED_ORIGINS=   # web client varsa ekle
 
 | Konu | Detay |
 |---|---|
-| `TOKEN_KEY` çift tanım | `services/api.ts` ve `store/useStore.ts`'de ayrı; `constants/` dosyasına taşınmalı |
+| `TOKEN_KEY` çift tanım | `src/services/api.ts` ve `src/store/useStore.ts`'de ayrı; `constants/` dosyasına taşınmalı |
 | Font yükleme tekrarı | `useFonts` 8+ ekranda tekrar ediyor; `hooks/useAppFonts.ts` oluşturulmalı |
 | Boş stub dizinler | `components/ui/`, `hooks/`, `types/`, `constants/`, `providers/` boş |
 | Scanner bileşeni | `components/scanner/` boş; gerçek kamera bileşeni yazılmalı |

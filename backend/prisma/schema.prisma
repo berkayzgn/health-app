@@ -7,57 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/** Kullanıcıya özel (hesap, hedefler, ölçüler). Hastalık/diyet katalogları ayrı tablolarda. */
+/** Hesap + sağlık profili ilişkileri (hastalık/alerji kataloğu ayrı tabloda). */
 model User {
-  id               String   @id @default(uuid())
-  email            String   @unique
-  password         String
-  name             String
-  dailyCalorieGoal Int      @default(2000)
-  macroGoals       Json     @default("{\"protein\":120,\"carbs\":200,\"fat\":65}")
-  heightCm         String   @default("")
-  weightKg         String   @default("")
-  age              Int      @default(0)
-  /** 1.2=sedanter, 1.375=hafif, 1.55=orta, 1.725=ağır, 1.9=çok ağır */
-  activityLevel    Float    @default(1.2)
-  /** "lose" | "gain" | "maintain" */
-  goal             String   @default("maintain")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  meals               Meal[]
-  medicalConditions   UserMedicalCondition[]
-  customHealthTags    UserCustomHealthTag[]
-  dietPreferences     UserDietPreference[]
-  scanHistory         ScanHistory[]
-  gender              String   @default("")
-  activeDietVariantId String?
-  activeDietVariant   DietVariant? @relation(fields: [activeDietVariantId], references: [id], onDelete: SetNull)
-  /** Seçili makro plan kodu (balanced, high_protein vb.) */
-  selectedDietTypeCode String?
-
-  @@map("users")
-}
-
-model Meal {
   id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String   @unique
+  password  String
   name      String
-  source    String
-  mealType  String
-  portion   String?
-  calories  Int      @default(0)
-  protein   Int      @default(0)
-  carbs     Int      @default(0)
-  fat       Int      @default(0)
-  date      DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId])
-  @@index([userId, date])
-  @@map("meals")
+  medicalConditions UserMedicalCondition[]
+  scanHistory       ScanHistory[]
+
+  @@map("users")
 }
 
 /** Sabit hastalık / sağlık koşulları (katalog). Kaynak: kök abc.json (diseases + allergies). */
@@ -77,61 +39,6 @@ model MedicalCondition {
   @@map("medical_conditions")
 }
 
-/** Sabit diyet / beslenme tercihleri (katalog). Ana kategori. */
-model DietType {
-  id           String               @id @default(uuid())
-  code         String               @unique
-  sortOrder    Int                  @default(0)
-  /** { "en": "Ketogenic", "tr": "Ketojenik" } */
-  displayNames Json                 @default("{}")
-  /** "restriction" (gluten_free, vegan…) | "macro_plan" (balanced, high_protein…) */
-  category     String               @default("restriction")
-  /** { "proteinRatio": 0.30, "carbRatio": 0.40, "fatRatio": 0.30 } — yalnızca macro_plan için */
-  macros       Json                 @default("{}")
-  users        UserDietPreference[]
-  variants     DietVariant[]
-
-  @@map("diet_types")
-}
-
-/**
- * Bir DietType'ın alt çeşidi. Cinsiyet + BMI aralığına göre makro/kalori hedeflerini tutar.
- * Kullanıcıya onboarding/profil düzenleme sonrası backend tarafından atanır.
- *
- * gender:   "male" | "female" | "any"
- * bmiMin/bmiMax: Bu variant'ın uygulanacağı BMI aralığı (dahil). NULL = sınırsız uç.
- */
-model DietVariant {
-  id             String   @id @default(uuid())
-  dietTypeId     String
-  dietType       DietType @relation(fields: [dietTypeId], references: [id], onDelete: Cascade)
-  code           String   @unique
-  sortOrder      Int      @default(0)
-  /** { "en": "Keto – Weight Loss", "tr": "Keto – Kilo Verme" } */
-  displayNames   Json     @default("{}")
-  /** "male" | "female" | "any" */
-  gender         String   @default("any")
-  bmiMin         Float?
-  bmiMax         Float?
-  /** Günlük hedef kalori */
-  targetCalories Int
-  /** Günlük hedef protein (gram) */
-  targetProtein  Int
-  /** Günlük hedef karbonhidrat (gram) */
-  targetCarbs    Int
-  /** Günlük hedef yağ (gram) */
-  targetFat      Int
-  /** Ek meta veri: { description, tips, restrictions, ... } */
-  meta           Json     @default("{}")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  users          User[]
-
-  @@index([dietTypeId])
-  @@index([gender, bmiMin, bmiMax])
-  @@map("diet_variants")
-}
-
 /** Kullanıcı ↔ katalog hastalık (çok-çok, satır başı bir koşul). */
 model UserMedicalCondition {
   userId      String
@@ -143,21 +50,11 @@ model UserMedicalCondition {
   @@map("user_medical_conditions")
 }
 
-/** Katalogda olmayan serbest etiketler (eski other:… ile uyumlu). */
-model UserCustomHealthTag {
-  id     String @id @default(uuid())
-  userId String
-  label  String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, label])
-  @@map("user_custom_health_tags")
-}
-
 /**
- * Etiket tarama geçmişi.
- * rawIngredients : AI'ın döndürdüğü İngilizce bileşenler dizisi.
- * matchedTriggers: Kullanıcının hastalık profiline uyarılan bileşenler.
+ * Etiket / yiyecek tarama geçmişi.
+ * rawIngredients : modelin çıkardığı bileşen satırları (dizi).
+ * matchedTriggers: kullanıcı koşullarına göre eşleşen tetikleyiciler.
+ * resultSnapshot : özet satırı + içerik dökümü (JSON).
  * safetyLabel    : "safe" | "caution" | "avoid"
  */
 model ScanHistory {
@@ -168,20 +65,11 @@ model ScanHistory {
   rawIngredients  Json     @default("[]")
   matchedTriggers Json     @default("[]")
   safetyLabel     String   @default("safe")
+  /** Özet satırı, glisemik/işleme metinleri ve içerik dökümü (yeni taramalar). */
+  resultSnapshot  Json?
   scannedAt       DateTime @default(now())
 
   @@index([userId])
   @@index([userId, scannedAt])
   @@map("scan_history")
-}
-
-/** Kullanıcı ↔ diyet tercihi. */
-model UserDietPreference {
-  userId     String
-  dietTypeId String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  dietType   DietType @relation(fields: [dietTypeId], references: [id], onDelete: Cascade)
-
-  @@id([userId, dietTypeId])
-  @@map("user_diet_preferences")
 }

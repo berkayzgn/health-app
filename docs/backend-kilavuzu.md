@@ -154,12 +154,7 @@ GET /users/me
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "email": "kullanici@email.com",
   "name": "Kullanıcı Adı",
-  "dailyCalorieGoal": 2000,
-  "macroGoals": { "protein": 120, "carbs": 200, "fat": 65 },
-  "heightCm": "",
-  "weightKg": "",
-  "conditionTypes": [],
-  "dietaryPreferences": [],
+  "conditionTypes": ["diabetes_type_2", "peanut_allergy"],
   "createdAt": "2026-03-06T13:48:26.664Z",
   "updatedAt": "2026-03-06T13:48:26.664Z"
 }
@@ -172,61 +167,8 @@ Content-Type: application/json
 
 {
   "name": "Yeni İsim",
-  "dailyCalorieGoal": 1800,
-  "macroGoals": { "protein": 100, "carbs": 180, "fat": 60 }
+  "conditionTypes": ["diabetes_type_2"]
 }
-```
-
----
-
-### 🍽️ Meals (JWT Gerekli)
-
-#### Yemek Ekle
-```http
-POST /meals
-Content-Type: application/json
-
-{
-  "name": "Tavuk Izgara",
-  "source": "manual",          // "scan" | "manual"
-  "mealType": "lunch",         // breakfast | lunch | dinner | snack | midSnack
-  "portion": "200g",           // opsiyonel
-  "calories": 350,
-  "protein": 40,
-  "carbs": 5,
-  "fat": 15
-}
-```
-
-#### Tüm Yemekler
-```http
-GET /meals
-GET /meals?dateFrom=2026-03-01&dateTo=2026-03-06
-```
-
-#### Bugünün Yemekleri + Toplamlar
-```http
-GET /meals/today
-```
-
-**Yanıt (200):**
-```json
-{
-  "meals": [ ... ],
-  "totals": {
-    "calories": 600,
-    "protein": 48,
-    "carbs": 50,
-    "fat": 20
-  }
-}
-```
-
-#### Yemek Detayı / Güncelle / Sil
-```http
-GET    /meals/:id
-PATCH  /meals/:id    { "calories": 400 }
-DELETE /meals/:id
 ```
 
 ---
@@ -234,38 +176,24 @@ DELETE /meals/:id
 ## Veritabanı Şemaları
 
 ### User
-Kullanıcıya özel alanlar; hastalık/diyet **katalog tabloları** + **ilişki tabloları** ile tutulur (users üzerinde dizi kolonu yok).
+Hesap bilgisi; hastalık/alerji seçimleri `user_medical_conditions` ile katalogya bağlanır.
 
 | Alan | Tip | Açıklama |
 |------|-----|----------|
 | `id` | UUID (PK) | Kullanıcı kimliği |
-| `email` | String (unique) | Kullanıcı e-postası |
-| `password` | String | bcrypt ile hashlenmiş şifre |
-| `name` | String | Kullanıcı adı |
-| `dailyCalorieGoal` | Number | Günlük kalori hedefi (default: 2000) |
-| `macroGoals` | Object | `{ protein, carbs, fat }` gram cinsinden hedefler |
-| `heightCm` / `weightKg` | String | Boy / kilo (metrik giriş) |
-| `createdAt / updatedAt` | Date | Otomatik zaman damgaları |
+| `email` | String (unique) | E-posta |
+| `password` | String | bcrypt hash |
+| `name` | String | Görünen ad |
+| `createdAt / updatedAt` | Date | Zaman damgaları |
 
-**Katalog:** `medical_conditions` (`code`: diabetes, hypertension, asthma), `diet_types` (`code`: gluten_free, keto, lactose_intolerant, vegan).
+**Katalog:** `medical_conditions` (`kind`: disease | allergy; `triggerFoods` etiket eşlemesi için).
 
-**İlişkiler:** `user_medical_conditions`, `user_diet_preferences`, serbest etiketler `user_custom_health_tags` (`label`; mobilde `other:…` ile uyumlu).
+**İlişkiler:** `user_medical_conditions` (çok-çok), `scan_history` (tarama geçmişi).
 
-**API:** `GET/PATCH /users/me` yanıtında hâlâ `conditionTypes[]` ve `dietaryPreferences[]` (birleştirilmiş string kodlar) döner; PATCH gövdesi aynı formatta kalır.
+**API:** `GET/PATCH /users/me` gövde/yanıtta `conditionTypes[]` yalnızca katalog `code` değerlerini içerir (`other:…` artık desteklenmez).
 
-### Meal
-| Alan | Tip | Açıklama |
-|------|-----|----------|
-| `id` | UUID (PK) | Öğün kaydı |
-| `userId` | UUID (FK) | Kullanıcı referansı |
-| `name` | String | Yemek adı |
-| `source` | Enum | `"scan"` veya `"manual"` |
-| `mealType` | Enum | `breakfast`, `lunch`, `dinner`, `snack`, `midSnack` |
-| `portion` | String | Porsiyon (opsiyonel) |
-| `calories` | Number | Kalori (kcal) |
-| `protein / carbs / fat` | Number | Makro değerleri (gram) |
-| `date` | Date | Yemek tarihi |
-| `createdAt / updatedAt` | Date | Otomatik zaman damgaları |
+### ScanHistory
+Etiket tarama kayıtları: `rawIngredients`, `matchedTriggers`, `safetyLabel`, isteğe bağlı `resultSnapshot` (JSON).
 
 ---
 

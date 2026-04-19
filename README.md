@@ -15,16 +15,23 @@ A React Native health and nutrition app built with Expo, featuring food scanning
 
 ```
 health-ai-app/
-├── app/                  # Expo Router ekranları
-├── components/
-├── services/
-├── store/
-├── locales/
+├── src/                  # Mobil uygulama (Expo Router, bileşenler, API istemcisi)
+│   ├── app/              # Ekranlar ve route’lar
+│   ├── components/
+│   ├── services/
+│   ├── store/
+│   ├── utils/
+│   ├── theme/
+│   └── locales/
 ├── assets/
 ├── backend/              # NestJS API + Prisma
+├── abc.json              # Sağlık kataloğu (seed / tarama; backend ile paylaşılır)
 ├── docker-compose.yml
-└── docker/
+├── docs/
+└── server-config/
 ```
+
+Ayrıntılı mimari: `docs/ARCHITECTURE.md`.
 
 ## Getting Started
 

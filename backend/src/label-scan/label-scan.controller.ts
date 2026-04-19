@@ -4,10 +4,13 @@ import {
   Get,
   Body,
   Query,
+  Param,
   UseGuards,
   Request,
   ParseIntPipe,
   DefaultValuePipe,
+  NotFoundException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { LabelScanService } from './label-scan.service';
@@ -37,18 +40,6 @@ export class LabelScanController {
   }
 
   /**
-   * POST /label-scan/ocr-preview
-   * Yalnızca AWS Textract çıktısı — tam pipeline yok (ilk OCR testi için).
-   */
-  @Post('ocr-preview')
-  async ocrPreview(@Body() dto: ScanLabelDto) {
-    return this.labelScanService.previewOcrText(
-      dto.imageBase64,
-      dto.locale ?? 'tr',
-    );
-  }
-
-  /**
    * GET /label-scan/history?limit=20
    * Returns the authenticated user's past scan records.
    */
@@ -58,5 +49,21 @@ export class LabelScanController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
     return this.labelScanService.getScanHistory(req.user.userId, limit);
+  }
+
+  /**
+   * GET /label-scan/history/:id
+   * Tek tarama detayı (JWT kullanıcısına ait olmalı).
+   */
+  @Get('history/:id')
+  async historyItem(
+    @Request() req: JwtRequest,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ) {
+    const item = await this.labelScanService.getScanById(req.user.userId, id);
+    if (!item) {
+      throw new NotFoundException('Scan not found');
+    }
+    return item;
   }
 }

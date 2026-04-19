@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-const palettes = require("./theme/palettes.json");
+const palettes = require("./src/theme/palettes.json");
 
 const THEME_COLOR_KEYS = Object.keys(palettes.light);
 
@@ -10,8 +10,8 @@ const semanticColors = Object.fromEntries(
 module.exports = {
   content: [
     "./App.{js,jsx,ts,tsx}",
-    "./app/**/*.{js,jsx,ts,tsx}",
-    "./components/**/*.{js,jsx,ts,tsx}",
+    "./src/app/**/*.{js,jsx,ts,tsx}",
+    "./src/components/**/*.{js,jsx,ts,tsx}",
   ],
   presets: [require("nativewind/preset")],
   theme: {

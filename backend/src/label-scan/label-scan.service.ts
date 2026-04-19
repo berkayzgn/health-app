@@ -42,8 +42,6 @@ export interface LabelScanApiResult {
   productTitle: string;
   summaryLine: string;
   safetyLabel: SafetyLabel;
-  glycemicImpact: string;
-  processingGrade: string;
   ingredients: ScanIngredient[];
   matchedTriggers: MatchedTrigger[];
   scanId: string;
@@ -172,8 +170,10 @@ export class LabelScanService implements OnModuleInit {
   ): Promise<LabelScanApiResult> {
     const locale = resolveLocale(localeInput);
     // 1. Gemini Vision → içindekiler + ürün adı
-    const { productTitle, rawIngredients, glycemicImpact, processingGrade } =
-      await this.extractStructuredFromLabel(imageBase64, locale);
+    const { productTitle, rawIngredients } = await this.extractStructuredFromLabel(
+      imageBase64,
+      locale,
+    );
 
     // 2. Load user's medical conditions + trigger foods
     const conditions = await this.loadUserConditions(userId);
@@ -188,18 +188,6 @@ export class LabelScanService implements OnModuleInit {
     // 4. Determine safety label
     const safetyLabel = this.deriveSafetyLabel(matchedTriggers);
 
-    // 5. Persist scan record
-    const scan = await this.prisma.scanHistory.create({
-      data: {
-        userId,
-        productTitle,
-        rawIngredients: rawIngredients as unknown as import('@prisma/client').Prisma.JsonArray,
-        matchedTriggers: matchedTriggers as unknown as import('@prisma/client').Prisma.JsonArray,
-        safetyLabel,
-      },
-    });
-
-    // 6. Build response
     const hasWarnings = matchedTriggers.length > 0;
     const summaryLine =
       locale === 'en'
@@ -210,35 +198,29 @@ export class LabelScanService implements OnModuleInit {
           ? `Sağlık profilinize göre ${matchedTriggers.length} içerik işaretlendi.`
           : 'Sağlık durumlarınız için işaretlenen içerik yok.';
 
+    // 5. Persist scan record
+    const scan = await this.prisma.scanHistory.create({
+      data: {
+        userId,
+        productTitle,
+        rawIngredients: rawIngredients as unknown as import('@prisma/client').Prisma.JsonArray,
+        matchedTriggers: matchedTriggers as unknown as import('@prisma/client').Prisma.JsonArray,
+        safetyLabel,
+        resultSnapshot: {
+          summaryLine,
+          ingredients: ingredientDetails,
+        } as unknown as import('@prisma/client').Prisma.InputJsonValue,
+      },
+    });
+
+    // 6. Build response
     return {
       productTitle,
       summaryLine,
       safetyLabel,
-      glycemicImpact,
-      processingGrade,
       ingredients: ingredientDetails,
       matchedTriggers,
       scanId: scan.id,
-    };
-  }
-
-  /** Gemini ile ham etiket verisi önizlemesi (JWT gerekli). */
-  async previewOcrText(
-    imageBase64: string,
-    localeInput?: string,
-  ): Promise<{
-    ocrText: string;
-    lineCount: number;
-    characterCount: number;
-  }> {
-    const locale = resolveLocale(localeInput);
-    const { productTitle, rawIngredients } =
-      await this.gemini.extractLabelData(imageBase64, locale);
-    const ocrText = [productTitle, ...rawIngredients].filter(Boolean).join('\n');
-    return {
-      ocrText,
-      lineCount: rawIngredients.length,
-      characterCount: ocrText.length,
     };
   }
 
@@ -258,6 +240,43 @@ export class LabelScanService implements OnModuleInit {
     });
   }
 
+  /** Tek kayıt — geçmiş detay ekranı (resultSnapshot varsa tam analiz). */
+  async getScanById(userId: string, id: string) {
+    const row = await this.prisma.scanHistory.findFirst({
+      where: { id, userId },
+    });
+    if (!row) return null;
+
+    const triggers = row.matchedTriggers as unknown as MatchedTrigger[];
+    const rawList = row.rawIngredients as unknown as string[];
+    const snap = row.resultSnapshot as {
+      summaryLine?: string;
+      ingredients?: ScanIngredient[];
+    } | null;
+
+    const hasWarnings = triggers.length > 0;
+    const summaryLine =
+      snap?.summaryLine ??
+      (hasWarnings
+        ? `Sağlık profilinize göre ${triggers.length} içerik işaretlendi.`
+        : 'Sağlık durumlarınız için işaretlenen içerik yok.');
+
+    const ingredients = snap?.ingredients?.length ? snap.ingredients : [];
+    const hasRichDetail = Boolean(snap?.ingredients?.length);
+
+    return {
+      id: row.id,
+      productTitle: row.productTitle,
+      safetyLabel: row.safetyLabel as SafetyLabel,
+      matchedTriggers: triggers,
+      rawIngredients: rawList,
+      scannedAt: row.scannedAt.toISOString(),
+      summaryLine,
+      ingredients,
+      hasRichDetail,
+    };
+  }
+
   // ── Private helpers ─────────────────────────────────────────────────────────
 
   private async extractStructuredFromLabel(
@@ -266,8 +285,6 @@ export class LabelScanService implements OnModuleInit {
   ): Promise<{
     productTitle: string;
     rawIngredients: string[];
-    glycemicImpact: string;
-    processingGrade: string;
   }> {
     const { productTitle, rawIngredients } =
       await this.gemini.extractLabelData(imageBase64, locale);
@@ -284,12 +301,9 @@ export class LabelScanService implements OnModuleInit {
       );
     }
 
-    const unknown = locale === 'en' ? 'Unknown' : 'Bilinmiyor';
     return {
       productTitle,
       rawIngredients,
-      glycemicImpact: unknown,
-      processingGrade: unknown,
     };
   }
 

@@ -4,5 +4,14 @@
     "strict": true,
     "resolveJsonModule": true
   },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "*.ts",
+    "*.tsx",
+    "app.config.js",
+    "env.d.ts",
+    "nativewind-env.d.ts"
+  ],
   "exclude": ["backend", "node_modules", "ios", "android", "dist"]
 }
