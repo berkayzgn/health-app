@@ -21,6 +21,7 @@ function RootLayoutContent() {
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const authLoading = useStore((s) => s.authLoading);
   const userProfile = useStore((s) => s.userProfile);
+  const onboardingGateComplete = useStore((s) => s.onboardingGateComplete);
   const clearAuth = useStore((s) => s.clearAuth);
   const router = useRouter();
   const segments = useSegments();
@@ -110,7 +111,7 @@ function RootLayoutContent() {
       }
       const inAuth = segments[0] === "auth";
       const onOnboarding = segments[0] === "onboarding";
-      const needsOnboarding = profileNeedsOnboarding(userProfile);
+      const needsOnboarding = profileNeedsOnboarding(userProfile) && !onboardingGateComplete;
 
       if (!isAuthenticated) {
         if (!inAuth) router.replace("/auth");
@@ -138,7 +139,7 @@ function RootLayoutContent() {
         navTimeoutRef.current = null;
       }
     };
-  }, [stackReadyForNav, authLoading, isAuthenticated, segments, router, userProfile]);
+  }, [stackReadyForNav, authLoading, isAuthenticated, segments, router, userProfile, onboardingGateComplete]);
 
   const accentSpinner = rgbTripletToHex(theme === "dark" ? DARK_RGB.primary : LIGHT_RGB.primary);
 
@@ -164,6 +165,7 @@ function RootLayoutContent() {
       >
         <Stack.Screen name="auth" options={{ animation: "fade" }} />
         <Stack.Screen name="onboarding" options={{ animation: "slide_from_right" }} />
+        <Stack.Screen name="payment" options={{ animation: "slide_from_right" }} />
         <Stack.Screen name="(main)" options={{ headerShown: false }} />
       </Stack>
     </View>

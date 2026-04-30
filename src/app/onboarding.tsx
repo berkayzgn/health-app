@@ -1,390 +1,301 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
 import { useFonts } from "expo-font";
-import {
-  Manrope_700Bold,
-  Manrope_800ExtraBold,
-} from "@expo-google-fonts/manrope";
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-} from "@expo-google-fonts/inter";
+import { Manrope_600SemiBold, Manrope_700Bold } from "@expo-google-fonts/manrope";
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import SafeAreaWrapper from "../components/SafeAreaWrapper";
+import MultiSelectSheet from "../components/MultiSelectSheet";
 import { useStore } from "../store/useStore";
 import * as authService from "../services/authService";
-import { DARK_RGB, LIGHT_RGB, rgbTripletToHex } from "../theme/designRgb";
-import MultiSelectSheet from "../components/MultiSelectSheet";
 import { buildHealthConditionTypesPayload } from "../utils/conditionTypesDisplay";
+import type { MedicalConditionDTO } from "../services/catalogService";
 
+const ON_PRIMARY = "#3a4a00";
+
+function BigSelectCard({
+  icon,
+  kicker,
+  title,
+  emptyHint,
+  selectedItems,
+  lang,
+  onPress,
+  onRemove,
+}: {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  kicker: string;
+  title: string;
+  emptyHint: string;
+  selectedItems: MedicalConditionDTO[];
+  lang: "tr" | "en";
+  onPress: () => void;
+  onRemove: (code: string) => void;
+}) {
+  const count = selectedItems.length;
+  const hasSelection = count > 0;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+    >
+      <View className="relative overflow-hidden rounded-2xl bg-primary-fixed px-6 py-6">
+        <View className="flex-row items-center">
+        <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-white/60">
+          <MaterialIcons name={icon} size={22} color={ON_PRIMARY} />
+        </View>
+        <Text
+          className="flex-1 text-[12px] font-bold uppercase tracking-[0.10em] text-on-primary-fixed"
+          style={{ fontFamily: "Inter_600SemiBold" }}
+        >
+          {kicker}
+        </Text>
+        {hasSelection && (
+          <View className="rounded-full bg-on-primary-fixed px-3 py-1">
+            <Text
+              className="text-[12px] font-bold text-primary-fixed"
+              style={{ fontFamily: "Inter_600SemiBold" }}
+            >
+              {count}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <Text
+        className="mt-4 text-[24px] leading-7 tracking-tight text-on-primary-fixed"
+        style={{ fontFamily: "Manrope_700Bold" }}
+      >
+        {title}
+      </Text>
+
+      {hasSelection ? (
+        <View className="mt-4 flex-row flex-wrap">
+          {selectedItems.map((c) => (
+            <Pressable
+              key={c.code}
+              onPress={() => onRemove(c.code)}
+              className="mr-2 mb-2 flex-row items-center rounded-full bg-white/85 px-3 py-2 active:opacity-80"
+              hitSlop={4}
+            >
+              <Text
+                className="text-[13px] text-on-primary-fixed"
+                style={{ fontFamily: "Inter_500Medium" }}
+                numberOfLines={1}
+              >
+                {c.displayNames[lang] ?? c.displayNames.en ?? c.code}
+              </Text>
+              <MaterialIcons name="close" size={14} color={ON_PRIMARY} style={{ marginLeft: 6 }} />
+            </Pressable>
+          ))}
+        </View>
+      ) : (
+        <View className="mt-4 flex-row items-center justify-between">
+          <Text
+            className="flex-1 pr-3 text-[14px] text-on-primary-fixed/80"
+            style={{ fontFamily: "Inter_400Regular" }}
+          >
+            {emptyHint}
+          </Text>
+          <MaterialIcons name="arrow-forward" size={18} color={ON_PRIMARY} />
+        </View>
+      )}
+      </View>
+    </Pressable>
+  );
+}
+
+/* ─── Ana ekran ──────────────────────────────────────────────────────── */
 export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const refreshProfile = useStore((s) => s.refreshProfile);
-  const clearAuth = useStore((s) => s.clearAuth);
-  const theme = useStore((s) => s.theme);
+  const router      = useRouter();
 
-  const medicalConditions = useStore((s) => s.medicalConditions);
-  const medicalConditionsLoaded = useStore((s) => s.medicalConditionsLoaded);
-  const loadMedicalConditions = useStore((s) => s.loadMedicalConditions);
+  const refreshProfile     = useStore((s) => s.refreshProfile);
+  const setOnboardingGateComplete = useStore((s) => s.setOnboardingGateComplete);
+  const medicalConditions  = useStore((s) => s.medicalConditions);
+  const conditionsLoaded   = useStore((s) => s.medicalConditionsLoaded);
+  const loadConditions     = useStore((s) => s.loadMedicalConditions);
 
-  const lang = i18n.language?.startsWith("tr") ? "tr" : "en";
+  const lang: "tr" | "en" = i18n.language?.startsWith("tr") ? "tr" : "en";
 
+  useEffect(() => { if (!conditionsLoaded) loadConditions(); }, [conditionsLoaded, loadConditions]);
   useEffect(() => {
-    if (!medicalConditionsLoaded) loadMedicalConditions();
-  }, [medicalConditionsLoaded, loadMedicalConditions]);
+    // eslint-disable-next-line no-console
+    console.log("[onboarding] nativewind cards build v4");
+  }, []);
 
-  const palette = theme === "dark" ? DARK_RGB : LIGHT_RGB;
-  const onPrimaryFixed = rgbTripletToHex(palette["on-primary-fixed"]);
-  const limeHex = rgbTripletToHex(palette["primary-fixed"]);
   const [fontsLoaded] = useFonts({
-    Manrope_700Bold,
-    Manrope_800ExtraBold,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
+    Manrope_600SemiBold, Manrope_700Bold,
+    Inter_400Regular, Inter_500Medium, Inter_600SemiBold,
   });
 
-  const [selectedConditions, setSelectedConditions] = useState<Set<string>>(() => new Set());
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [saving, setSaving] = useState(false);
   const [diseaseSheetOpen, setDiseaseSheetOpen] = useState(false);
   const [allergySheetOpen, setAllergySheetOpen] = useState(false);
 
-  const toggleCondition = useCallback((code: string) => {
-    setSelectedConditions((prev) => {
+  const toggle = useCallback((code: string) => {
+    setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
+      next.has(code) ? next.delete(code) : next.add(code);
       return next;
     });
   }, []);
 
-  const diseaseCatalog = useMemo(
+  const diseases = useMemo(
     () => medicalConditions.filter((c) => c.kind === "disease"),
     [medicalConditions],
   );
-  const allergyCatalog = useMemo(
+  const allergies = useMemo(
     () => medicalConditions.filter((c) => c.kind === "allergy"),
     [medicalConditions],
   );
 
-  const diseaseSummary = useMemo(() => {
-    return diseaseCatalog
-      .filter((mc) => selectedConditions.has(mc.code))
-      .map((mc) => mc.displayNames[lang] ?? mc.displayNames.en ?? mc.code)
-      .join(", ");
-  }, [diseaseCatalog, selectedConditions, lang]);
-
-  const allergySummary = useMemo(() => {
-    return allergyCatalog
-      .filter((mc) => selectedConditions.has(mc.code))
-      .map((mc) => mc.displayNames[lang] ?? mc.displayNames.en ?? mc.code)
-      .join(", ");
-  }, [allergyCatalog, selectedConditions, lang]);
-
-  const selectedDiseaseCount = useMemo(
-    () => diseaseCatalog.filter((c) => selectedConditions.has(c.code)).length,
-    [diseaseCatalog, selectedConditions],
+  const selectedDiseases = useMemo(
+    () => diseases.filter((c) => selected.has(c.code)),
+    [diseases, selected],
   );
-  const selectedAllergyCount = useMemo(
-    () => allergyCatalog.filter((c) => selectedConditions.has(c.code)).length,
-    [allergyCatalog, selectedConditions],
+  const selectedAllergies = useMemo(
+    () => allergies.filter((c) => selected.has(c.code)),
+    [allergies, selected],
   );
 
-  const canContinue = selectedConditions.size > 0;
-
-  const onContinue = async () => {
+  const onFinish = async () => {
     if (saving) return;
-    if (!canContinue) {
-      Alert.alert(
-        t("onboarding.requiredConditionsTitle"),
-        t("onboarding.requiredConditionsMessage"),
-      );
+    if (selected.size === 0) {
+      Alert.alert(t("onboarding.requiredConditionsTitle"), t("onboarding.requiredConditionsMessage"));
       return;
     }
     setSaving(true);
     try {
-      const conditionTypes = buildHealthConditionTypesPayload(selectedConditions);
-      await authService.updateProfile({ conditionTypes });
+      await authService.updateProfile({
+        conditionTypes: buildHealthConditionTypesPayload(selected),
+      });
       await refreshProfile();
-      router.replace("/");
+      setOnboardingGateComplete(true);
+      router.replace("/payment");
     } catch (e) {
-      const msg = e instanceof Error ? e.message : t("onboarding.errorSave");
-      Alert.alert(t("auth.errorTitle"), msg);
+      Alert.alert(t("auth.errorTitle"), e instanceof Error ? e.message : t("onboarding.errorSave"));
     } finally {
       setSaving(false);
     }
   };
 
-  const onBack = () => {
-    Alert.alert(t("onboarding.backTitle"), t("onboarding.backMessage"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("onboarding.signOut"),
-        style: "destructive",
-        onPress: () => {
-          clearAuth();
-          router.replace("/auth");
-        },
-      },
-    ]);
+  const onSkip = () => {
+    if (saving) return;
+    setOnboardingGateComplete(true);
+    router.replace("/payment");
   };
 
   if (!fontsLoaded) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface">
-        <ActivityIndicator size="large" color={rgbTripletToHex(palette.primary)} />
+      <View className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator color={ON_PRIMARY} />
       </View>
     );
   }
 
-  const footerPad = Math.max(insets.bottom, 10) + 16;
-  const catalogLoading = !medicalConditionsLoaded;
-
   return (
-    <View className="flex-1 bg-surface">
-      <StatusBar style={theme === "dark" ? "light" : "dark"} />
+    <View className="flex-1 bg-background">
+      <StatusBar style="dark" />
 
       <MultiSelectSheet
         visible={diseaseSheetOpen}
         title={t("onboarding.diseasesSheetTitle")}
         hint={t("onboarding.diseasesSheetHint")}
-        items={diseaseCatalog}
-        selected={selectedConditions}
+        items={diseases}
+        selected={selected}
         lang={lang}
-        onToggle={toggleCondition}
+        onToggle={toggle}
         onClose={() => setDiseaseSheetOpen(false)}
       />
       <MultiSelectSheet
         visible={allergySheetOpen}
         title={t("onboarding.allergiesSheetTitle")}
         hint={t("onboarding.allergiesSheetHint")}
-        items={allergyCatalog}
-        selected={selectedConditions}
+        items={allergies}
+        selected={selected}
         lang={lang}
-        onToggle={toggleCondition}
+        onToggle={toggle}
         onClose={() => setAllergySheetOpen(false)}
       />
 
-      <View
-        className="absolute left-0 right-0 top-0 z-50 border-b border-surface-container bg-surface/95"
-        style={{ paddingTop: insets.top }}
-      >
-        <View className="mx-auto w-full max-w-7xl flex-row items-center justify-between px-6 py-4">
+      <SafeAreaWrapper className="flex-1 bg-background" edges={["top"]}>
+        <View className="flex-1 px-6 pt-2">
           <Text
-            className="text-xl tracking-tighter text-on-surface"
-            style={{ fontFamily: "Manrope_800ExtraBold" }}
+            className="text-on-surface font-headline text-4xl leading-tight tracking-tighter mb-2"
+            style={{ fontFamily: "Manrope_600SemiBold" }}
           >
-            {t("common.appName")}
+            {t("onboarding.profileSetupTitle")}
           </Text>
           <Text
-            className="text-[0.7rem] font-bold uppercase tracking-[0.05em] text-outline"
-            style={{ fontFamily: "Inter_600SemiBold" }}
+            className="text-on-surface-variant font-body text-lg leading-relaxed mb-8"
+            style={{ fontFamily: "Inter_400Regular" }}
           >
-            {t("onboarding.stepOf", { current: 1, total: 1 })}
+            {t("onboarding.profileSetupSubtitle")}
           </Text>
+
+          {!conditionsLoaded ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator color={ON_PRIMARY} />
+            </View>
+          ) : (
+            <View className="mt-auto">
+              <BigSelectCard
+                icon="medical-services"
+                kicker={t("onboarding.diseasesLabel")}
+                title={t("onboarding.diseasesCardTitle")}
+                emptyHint={t("onboarding.diseasesCardHint")}
+                selectedItems={selectedDiseases}
+                lang={lang}
+                onPress={() => setDiseaseSheetOpen(true)}
+                onRemove={toggle}
+              />
+              <View className="h-4" />
+              <BigSelectCard
+                icon="warning-amber"
+                kicker={t("onboarding.allergiesLabel")}
+                title={t("onboarding.allergiesCardTitle")}
+                emptyHint={t("onboarding.allergiesCardHint")}
+                selectedItems={selectedAllergies}
+                lang={lang}
+                onPress={() => setAllergySheetOpen(true)}
+                onRemove={toggle}
+              />
+            </View>
+          )}
         </View>
-        <View className="h-1 w-full bg-surface-container">
-          <View className="h-full rounded-r-full bg-primary-fixed" style={{ width: "100%" }} />
-        </View>
-      </View>
 
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{
-          paddingTop: insets.top + 72,
-          paddingBottom: footerPad + 88,
-          paddingHorizontal: 24,
-        }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="mx-auto w-full max-w-2xl">
-          <View className="mb-10">
-            <Text
-              className="mb-4 text-[2rem] leading-tight tracking-tight text-on-surface"
-              style={{ fontFamily: "Manrope_800ExtraBold" }}
-            >
-              {t("onboarding.title")}
-            </Text>
-            <Text
-              className="text-lg leading-relaxed text-on-surface-variant"
-              style={{ fontFamily: "Inter_400Regular" }}
-            >
-              {t("onboarding.subtitle")}
-            </Text>
-          </View>
-
-          <View className="mb-6 gap-6">
-            <Text
-              className="text-lg text-on-surface"
-              style={{ fontFamily: "Manrope_700Bold" }}
-            >
-              {t("onboarding.sectionTitle")}
-            </Text>
-
-            {catalogLoading ? (
-              <ActivityIndicator size="small" color={rgbTripletToHex(palette.primary)} />
-            ) : (
-              <View className="gap-4">
-                <View>
+        <View className="bg-background px-6 pt-3 pb-6">
+          <Pressable onPress={onFinish} disabled={saving} style={({ pressed }) => ({ opacity: saving ? 0.55 : pressed ? 0.9 : 1 })}>
+            <View className="h-14 flex-row items-center justify-center gap-2 rounded-full bg-primary-fixed">
+              {saving ? (
+                <ActivityIndicator color={ON_PRIMARY} />
+              ) : (
+                <>
                   <Text
-                    className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
-                    style={{ fontFamily: "Inter_600SemiBold" }}
+                    className="text-base font-bold text-on-primary-fixed"
+                    style={{ fontFamily: "Manrope_700Bold" }}
                   >
-                    {t("onboarding.diseasesLabel")}
+                    {t("onboarding.finishSetupCta")}
                   </Text>
-                  <Pressable
-                    onPress={() => setDiseaseSheetOpen(true)}
-                    className="flex-row items-center rounded-card border border-outline-variant/30 bg-surface-container-low px-5 py-4 active:bg-surface-container"
-                  >
-                    <MaterialIcons name="medical-services" size={20} color="#767777" />
-                    <Text
-                      className={`ml-3 flex-1 text-[15px] ${
-                        selectedDiseaseCount > 0 ? "text-on-surface" : "text-outline"
-                      }`}
-                      style={{ fontFamily: "Inter_500Medium" }}
-                      numberOfLines={2}
-                    >
-                      {selectedDiseaseCount > 0
-                        ? diseaseSummary
-                        : t("onboarding.diseasesPlaceholder")}
-                    </Text>
-                    {selectedDiseaseCount > 0 && (
-                      <View className="mr-2 rounded-full bg-primary-fixed px-2.5 py-0.5">
-                        <Text
-                          className="text-[11px] font-bold text-on-primary-fixed"
-                          style={{ fontFamily: "Inter_600SemiBold" }}
-                        >
-                          {selectedDiseaseCount}
-                        </Text>
-                      </View>
-                    )}
-                    <MaterialIcons name="expand-more" size={22} color="#767777" />
-                  </Pressable>
-                </View>
+                  <MaterialIcons name="check" size={22} color={ON_PRIMARY} />
+                </>
+              )}
+            </View>
+          </Pressable>
 
-                <View>
-                  <Text
-                    className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
-                    style={{ fontFamily: "Inter_600SemiBold" }}
-                  >
-                    {t("onboarding.allergiesLabel")}
-                  </Text>
-                  <Pressable
-                    onPress={() => setAllergySheetOpen(true)}
-                    className="flex-row items-center rounded-card border border-outline-variant/30 bg-surface-container-low px-5 py-4 active:bg-surface-container"
-                  >
-                    <MaterialIcons name="warning-amber" size={20} color="#767777" />
-                    <Text
-                      className={`ml-3 flex-1 text-[15px] ${
-                        selectedAllergyCount > 0 ? "text-on-surface" : "text-outline"
-                      }`}
-                      style={{ fontFamily: "Inter_500Medium" }}
-                      numberOfLines={2}
-                    >
-                      {selectedAllergyCount > 0
-                        ? allergySummary
-                        : t("onboarding.allergiesPlaceholder")}
-                    </Text>
-                    {selectedAllergyCount > 0 && (
-                      <View className="mr-2 rounded-full bg-primary-fixed px-2.5 py-0.5">
-                        <Text
-                          className="text-[11px] font-bold text-on-primary-fixed"
-                          style={{ fontFamily: "Inter_600SemiBold" }}
-                        >
-                          {selectedAllergyCount}
-                        </Text>
-                      </View>
-                    )}
-                    <MaterialIcons name="expand-more" size={22} color="#767777" />
-                  </Pressable>
-                </View>
-
-                {selectedConditions.size > 0 && (
-                  <View className="flex-row flex-wrap gap-2">
-                    {medicalConditions
-                      .filter((mc) => selectedConditions.has(mc.code))
-                      .map((mc) => (
-                        <Pressable
-                          key={mc.code}
-                          onPress={() => toggleCondition(mc.code)}
-                          className="flex-row items-center gap-1.5 rounded-pill bg-primary-fixed px-4 py-2"
-                        >
-                          <Text
-                            className="text-xs font-medium text-on-primary-fixed"
-                            style={{ fontFamily: "Inter_500Medium" }}
-                          >
-                            {mc.displayNames[lang] ?? mc.displayNames.en ?? mc.code}
-                          </Text>
-                          <MaterialIcons name="close" size={14} color={onPrimaryFixed} />
-                        </Pressable>
-                      ))}
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-        </View>
-      </ScrollView>
-
-      <View
-        className="absolute bottom-0 left-0 right-0 border-t border-surface-container bg-surface px-6 pt-4"
-        style={{ paddingBottom: footerPad }}
-      >
-        <View className="mx-auto w-full max-w-2xl flex-row gap-4">
-          <Pressable
-            onPress={onBack}
-            className="flex-1 items-center justify-center rounded-pill py-4 active:bg-surface-container"
-          >
-            <Text
-              className="font-bold text-on-surface-variant"
-              style={{ fontFamily: "Manrope_700Bold" }}
-            >
-              {t("onboarding.back")}
+          <Pressable onPress={onSkip} disabled={saving} className="mt-3 items-center active:opacity-70">
+            <Text className="text-on-surface-variant" style={{ fontFamily: "Inter_400Regular" }}>
+              {t("onboarding.skipForNow")}
             </Text>
           </Pressable>
-          <Pressable
-            onPress={onContinue}
-            disabled={saving}
-            className="flex-[2] flex-row items-center justify-center gap-2 rounded-pill bg-primary-fixed py-4 active:opacity-90"
-            style={{
-              opacity: saving ? 0.5 : 1,
-              shadowColor: limeHex,
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.35,
-              shadowRadius: 16,
-              elevation: 6,
-            }}
-          >
-            {saving ? (
-              <ActivityIndicator color={onPrimaryFixed} />
-            ) : (
-              <>
-                <Text
-                  className="font-bold text-on-primary-fixed"
-                  style={{ fontFamily: "Manrope_700Bold" }}
-                >
-                  {t("onboarding.continueCta")}
-                </Text>
-                <MaterialIcons name="arrow-forward" size={22} color={onPrimaryFixed} />
-              </>
-            )}
-          </Pressable>
         </View>
-      </View>
+      </SafeAreaWrapper>
     </View>
   );
 }

@@ -118,13 +118,17 @@ Tüm uygulama kaynağı `src/` altında toplanır; kök dizin Expo, Docker ve or
 
 ### URL Çözümü (`src/services/api.ts`)
 
-`EXPO_PUBLIC_API_URL` env değişkeni doğrudan kullanılır. Lokal sunucu fallback'i yoktur.
+`EXPO_PUBLIC_API_URL` env değişkeni doğrudan kullanılır (production’da `__DEV__` dışında tek kaynak budur).
 
-```
-EXPO_PUBLIC_API_URL=http://165.245.209.17
+**nginx (`server-config/nginx/healthai.conf`) kullanıyorsanız:** istekler `https://…/api/…` üzerinden gidiyor; base URL’nin **sonunda `/api` olmalı**:
+
+```env
+EXPO_PUBLIC_API_URL=https://api.yourdomain.com/api
 ```
 
-> **Not:** Tüm ortamlarda (simülatör, emülatör, fiziksel cihaz, production) uzak sunucuya bağlanır.
+nginx yok, backend doğrudan kökten yayınlanıyorsa (önerilmez): base URL kök olur, `/api` ekleme.
+
+> **Kural:** Production’da mümkün olduğunca **HTTPS** kullanın (`docs/guvenli-sunucu-kilavuzu.md` K6). HTTP + düz IP yalnızca geçici test içindir.
 
 ---
 
@@ -144,8 +148,8 @@ npx expo start -c
 ### 2. 🚀 Production Build (EAS)
 
 ```bash
-# .env.production dosyası otomatik okunur:
-# EXPO_PUBLIC_API_URL=http://165.245.209.17
+# .env.production örnek (nginx + TLS):
+# EXPO_PUBLIC_API_URL=https://api.yourdomain.com/api
 
 eas build --platform ios --profile production
 # veya

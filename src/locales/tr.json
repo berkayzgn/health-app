@@ -64,6 +64,18 @@
     "pickFromLibrary": "Galeriden seç"
   },
   "auth": {
+    "welcomeLabel": "Sağlık zekâsı",
+    "welcomeTitleLine1": "Luminous",
+    "welcomeTitleLine2": "Health",
+    "welcomeSubtitleLine1": "Ne yediğini bil.",
+    "welcomeSubtitleLine2": "Önemli olanı koru.",
+    "getStarted": "Başla",
+    "alreadyHaveAccount": "Zaten hesabın var mı?",
+    "featurePills": {
+      "scanner": "İçerik Tarayıcı",
+      "allergy": "Alerji Koruması",
+      "disease": "Hastalık Uyumlu"
+    },
     "welcomeBack": "Hoş geldiniz",
     "registerTitle": "Hesap oluştur.",
     "name": "Ad soyad",
@@ -71,6 +83,8 @@
     "emailPlaceholder": "isim@luminous.com",
     "passwordLabel": "Şifre",
     "passwordPlaceholder": "••••••••",
+    "confirmPasswordLabel": "Şifre (tekrar)",
+    "confirmPasswordPlaceholder": "••••••••",
     "forgotPassword": "Unuttum?",
     "signIn": "Giriş yap",
     "createAccountCta": "Hesap oluştur",
@@ -86,6 +100,17 @@
     "comingSoon": "Çok yakında",
     "errorTitle": "Hata",
     "errorGeneric": "Bir hata oluştu",
+    "errors": {
+      "sessionExpired": "Oturum süreniz doldu. Lütfen tekrar giriş yapın.",
+      "invalidCredentials": "E-posta veya şifre hatalı.",
+      "userNotFound": "Bu e-posta ile kayıtlı kullanıcı bulunamadı.",
+      "emailInUse": "Bu e-posta zaten kullanımda.",
+      "weakPassword": "Şifre çok zayıf. Daha güçlü bir şifre deneyin.",
+      "passwordMismatch": "Şifreler eşleşmiyor.",
+      "rateLimited": "Çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.",
+      "timeout": "Sunucu zamanında yanıt vermedi. Lütfen tekrar deneyin.",
+      "network": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin."
+    },
     "logout": "Çıkış yap"
   },
   "onboarding": {
@@ -97,6 +122,29 @@
     "diseasesPlaceholder": "Hastalık seçin (katalog)",
     "diseasesSheetTitle": "Hastalıklar",
     "diseasesSheetHint": "Liste uygulama sağlık kataloğundaki hastalıklarla aynıdır. Çoklu seçim.",
+    "diseasesChipTitle": "Nelere dikkat edelim?",
+    "diseasesChipSubtitle": "Sana uyan tüm durumları seç.",
+    "allergiesChipTitle": "Gıda alerjin var mı?",
+    "allergiesChipSubtitle": "Uyan tüm maddeleri seç; etikette uyarı veririz.",
+    "profileSetupTitle": "Sağlık profilin",
+    "profileSetupSubtitle": "Hastalıklarını ve gıda alerjilerini seç. Etiket taraması bu bilgilerle değerlendirilir.",
+    "sheetDone": "Tamam",
+    "selectionsLabel": "Seçimlerin",
+    "diseasesCardTitle": "Hastalık seç",
+    "diseasesCardHint": "Sana uyan hastalıkları seç",
+    "allergiesCardTitle": "Alerji seç",
+    "allergiesCardHint": "Gıda alerjilerini seç",
+    "finishSetupCta": "Kurulumu bitir",
+    "skipForNow": "Şimdilik atla",
+    "exitLink": "Çıkış",
+    "countDiseaseSelected_one": "{{count}} hastalık seçildi",
+    "countDiseaseSelected_other": "{{count}} hastalık seçildi",
+    "countAllergySelected_one": "{{count}} alerjen seçildi",
+    "countAllergySelected_other": "{{count}} alerjen seçildi",
+    "chipSelectedDiseases_one": "{{count}} hastalık seçildi",
+    "chipSelectedDiseases_other": "{{count}} hastalık seçildi",
+    "chipSelectedAllergies_one": "{{count}} alerjen seçildi",
+    "chipSelectedAllergies_other": "{{count}} alerjen seçildi",
     "allergiesLabel": "Gıda alerjileri",
     "allergiesPlaceholder": "Alerji seçin (katalog)",
     "allergiesSheetTitle": "Gıda alerjileri",
@@ -126,8 +174,13 @@
     "title": "Ayarlar",
     "accountManagement": "Hesap",
     "accountGuest": "Üye",
+    "memberBadge": "Luminous Premium Üye",
+    "sectionAccountBilling": "Hesap & Ödeme",
+    "sectionAppSettings": "Uygulama ayarları",
     "sectionPreferences": "Tercihler",
     "sectionSupport": "Destek ve yasal",
+    "payment": "Ödeme",
+    "paymentSubtitle": "Aboneliği yönet",
     "language": "Dil tercihi",
     "languageValueEn": "İngilizce",
     "languageValueTr": "Türkçe",
@@ -140,6 +193,7 @@
     "theme": "Tema",
     "themeValueLight": "Açık",
     "themeValueDark": "Koyu",
+    "themeSystemDefault": "Sistem varsayılanı ({{value}})",
     "about": "Hakkında",
     "aboutSubtitle": "Luminous Health sürüm {{version}}",
     "securityLegal": "Güvenlik ve yasal",
@@ -161,5 +215,54 @@
     "channelName": "Genel",
     "channelDescription": "Luminous Health’ten hatırlatmalar ve güncellemeler.",
     "permissionRationale": "Önemli güncellemeler için bildirimleri kullanıyoruz."
+  },
+  "payment": {
+    "brand": "LUMINOUS",
+    "headerTitle": "Abonelik",
+    "editorialTitle": "Hassas sağlık için yolunu seç.",
+    "editorialSubtitle": "Klinik hedeflerin ve günlük yaşam tarzınla uyumlu bir plan seç.",
+    "cards": {
+      "starter": {
+        "kicker": "Başlangıç",
+        "title": "Ücretsiz Plan",
+        "features": [
+          "3 günlük ücretsiz deneme",
+          "Dakikalar içinde başlayın",
+          "İstediğiniz zaman iptal"
+        ],
+        "cta": "Denemeyi başlat",
+        "priceLabel": "Deneme",
+        "price": "3 gün"
+      },
+      "plus": {
+        "recommended": "Önerilen",
+        "kicker": "En Popüler",
+        "title": "Plus Plan",
+        "features": [
+          "Günlük 5 sorguya kadar",
+          "Daha hızlı sonuç",
+          "En iyi değer"
+        ],
+        "cta": "Yükselt",
+        "priceLabel": "Aylık",
+        "priceMain": "$2.99/ay"
+      },
+      "pro": {
+        "kicker": "Gelişmiş",
+        "title": "Pro Plan",
+        "features": [
+          "Sınırsız sorgu",
+          "Öncelikli işlem",
+          "Pro destek"
+        ],
+        "cta": "Plan seç",
+        "priceLabel": "Aylık",
+        "priceMain": "$5.99/ay"
+      }
+    },
+    "primaryCta": "Devam et",
+    "footer": "Abonelikler, mevcut dönem bitmeden en az 24 saat önce iptal edilmediği sürece otomatik yenilenir. Ayarları Apple ID veya Google Play hesabınızdan yönetebilirsiniz.",
+    "mockTitle": "Ödeme (mock)",
+    "mockBody": "Ödeme entegrasyonu daha sonra eklenecek. Şimdilik uygulamaya devam edebilirsiniz."
   }
 }

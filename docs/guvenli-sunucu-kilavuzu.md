@@ -66,7 +66,7 @@ EXPO_PUBLIC_API_URL=http://localhost:3000
 ```
 
 **Sunucu adımlarına geçiş zamanı:**
-- Temel özellikler (auth, meals, scan) çalışıyor
+- Temel özellikler (auth, profil, scan) çalışıyor
 - App Store / Play Store'a yaklaşılıyor
 - Stripe / ödeme entegre edilecek
 
@@ -78,11 +78,11 @@ EXPO_PUBLIC_API_URL=http://localhost:3000
 
 - [ ] Bir domain satın al (ör. `healthaiapp.com`)
 - [ ] Cloudflare'e ekle → **DNS** → A kaydı: `api` → `165.245.209.17`, **Proxy: ON** (turuncu bulut)
-- [ ] `EXPO_PUBLIC_API_URL=https://api.yourdomain.com` olarak güncelle
+- [ ] Mobil `.env` / `.env.production`: `EXPO_PUBLIC_API_URL=https://api.yourdomain.com/api` (nginx `location /api/` ile uyumlu; sonda `/api` şart)
 
 ```bash
-# Test
-curl -v https://api.yourdomain.com/health
+# Test (nginx /api → backend köküne rewrite eder)
+curl -v https://api.yourdomain.com/api/health
 ```
 
 ---
@@ -204,7 +204,7 @@ sudo systemctl reload nginx
 **Kontrol:**
 
 ```bash
-curl -I https://api.yourdomain.com/health
+curl -I https://api.yourdomain.com/api/health
 # HTTP/2 200 ve HSTS başlığı gelmeli
 ```
 
@@ -406,14 +406,14 @@ CREATE TABLE audit_log (
 **Kural (K5):** Mobil uygulama AI API'ye doğrudan bağlanamaz.
 
 ```
-[Mobil] → POST /api/meals/analyze  (fotoğraf binary / base64)
+[Mobil] → POST /api/label-scan  (fotoğraf base64)
                │
                ├─ JWT doğrula
                ├─ Fotoğrafı geçici olarak al
-               ├─ AWS Textract OCR + backend’de kural tabanlı eşleştirme
-               ├─ Dönen metni kullanıcının hastalık tipine göre filtrele
-               │    DB: user_medical_conditions → uyarı oluştur
-               └─ Sonuç + uyarıları mobil'e dön
+               ├─ Gemini Vision / OCR + backend’de kural tabanlı eşleştirme
+               ├─ Kullanıcının hastalık/alerji seçimine göre filtrele
+               │    DB: user_medical_conditions → uyarı üret
+               └─ Sonuç + uyarıları mobil'e dön (scan_history’a kaydet)
 ```
 
 **Backend `.env`:**

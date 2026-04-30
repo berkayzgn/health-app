@@ -130,6 +130,33 @@ export function registerUnauthorizedCallback(cb: UnauthorizedCallback): void {
     _onUnauthorized = cb;
 }
 
+export type ApiErrorCode =
+    | 'SESSION_EXPIRED'
+    | 'AUTH_INVALID_CREDENTIALS'
+    | 'AUTH_USER_NOT_FOUND'
+    | 'AUTH_EMAIL_IN_USE'
+    | 'AUTH_WEAK_PASSWORD'
+    | 'BAD_REQUEST'
+    | 'NOT_FOUND'
+    | 'RATE_LIMITED'
+    | 'TIMEOUT'
+    | 'NETWORK_ERROR'
+    | 'HTTP_ERROR';
+
+export class ApiError extends Error {
+    status?: number;
+    code: ApiErrorCode;
+    raw?: unknown;
+
+    constructor(message: string, opts: { status?: number; code: ApiErrorCode; raw?: unknown }) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = opts.status;
+        this.code = opts.code;
+        this.raw = opts.raw;
+    }
+}
+
 async function getToken(): Promise<string | null> {
     return AsyncStorage.getItem(TOKEN_KEY);
 }
@@ -150,6 +177,49 @@ function formatFetchError(err: unknown): string {
     } catch {
         return String(err);
     }
+}
+
+function isAuthEndpoint(endpoint: string): boolean {
+    return endpoint.startsWith('/auth/');
+}
+
+async function safeReadErrorBody(response: Response): Promise<unknown> {
+    try {
+        return await response.json();
+    } catch {
+        return null;
+    }
+}
+
+function extractMessageFromErrorBody(body: unknown): string | null {
+    if (!body) return null;
+    if (typeof body === 'string') return body;
+    if (typeof body !== 'object') return null;
+
+    const anyBody = body as { message?: unknown; error?: unknown };
+    const msg = anyBody.message ?? anyBody.error;
+    if (typeof msg === 'string') return msg;
+    if (Array.isArray(msg)) {
+        const first = msg.find((x) => typeof x === 'string');
+        return typeof first === 'string' ? first : null;
+    }
+    return null;
+}
+
+function classifyAuthError(message: string | null, status: number): ApiErrorCode {
+    const m = (message ?? '').toLowerCase();
+
+    // NestJS / custom messages (best-effort)
+    if (status === 401) {
+        if (m.includes('user not found') || m.includes('kullanıcı bulunamad')) return 'AUTH_USER_NOT_FOUND';
+        if (m.includes('wrong password') || m.includes('invalid password') || m.includes('hatalı şifre'))
+            return 'AUTH_INVALID_CREDENTIALS';
+        if (m.includes('invalid credentials') || m.includes('unauthorized')) return 'AUTH_INVALID_CREDENTIALS';
+        return 'AUTH_INVALID_CREDENTIALS';
+    }
+
+    if (status === 404) return 'AUTH_USER_NOT_FOUND';
+    return 'HTTP_ERROR';
 }
 
 async function request<T>(
@@ -188,25 +258,50 @@ async function request<T>(
         const detail = formatFetchError(err);
         console.error('[api] FETCH ERROR:', API_BASE_URL + endpoint, detail, err);
         const aborted = err instanceof Error && err.name === 'AbortError';
-        throw new Error(
+        throw new ApiError(
             aborted
                 ? `Sunucu ${REQUEST_TIMEOUT_MS / 1000}s içinde yanıt vermedi (${API_BASE_URL})`
                 : `Sunucuya ulaşılamadı (${API_BASE_URL}). ${detail}`,
+            { code: aborted ? 'TIMEOUT' : 'NETWORK_ERROR' },
         );
     } finally {
         clearTimeout(timeoutId);
     }
 
     if (!response.ok) {
+        const raw = await safeReadErrorBody(response);
+        const message = extractMessageFromErrorBody(raw) ?? null;
+
+        // Login/register: 401 = kimlik bilgisi hatası (session expired değil)
+        if (response.status === 401 && isAuthEndpoint(endpoint)) {
+            const code = classifyAuthError(message, response.status);
+            throw new ApiError(message ?? 'Unauthorized', { status: response.status, code, raw });
+        }
+
         if (response.status === 401) {
             await removeToken().catch(() => {});
             _onUnauthorized?.();
-            throw new Error('Oturum süreniz doldu. Lütfen tekrar giriş yapın.');
+            // Keep message human-friendly for screens that show e.message directly.
+            throw new ApiError('Oturum süreniz doldu. Lütfen tekrar giriş yapın.', {
+                status: response.status,
+                code: 'SESSION_EXPIRED',
+                raw,
+            });
         }
-        const error = await response
-            .json()
-            .catch(() => ({ message: 'Bir hata oluştu' }));
-        throw new Error(error.message || `HTTP ${response.status}`);
+
+        const status = response.status;
+        const code: ApiErrorCode =
+            status === 400
+                ? 'BAD_REQUEST'
+                : status === 404
+                    ? 'NOT_FOUND'
+                    : status === 429
+                        ? 'RATE_LIMITED'
+                        : 'HTTP_ERROR';
+
+        // Some screens rely on literal sentinel messages (e.g. "NOT_FOUND").
+        const fallbackMessage = status === 404 ? 'NOT_FOUND' : `HTTP ${status}`;
+        throw new ApiError(message ?? fallbackMessage, { status, code, raw });
     }
 
     return response.json();

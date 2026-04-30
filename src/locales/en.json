@@ -64,6 +64,18 @@
     "pickFromLibrary": "Choose from library"
   },
   "auth": {
+    "welcomeLabel": "Health Intelligence",
+    "welcomeTitleLine1": "Luminous",
+    "welcomeTitleLine2": "Health",
+    "welcomeSubtitleLine1": "Know what you eat.",
+    "welcomeSubtitleLine2": "Protect what matters.",
+    "getStarted": "Get Started",
+    "alreadyHaveAccount": "Already have an account?",
+    "featurePills": {
+      "scanner": "Ingredient Scanner",
+      "allergy": "Allergy Protection",
+      "disease": "Disease Safe"
+    },
     "welcomeBack": "Welcome",
     "registerTitle": "Create your account.",
     "name": "Full name",
@@ -71,6 +83,8 @@
     "emailPlaceholder": "name@luminous.com",
     "passwordLabel": "Password",
     "passwordPlaceholder": "••••••••",
+    "confirmPasswordLabel": "Confirm password",
+    "confirmPasswordPlaceholder": "••••••••",
     "forgotPassword": "Forgot?",
     "signIn": "Sign In",
     "createAccountCta": "Create account",
@@ -86,6 +100,17 @@
     "comingSoon": "Coming soon",
     "errorTitle": "Error",
     "errorGeneric": "Something went wrong",
+    "errors": {
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "invalidCredentials": "Incorrect email or password.",
+      "userNotFound": "No user found with this email address.",
+      "emailInUse": "This email address is already in use.",
+      "weakPassword": "Your password is too weak. Please choose a stronger password.",
+      "passwordMismatch": "Passwords do not match.",
+      "rateLimited": "Too many attempts. Please try again later.",
+      "timeout": "The server took too long to respond. Please try again.",
+      "network": "Could not reach the server. Check your connection."
+    },
     "logout": "Log out"
   },
   "onboarding": {
@@ -97,6 +122,29 @@
     "diseasesPlaceholder": "Select conditions (from catalog)",
     "diseasesSheetTitle": "Medical conditions",
     "diseasesSheetHint": "List matches your app health catalog. Tap to toggle; multiple allowed.",
+    "diseasesChipTitle": "What should we watch out for?",
+    "diseasesChipSubtitle": "Select all conditions that apply to you.",
+    "allergiesChipTitle": "Any food allergies?",
+    "allergiesChipSubtitle": "Select all that apply. We’ll flag them on scanned labels.",
+    "profileSetupTitle": "Your health profile",
+    "profileSetupSubtitle": "Select medical conditions and food allergies. Label scans are evaluated against this profile.",
+    "sheetDone": "Done",
+    "selectionsLabel": "Your selections",
+    "diseasesCardTitle": "Pick conditions",
+    "diseasesCardHint": "Select conditions that apply to you",
+    "allergiesCardTitle": "Pick allergies",
+    "allergiesCardHint": "Select your food allergies",
+    "finishSetupCta": "Finish setup",
+    "skipForNow": "Skip for now",
+    "exitLink": "Sign out",
+    "countDiseaseSelected_one": "{{count}} condition selected",
+    "countDiseaseSelected_other": "{{count}} conditions selected",
+    "countAllergySelected_one": "{{count}} allergen selected",
+    "countAllergySelected_other": "{{count}} allergens selected",
+    "chipSelectedDiseases_one": "{{count}} condition selected",
+    "chipSelectedDiseases_other": "{{count}} conditions selected",
+    "chipSelectedAllergies_one": "{{count}} allergen selected",
+    "chipSelectedAllergies_other": "{{count}} allergens selected",
     "allergiesLabel": "Food allergies",
     "allergiesPlaceholder": "Select allergies (from catalog)",
     "allergiesSheetTitle": "Food allergies",
@@ -126,8 +174,13 @@
     "title": "Settings",
     "accountManagement": "Account",
     "accountGuest": "Member",
+    "memberBadge": "Luminous Premium Member",
+    "sectionAccountBilling": "Account & Billing",
+    "sectionAppSettings": "App Settings",
     "sectionPreferences": "Preferences",
     "sectionSupport": "Support & Legal",
+    "payment": "Payment",
+    "paymentSubtitle": "Manage your subscription",
     "language": "Language Preference",
     "languageValueEn": "English",
     "languageValueTr": "Turkish",
@@ -140,6 +193,7 @@
     "theme": "Theme",
     "themeValueLight": "Light",
     "themeValueDark": "Dark",
+    "themeSystemDefault": "System default ({{value}})",
     "about": "About",
     "aboutSubtitle": "Luminous Health v{{version}}",
     "securityLegal": "Security & Legal",
@@ -161,5 +215,54 @@
     "channelName": "General",
     "channelDescription": "Reminders and updates from Luminous Health.",
     "permissionRationale": "We use notifications for important updates."
+  },
+  "payment": {
+    "brand": "LUMINOUS",
+    "headerTitle": "Subscription",
+    "editorialTitle": "Choose your path to precision health.",
+    "editorialSubtitle": "Select a plan that aligns with your clinical goals and daily lifestyle.",
+    "cards": {
+      "starter": {
+        "kicker": "Starter",
+        "title": "Free Plan",
+        "features": [
+          "3-day free trial",
+          "Get started in minutes",
+          "Cancel anytime"
+        ],
+        "cta": "Start trial",
+        "priceLabel": "Trial",
+        "price": "3 days"
+      },
+      "plus": {
+        "recommended": "Recommended",
+        "kicker": "Most Popular",
+        "title": "Plus Plan",
+        "features": [
+          "Up to 5 queries per day",
+          "Faster results",
+          "Best value"
+        ],
+        "cta": "Upgrade Now",
+        "priceLabel": "Monthly",
+        "priceMain": "$2.99/mo"
+      },
+      "pro": {
+        "kicker": "Advanced",
+        "title": "Pro Plan",
+        "features": [
+          "Unlimited queries",
+          "Priority processing",
+          "Pro support"
+        ],
+        "cta": "Select Plan",
+        "priceLabel": "Monthly",
+        "priceMain": "$5.99/mo"
+      }
+    },
+    "primaryCta": "Continue",
+    "footer": "Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period. Manage settings in your Apple ID or Google Play account.",
+    "mockTitle": "Payment (mock)",
+    "mockBody": "Payment integration will be added next. For now, you can continue to the app."
   }
 }

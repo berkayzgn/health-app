@@ -2,7 +2,7 @@
 
 ## Genel Bakış
 
-Backend, **NestJS** (Node.js) framework'ü ve **PostgreSQL** veritabanı üzerine inşa edilmiştir (**Prisma ORM**). JWT tabanlı kimlik doğrulama ile kullanıcıya özel yemek takibi ve beslenme hedefleri yönetimi sağlar.
+Backend, **NestJS** (Node.js) framework'ü ve **PostgreSQL** veritabanı üzerine inşa edilmiştir (**Prisma ORM**). JWT tabanlı kimlik doğrulama ile kullanıcı profili ve etiket tarama geçmişi yönetimi sağlar.
 
 ---
 
@@ -11,7 +11,7 @@ Backend, **NestJS** (Node.js) framework'ü ve **PostgreSQL** veritabanı üzerin
 ```
 backend/
 ├── prisma/
-│   ├── schema.prisma              # Prisma modelleri (User, Meal)
+│   ├── schema.prisma              # Prisma modelleri (User, MedicalCondition, ScanHistory)
 │   └── migrations/                # SQL migrasyonlar
 ├── src/
 │   ├── main.ts                    # Uygulama giriş noktası
@@ -34,13 +34,10 @@ backend/
 │   │   ├── users.controller.ts    # GET/PATCH /users/me
 │   │   └── users.service.ts
 │   │
-│   └── meals/                     # 🍽️ Yemek Takibi
-│       ├── meals.module.ts
-│       ├── meals.controller.ts    # CRUD + /meals/today
-│       ├── meals.service.ts
-│       └── dto/
-│           ├── create-meal.dto.ts
-│           └── update-meal.dto.ts
+│   ├── catalog/                   # 📚 Sağlık kataloğu (hastalık/alerji listesi)
+│   ├── label-scan/                # 🧾 Etiket tarama + geçmiş
+│   │   ├── label-scan.controller.ts  # POST /label-scan, GET /label-scan/history
+│   │   └── ...
 ```
 
 ### Akış Diyagramı
@@ -49,8 +46,7 @@ backend/
 [Mobile App]  ──HTTP──▶  [NestJS Backend :3000]  ──Prisma──▶  [PostgreSQL Docker: host :5433]
                               │
                          ┌────┴────┐
-                     Auth Module  Meals Module
-                     Users Module
+                     Auth / Users / Catalog / LabelScan
 ```
 
 ---

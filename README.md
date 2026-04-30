@@ -1,6 +1,6 @@
 # Health AI App
 
-A React Native health and nutrition app built with Expo, featuring food scanning capabilities.
+A React Native health app built with Expo, featuring label scanning capabilities.
 
 ## Tech Stack
 
@@ -104,6 +104,6 @@ Not: React Native iOS/Android simulator yine host makinede calisir. Ancak API ar
 ## Next Steps
 
 - Add `expo-camera` for actual camera integration on the Scan screen
-- Implement API services in `services/` for nutrition data
+- Implement API services in `services/` for scan history / profile data
 - Create reusable components in `components/ui/`
 - Add TanStack Query hooks for data fetching
