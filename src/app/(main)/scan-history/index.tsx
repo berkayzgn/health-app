@@ -21,12 +21,7 @@ import SafeAreaWrapper from "../../../components/SafeAreaWrapper";
 import AppHeader from "../../../components/AppHeader";
 import { useStore } from "../../../store/useStore";
 import { getScanHistory, type ScanHistoryItem } from "../../../services/labelScanService";
-
-function safetyIcon(name: ScanHistoryItem["safetyLabel"]) {
-  if (name === "safe") return "check-decagram" as const;
-  if (name === "caution") return "alert-decagram" as const;
-  return "close-octagon" as const;
-}
+import { scanHistorySafetyMciName } from "../../../utils/scanHistorySafetyIcon";
 
 export default function ScanHistoryListScreen() {
   const { t } = useTranslation();
@@ -116,7 +111,7 @@ export default function ScanHistoryListScreen() {
                     >
                       <View className="flex-row items-start gap-3">
                         <MaterialCommunityIcons
-                          name={safetyIcon(item.safetyLabel)}
+                          name={scanHistorySafetyMciName(item.safetyLabel)}
                           size={28}
                           color={
                             item.safetyLabel === "safe"
@@ -140,6 +135,14 @@ export default function ScanHistoryListScreen() {
                           >
                             {new Date(item.scannedAt).toLocaleString()}
                           </Text>
+                          {item.consumed ? (
+                            <Text
+                              className="text-primary-fixed text-xs mt-1 font-semibold"
+                              style={{ fontFamily: "Inter_600SemiBold" }}
+                            >
+                              ✓ {t("scanHistory.consumedBadge")}
+                            </Text>
+                          ) : null}
                           <Text
                             className="text-on-surface-variant text-sm mt-2"
                             style={{ fontFamily: "Inter_600SemiBold" }}

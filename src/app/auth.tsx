@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
   useWindowDimensions,
+  Modal,
 } from "react-native";
 import { useFonts } from "expo-font";
 import {
@@ -33,9 +34,10 @@ import * as authService from "../services/authService";
 import { ApiError } from "../services/api";
 import { DARK_RGB, LIGHT_RGB, rgbTripletToHex } from "../theme/designRgb";
 import { profileNeedsOnboarding } from "../utils/profileNeedsOnboarding";
+import { setStoredLanguage } from "../i18n";
 
 export default function AuthScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const setAuth = useStore((s) => s.setAuth);
   const refreshProfile = useStore((s) => s.refreshProfile);
@@ -67,6 +69,7 @@ export default function AuthScreen() {
   const [nameFocus, setNameFocus] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [languageSheetOpen, setLanguageSheetOpen] = useState(false);
 
   const passwordsMatch = mode !== "register" || password === confirmPassword;
 
@@ -150,6 +153,29 @@ export default function AuthScreen() {
         <StatusBar style={theme === "dark" ? "light" : "dark"} />
 
         <View className="flex-1" style={{ backgroundColor: "#f6f6f6" }}>
+          {/* Language button (top-right) */}
+          <Pressable
+            onPress={() => setLanguageSheetOpen(true)}
+            hitSlop={10}
+            style={({ pressed }) => ({
+              position: "absolute",
+              top: 14,
+              right: 14,
+              zIndex: 50,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255,255,255,0.85)",
+              borderWidth: 1,
+              borderColor: "rgba(78,99,0,0.14)",
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <MaterialIcons name="language" size={22} color="#4e6300" />
+          </Pressable>
+
           {/* Organic blob decorations (approx) */}
           <View
             pointerEvents="none"
@@ -195,7 +221,7 @@ export default function AuthScreen() {
             <View className="mb-6">
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 14,
                   fontFamily: "Inter_500Medium",
                   fontWeight: "500",
                   letterSpacing: 1.2,
@@ -210,12 +236,12 @@ export default function AuthScreen() {
             {/* Display-LG Title */}
             <Text
               style={{
-                fontSize: 51,
+                fontSize: 56,
                 fontFamily: "Manrope_800ExtraBold",
                 fontWeight: "800",
-                letterSpacing: -1,
+                letterSpacing: -1.2,
                 color: "#2d2f2f",
-                lineHeight: 56,
+                lineHeight: 60,
                 marginBottom: 20,
               }}
             >
@@ -238,18 +264,18 @@ export default function AuthScreen() {
             {/* Subtitle Body-LG */}
             <Text
               style={{
-                fontSize: 17,
+                fontSize: 19,
                 fontFamily: "Inter_400Regular",
                 fontWeight: "400",
                 color: "#5a5c5c",
-                lineHeight: 27,
+                lineHeight: 30,
                 marginBottom: 48,
-                maxWidth: 260,
+                maxWidth: 320,
               }}
             >
-              {t("auth.welcomeSubtitleLine1")}
-              {"\n"}
-              {t("auth.welcomeSubtitleLine2")}
+              {[t("auth.welcomeSubtitleLine1"), t("auth.welcomeSubtitleLine2")]
+                .filter((s) => typeof s === "string" && s.trim().length > 0)
+                .join("\n")}
             </Text>
 
             {/* Feature pills */}
@@ -260,14 +286,14 @@ export default function AuthScreen() {
                     key={tag}
                     style={{
                       backgroundColor: "rgba(78,99,0,0.07)",
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
+                      paddingHorizontal: 14,
+                      paddingVertical: 8,
                       borderRadius: 9999,
                     }}
                   >
                     <Text
                       style={{
-                        fontSize: 12,
+                        fontSize: 14,
                         fontFamily: "Inter_500Medium",
                         fontWeight: "500",
                         color: "#4e6300",
@@ -283,7 +309,7 @@ export default function AuthScreen() {
             {/* Primary CTA */}
             <Pressable
               onPress={() => setMode("register")}
-              className="flex-row items-center justify-center gap-3 w-full py-4"
+              className="flex-row items-center justify-center gap-3 w-full py-5"
               style={{
                 backgroundColor: "#cafd00",
                 borderRadius: 9999,
@@ -293,14 +319,14 @@ export default function AuthScreen() {
                 style={{
                   fontFamily: "Manrope_700Bold",
                   fontWeight: "700",
-                  fontSize: 16,
+                  fontSize: 18,
                   color: "#3a4a00",
                   letterSpacing: -0.3,
                 }}
               >
                 {t("auth.getStarted")}
               </Text>
-              <MaterialIcons name="arrow-forward" size={18} color="#3a4a00" />
+              <MaterialIcons name="arrow-forward" size={22} color="#3a4a00" />
             </Pressable>
 
             {/* Ghost link */}
@@ -309,7 +335,7 @@ export default function AuthScreen() {
                 style={{
                   fontFamily: "Inter_400Regular",
                   fontWeight: "400",
-                  fontSize: 14,
+                  fontSize: 16,
                   color: "#767777",
                 }}
               >
@@ -321,6 +347,118 @@ export default function AuthScreen() {
             </Pressable>
           </View>
         </View>
+
+        <Modal
+          visible={languageSheetOpen}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setLanguageSheetOpen(false)}
+        >
+          <Pressable
+            onPress={() => setLanguageSheetOpen(false)}
+            style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" }}
+          >
+            <Pressable
+              onPress={() => {}}
+              style={{
+                backgroundColor: "#fff",
+                borderTopLeftRadius: 22,
+                borderTopRightRadius: 22,
+                paddingTop: 12,
+                paddingBottom: 18,
+                paddingHorizontal: 16,
+              }}
+            >
+              <View style={{ alignItems: "center", paddingBottom: 10 }}>
+                <View style={{ width: 44, height: 5, borderRadius: 999, backgroundColor: "#E6E6E6" }} />
+              </View>
+
+              <Text
+                style={{
+                  fontFamily: "Manrope_700Bold",
+                  fontWeight: "700",
+                  fontSize: 18,
+                  color: "#2d2f2f",
+                  marginBottom: 10,
+                  paddingHorizontal: 6,
+                }}
+              >
+                {t("settings.languageSheetTitle")}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  fontWeight: "400",
+                  fontSize: 14,
+                  color: "#5a5c5c",
+                  marginBottom: 14,
+                  paddingHorizontal: 6,
+                }}
+              >
+                {t("settings.languageSheetHint")}
+              </Text>
+
+              {([
+                { code: "en", label: t("settings.languageValueEn") },
+                { code: "tr", label: t("settings.languageValueTr") },
+              ] as const).map((opt) => {
+                const active = (i18n.language ?? "en").startsWith(opt.code);
+                return (
+                  <Pressable
+                    key={opt.code}
+                    onPress={async () => {
+                      await setStoredLanguage(opt.code);
+                      await i18n.changeLanguage(opt.code);
+                      setLanguageSheetOpen(false);
+                    }}
+                    style={({ pressed }) => ({
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      borderRadius: 14,
+                      paddingVertical: 14,
+                      paddingHorizontal: 14,
+                      backgroundColor: active ? "rgba(202,253,0,0.22)" : "#F7F7F7",
+                      borderWidth: 1,
+                      borderColor: active ? "rgba(78,99,0,0.18)" : "#E8E8E8",
+                      marginBottom: 10,
+                      opacity: pressed ? 0.88 : 1,
+                    })}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: "Inter_600SemiBold",
+                        fontWeight: "600",
+                        fontSize: 16,
+                        color: "#2d2f2f",
+                      }}
+                    >
+                      {opt.label}
+                    </Text>
+                    <MaterialIcons name={active ? "check-circle" : "radio-button-unchecked"} size={20} color="#4e6300" />
+                  </Pressable>
+                );
+              })}
+
+              <Pressable
+                onPress={() => setLanguageSheetOpen(false)}
+                style={({ pressed }) => ({
+                  marginTop: 6,
+                  height: 48,
+                  borderRadius: 9999,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#efefef",
+                  opacity: pressed ? 0.88 : 1,
+                })}
+              >
+                <Text style={{ fontFamily: "Inter_600SemiBold", fontWeight: "600", color: "#2d2f2f" }}>
+                  {t("settings.languageSheetClose")}
+                </Text>
+              </Pressable>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </SafeAreaWrapper>
     );
   }
@@ -382,8 +520,8 @@ export default function AuthScreen() {
                 >
                   <View className="mb-8">
                     <Text
-                      className="text-[2rem] leading-tight tracking-tight text-on-surface"
-                      style={{ fontFamily: "Manrope_800ExtraBold" }}
+                      className="leading-tight tracking-tight text-on-surface"
+                      style={{ fontFamily: "Manrope_800ExtraBold", fontSize: 30, lineHeight: 36 }}
                     >
                       {mode === "login" ? t("auth.welcomeBack") : t("auth.registerTitle")}
                     </Text>
@@ -393,7 +531,7 @@ export default function AuthScreen() {
                     {mode === "register" ? (
                       <View className="gap-2">
                         <Text
-                          className="ml-1 text-[0.75rem] font-bold uppercase tracking-[0.05em] text-outline"
+                          className="ml-1 text-[0.82rem] font-bold uppercase tracking-[0.05em] text-outline"
                           style={{ fontFamily: "Inter_600SemiBold" }}
                         >
                           {t("auth.name")}
@@ -404,7 +542,7 @@ export default function AuthScreen() {
                           placeholder={t("auth.name")}
                           onFocus={() => setNameFocus(true)}
                           onBlur={() => setNameFocus(false)}
-                          className={`h-14 rounded-card border-2 px-6 text-base text-on-surface ${
+                          className={`min-h-[52px] rounded-card border-2 px-6 py-3 text-[17px] text-on-surface ${
                             nameFocus
                               ? "border-primary/40 bg-surface-container-lowest"
                               : "border-transparent bg-surface-variant"
@@ -418,7 +556,7 @@ export default function AuthScreen() {
 
                     <View className="gap-2">
                       <Text
-                        className="ml-1 text-[0.75rem] font-bold uppercase tracking-[0.05em] text-outline"
+                        className="ml-1 text-[0.82rem] font-bold uppercase tracking-[0.05em] text-outline"
                         style={{ fontFamily: "Inter_600SemiBold" }}
                       >
                         {t("auth.emailLabel")}
@@ -431,7 +569,7 @@ export default function AuthScreen() {
                         autoCapitalize="none"
                         onFocus={() => setEmailFocus(true)}
                         onBlur={() => setEmailFocus(false)}
-                        className={`h-14 rounded-card border-2 px-6 text-base text-on-surface ${
+                        className={`min-h-[52px] rounded-card border-2 px-6 py-3 text-[17px] text-on-surface ${
                           emailFocus
                             ? "border-primary/40 bg-surface-container-lowest"
                             : "border-transparent bg-surface-variant"
@@ -444,7 +582,7 @@ export default function AuthScreen() {
                     <View className="gap-2">
                       <View className="ml-1 flex-row items-center justify-between">
                         <Text
-                          className="text-[0.75rem] font-bold uppercase tracking-[0.05em] text-outline"
+                          className="text-[0.82rem] font-bold uppercase tracking-[0.05em] text-outline"
                           style={{ fontFamily: "Inter_600SemiBold" }}
                         >
                           {t("auth.passwordLabel")}
@@ -468,7 +606,7 @@ export default function AuthScreen() {
                           secureTextEntry={!showPassword}
                           onFocus={() => setPasswordFocus(true)}
                           onBlur={() => setPasswordFocus(false)}
-                          className={`h-14 rounded-card border-2 px-6 text-base text-on-surface ${
+                          className={`min-h-[52px] rounded-card border-2 px-6 py-3 text-[17px] text-on-surface ${
                             passwordFocus
                               ? "border-primary/40 bg-surface-container-lowest"
                               : "border-transparent bg-surface-variant"
@@ -499,7 +637,7 @@ export default function AuthScreen() {
                     {mode === "register" ? (
                       <View className="gap-2">
                         <Text
-                          className="ml-1 text-[0.75rem] font-bold uppercase tracking-[0.05em] text-outline"
+                          className="ml-1 text-[0.82rem] font-bold uppercase tracking-[0.05em] text-outline"
                           style={{ fontFamily: "Inter_600SemiBold" }}
                         >
                           {t("auth.confirmPasswordLabel")}
@@ -512,7 +650,7 @@ export default function AuthScreen() {
                             secureTextEntry={!showConfirmPassword}
                             onFocus={() => setConfirmPasswordFocus(true)}
                             onBlur={() => setConfirmPasswordFocus(false)}
-                            className={`h-14 rounded-card border-2 px-6 text-base text-on-surface ${
+                            className={`min-h-[52px] rounded-card border-2 px-6 py-3 text-[17px] text-on-surface ${
                               confirmPasswordFocus
                                 ? "border-primary/40 bg-surface-container-lowest"
                                 : passwordsMatch
@@ -554,7 +692,7 @@ export default function AuthScreen() {
                     <Pressable
                       onPress={submit}
                       disabled={!canSubmit || loading}
-                      className="h-14 flex-row items-center justify-center gap-2 rounded-pill bg-primary-fixed active:opacity-90"
+                      className="min-h-[52px] py-3 flex-row items-center justify-center gap-2 rounded-pill bg-primary-fixed active:opacity-90"
                       style={{ opacity: !canSubmit || loading ? 0.55 : 1 }}
                     >
                       {loading ? (
@@ -562,14 +700,14 @@ export default function AuthScreen() {
                       ) : (
                         <>
                           <Text
-                            className="text-lg font-bold text-on-primary-fixed"
-                            style={{ fontFamily: "Manrope_700Bold" }}
+                            className="font-bold text-on-primary-fixed"
+                            style={{ fontFamily: "Manrope_700Bold", fontSize: 17 }}
                           >
                             {mode === "login" ? t("auth.signIn") : t("auth.createAccountCta")}
                           </Text>
                           <MaterialIcons
                             name="arrow-forward"
-                            size={20}
+                            size={22}
                             color={rgbTripletToHex(palette["on-primary-fixed"])}
                           />
                         </>
@@ -580,7 +718,7 @@ export default function AuthScreen() {
                   <View className="mt-10 items-center">
                     {mode === "login" ? (
                       <Text
-                        className="text-center text-[0.875rem] text-on-surface-variant"
+                        className="text-center text-[0.95rem] text-on-surface-variant"
                         style={{ fontFamily: "Inter_400Regular" }}
                       >
                         {t("auth.newUserPrompt")}{" "}
@@ -594,7 +732,7 @@ export default function AuthScreen() {
                       </Text>
                     ) : (
                       <Text
-                        className="text-center text-[0.875rem] text-on-surface-variant"
+                        className="text-center text-[0.95rem] text-on-surface-variant"
                         style={{ fontFamily: "Inter_400Regular" }}
                       >
                         {t("auth.haveAccount")}{" "}

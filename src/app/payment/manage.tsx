@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { View, Text, Pressable, Alert, ScrollView } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
@@ -8,9 +8,9 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import SafeAreaWrapper from "../components/SafeAreaWrapper";
-import AppHeader from "../components/AppHeader";
-import { useStore } from "../store/useStore";
+import SafeAreaWrapper from "../../components/SafeAreaWrapper";
+import AppHeader from "../../components/AppHeader";
+import { useStore } from "../../store/useStore";
 
 type PlanId = "starter" | "plus" | "pro";
 
@@ -58,7 +58,11 @@ function SubscriptionCard({
         : "border border-outline-variant/20 bg-transparent";
 
   const ctaText =
-    ctaVariant === "filled" ? "text-on-primary-fixed" : ctaVariant === "strongOutline" ? "text-on-surface" : "text-primary";
+    ctaVariant === "filled"
+      ? "text-on-primary-fixed"
+      : ctaVariant === "strongOutline"
+        ? "text-on-surface"
+        : "text-primary";
 
   const toneClasses =
     tone === "starter"
@@ -67,14 +71,11 @@ function SubscriptionCard({
         ? "bg-primary-container/10 border-2 border-primary-container shadow-[0_20px_40px_-10px_rgba(78,99,0,0.08)]"
         : "bg-tertiary-container/15 border-2 border-tertiary/30";
 
-  const selectedRing =
-    selected ? "ring-2 ring-primary/25" : "";
+  const selectedRing = selected ? "ring-2 ring-primary/25" : "";
 
   return (
     <Pressable onPress={onPress} className="active:opacity-90">
-      <View
-        className={`relative rounded-3xl p-5 ${toneClasses} ${selectedRing}`}
-      >
+      <View className={`relative rounded-3xl p-5 ${toneClasses} ${selectedRing}`}>
         {recommendedLabel ? (
           <View
             style={{
@@ -109,7 +110,6 @@ function SubscriptionCard({
         </View>
 
         <View className="gap-3 mb-6">
-          {/* Compact mode: show the primary (first) benefit to fit 3 cards on one screen. */}
           {features.slice(0, 1).map((f) => (
             <FeatureRow key={f} text={f} />
           ))}
@@ -125,7 +125,6 @@ function SubscriptionCard({
           </Pressable>
         </View>
 
-        {/* Price badge: bottom-right, sits on border */}
         <View
           style={{ position: "absolute", right: 16, bottom: 14 }}
           className={`rounded-full border px-3 py-1.5 ${
@@ -142,59 +141,6 @@ function SubscriptionCard({
         </View>
       </View>
     </Pressable>
-  );
-}
-
-function formatPriceLine(main: string, suffix?: string) {
-  if (!suffix) return main;
-  return (
-    <Text className="text-2xl text-on-surface" style={{ fontFamily: "Manrope_800ExtraBold" }}>
-      {main}
-      <Text className="text-sm text-on-surface-variant" style={{ fontFamily: "Inter_400Regular" }}>
-        {suffix}
-      </Text>
-    </Text>
-  );
-}
-
-function ProPrice({ amount, suffix }: { amount: string; suffix: string }) {
-  return (
-    <Text className="text-2xl text-on-surface" style={{ fontFamily: "Manrope_800ExtraBold" }}>
-      {amount}
-      <Text className="text-sm text-on-surface-variant" style={{ fontFamily: "Inter_400Regular" }}>
-        {suffix}
-      </Text>
-    </Text>
-  );
-}
-
-function PriceBlock({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <View className="items-end">
-      <Text className="text-[10px] uppercase tracking-tight text-outline" style={{ fontFamily: "Inter_500Medium" }}>
-        {label}
-      </Text>
-      {value}
-    </View>
-  );
-}
-
-function PlusPrice({ amount, suffix }: { amount: string; suffix: string }) {
-  return (
-    <Text className="text-2xl text-on-surface" style={{ fontFamily: "Manrope_800ExtraBold" }}>
-      {amount}
-      <Text className="text-sm text-on-surface-variant" style={{ fontFamily: "Inter_400Regular" }}>
-        {suffix}
-      </Text>
-    </Text>
-  );
-}
-
-function StarterPrice({ value }: { value: string }) {
-  return (
-    <Text className="text-2xl text-on-surface" style={{ fontFamily: "Manrope_800ExtraBold" }}>
-      {value}
-    </Text>
   );
 }
 
@@ -264,7 +210,7 @@ function PlanStack({
   );
 }
 
-export default function PaymentScreen() {
+export default function PaymentManageScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useStore((s) => s.theme);
@@ -284,12 +230,7 @@ export default function PaymentScreen() {
     return <View className="flex-1 bg-background" />;
   }
 
-  const onBack = () => {
-    router.back();
-  };
-
   const onPrimaryAction = () => {
-    // ödeme kontrolü yok: seçimi kaydetmiyoruz, sadece akıştan devam ettiriyoruz.
     Alert.alert(t("payment.mockTitle"), t("payment.mockBody"));
     router.replace("/");
   };
@@ -298,18 +239,14 @@ export default function PaymentScreen() {
     <View className="flex-1 bg-background">
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
       <SafeAreaWrapper className="flex-1 bg-background" edges={["top", "bottom"]}>
-        <AppHeader
-          variant="inner"
-          title={t("payment.headerTitle")}
-          onBack={onBack}
-        />
+        <AppHeader variant="inner" title={t("payment.choosePlanTitle")} />
 
         <ScrollView
           className="flex-1"
           contentContainerStyle={{
-            paddingTop: 14,
+            paddingTop: 20,
             paddingHorizontal: 24,
-            paddingBottom: Math.max(insets.bottom, 16),
+            paddingBottom: Math.max(insets.bottom, 24),
             maxWidth: 720,
             width: "100%",
             alignSelf: "center",
@@ -317,13 +254,31 @@ export default function PaymentScreen() {
           }}
           showsVerticalScrollIndicator={false}
         >
-          <View className="mb-4">
+          <View className="mb-6">
+            <Text
+              className="text-on-surface leading-tight mb-2"
+              style={{ fontFamily: "Manrope_800ExtraBold", fontSize: 24, lineHeight: 30 }}
+            >
+              {t("payment.editorialTitle")}
+            </Text>
             <Text className="text-on-surface-variant text-lg leading-relaxed" style={{ fontFamily: "Inter_400Regular" }}>
               {t("payment.editorialSubtitle")}
             </Text>
           </View>
 
           <PlanStack selected={plan} onSelect={setPlan} t={t} />
+
+          <Pressable
+            onPress={() => router.replace("/")}
+            accessibilityRole="button"
+            accessibilityLabel={t("payment.skipForNow")}
+            hitSlop={12}
+            className="mt-8 items-center pb-2 active:opacity-70"
+          >
+            <Text className="text-on-surface-variant underline" style={{ fontFamily: "Inter_500Medium", fontSize: 16 }}>
+              {t("payment.skipForNow")}
+            </Text>
+          </Pressable>
 
           <View className="flex-1" />
         </ScrollView>
@@ -344,4 +299,3 @@ export default function PaymentScreen() {
     </View>
   );
 }
-

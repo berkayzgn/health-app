@@ -1,10 +1,14 @@
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
   Pressable,
+  ActivityIndicator,
   Alert,
-  useWindowDimensions,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useFonts } from "expo-font";
 import {
@@ -13,6 +17,7 @@ import {
 } from "@expo-google-fonts/manrope";
 import {
   Inter_400Regular,
+  Inter_500Medium,
   Inter_600SemiBold,
 } from "@expo-google-fonts/inter";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -20,31 +25,33 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { StatusBar } from "expo-status-bar";
-import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useFocusEffect } from "expo-router";
 import SafeAreaWrapper from "../../components/SafeAreaWrapper";
 import AppHeader from "../../components/AppHeader";
+import MultiSelectSheet from "../../components/MultiSelectSheet";
 import { useStore } from "../../store/useStore";
-import { formatConditionTypesSummary } from "../../utils/conditionTypesDisplay";
+import * as authService from "../../services/authService";
+import { ApiError } from "../../services/api";
+import {
+  buildHealthConditionTypesPayload,
+  parseHealthConditionsFromProfile,
+} from "../../utils/conditionTypesDisplay";
+import { splitRegisteredFullName } from "../../utils/splitRegisteredFullName";
 
-const EMPTY = "—";
-
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+function setsEqual(a: Set<string>, b: Set<string>) {
+  if (a.size !== b.size) return false;
+  for (const x of a) {
+    if (!b.has(x)) return false;
+  }
+  return true;
 }
 
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
-  const { width } = useWindowDimensions();
-  const isWide = width >= 720;
-
   const authUser = useStore((s) => s.authUser);
   const userProfile = useStore((s) => s.userProfile);
+  const refreshProfile = useStore((s) => s.refreshProfile);
   const theme = useStore((s) => s.theme);
   const medicalConditions = useStore((s) => s.medicalConditions);
   const medicalConditionsLoaded = useStore((s) => s.medicalConditionsLoaded);
@@ -52,154 +59,484 @@ export default function ProfileScreen() {
 
   const lang = i18n.language?.startsWith("tr") ? "tr" : "en";
 
-  useEffect(() => {
-    if (!medicalConditionsLoaded) loadMedicalConditions();
-  }, [medicalConditionsLoaded, loadMedicalConditions]);
-
   const [fontsLoaded] = useFonts({
     Manrope_700Bold,
     Manrope_800ExtraBold,
     Inter_400Regular,
+    Inter_500Medium,
     Inter_600SemiBold,
   });
 
+  const [emailDraft, setEmailDraft] = useState("");
+  const [selectedConditions, setSelectedConditions] = useState<Set<string>>(() => new Set());
+  const [saving, setSaving] = useState(false);
+  const [diseaseSheetOpen, setDiseaseSheetOpen] = useState(false);
+  const [allergySheetOpen, setAllergySheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (!medicalConditionsLoaded) loadMedicalConditions();
+  }, [medicalConditionsLoaded, loadMedicalConditions]);
+
+  useLayoutEffect(() => {
+    setEmailDraft(userProfile?.email?.trim() || authUser?.email?.trim() || "");
+  }, [userProfile?.email, authUser?.email]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setEmailDraft(userProfile?.email?.trim() || authUser?.email?.trim() || "");
+      if (!userProfile || !medicalConditionsLoaded) return;
+      const { selected } = parseHealthConditionsFromProfile(userProfile.conditionTypes);
+      setSelectedConditions(selected);
+    }, [userProfile, authUser, medicalConditionsLoaded]),
+  );
+
+  const registeredFullName = userProfile?.name?.trim() || authUser?.name?.trim() || "";
+  const { givenName, familyName } = useMemo(
+    () => splitRegisteredFullName(registeredFullName || null),
+    [registeredFullName],
+  );
+
+  const baselineEmailNormalized = (
+    userProfile?.email?.trim() ||
+    authUser?.email?.trim() ||
+    ""
+  ).toLowerCase();
+
+  const savedConditionSet = useMemo(() => {
+    if (!userProfile || !medicalConditionsLoaded) return null;
+    return parseHealthConditionsFromProfile(userProfile.conditionTypes).selected;
+  }, [userProfile, medicalConditionsLoaded]);
+
+  const isDirty = useMemo(() => {
+    const draftEmailNorm = emailDraft.trim().toLowerCase();
+    const emailChanged = draftEmailNorm !== baselineEmailNormalized;
+    if (!savedConditionSet) return emailChanged;
+    return emailChanged || !setsEqual(selectedConditions, savedConditionSet);
+  }, [emailDraft, baselineEmailNormalized, selectedConditions, savedConditionSet]);
+
+  function isValidEmail(value: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  }
+
+  /** Nest ValidationPipe forbidNonWhitelisted: eski API sürümü email alanını tanımaz. */
+  function isEmailPropertyWhitelistError(message: string) {
+    const m = message.toLowerCase();
+    return (
+      m.includes("property email should not exist") ||
+      m.includes("email should not exist") ||
+      (m.includes("whitelist") && m.includes("property") && m.includes("email"))
+    );
+  }
+
+  const toggleCondition = useCallback((code: string) => {
+    setSelectedConditions((prev) => {
+      const next = new Set(prev);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      return next;
+    });
+  }, []);
+
+  const diseaseCatalog = useMemo(
+    () => medicalConditions.filter((c) => c.kind === "disease"),
+    [medicalConditions],
+  );
+  const allergyCatalog = useMemo(
+    () => medicalConditions.filter((c) => c.kind === "allergy"),
+    [medicalConditions],
+  );
+
+  const diseaseSummary = useMemo(() => {
+    return diseaseCatalog
+      .filter((mc) => selectedConditions.has(mc.code))
+      .map((mc) => mc.displayNames[lang] ?? mc.displayNames.en ?? mc.code)
+      .join(", ");
+  }, [diseaseCatalog, selectedConditions, lang]);
+
+  const allergySummary = useMemo(() => {
+    return allergyCatalog
+      .filter((mc) => selectedConditions.has(mc.code))
+      .map((mc) => mc.displayNames[lang] ?? mc.displayNames.en ?? mc.code)
+      .join(", ");
+  }, [allergyCatalog, selectedConditions, lang]);
+
+  const selectedDiseaseCount = useMemo(
+    () => diseaseCatalog.filter((c) => selectedConditions.has(c.code)).length,
+    [diseaseCatalog, selectedConditions],
+  );
+  const selectedAllergyCount = useMemo(
+    () => allergyCatalog.filter((c) => selectedConditions.has(c.code)).length,
+    [allergyCatalog, selectedConditions],
+  );
+
+  const onSave = async () => {
+    if (saving) return;
+    if (selectedConditions.size === 0) {
+      Alert.alert(
+        t("onboarding.requiredConditionsTitle"),
+        t("onboarding.requiredConditionsMessage"),
+      );
+      return;
+    }
+    const emailTrim = emailDraft.trim();
+    if (!isValidEmail(emailTrim)) {
+      Alert.alert(t("auth.errorTitle"), t("profile.invalidEmail"));
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const conditionTypes = buildHealthConditionTypesPayload(selectedConditions);
+      await authService.updateProfile({
+        email: emailTrim,
+        conditionTypes,
+      });
+      await refreshProfile();
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        Alert.alert(t("auth.errorTitle"), t("auth.errors.emailInUse"));
+        return;
+      }
+      const raw = e instanceof Error ? e.message : "";
+      if (e instanceof ApiError && raw && isEmailPropertyWhitelistError(raw)) {
+        Alert.alert(t("auth.errorTitle"), t("profile.saveRejectedEmailWhitelist"));
+        return;
+      }
+      const msg = e instanceof Error ? e.message : t("onboarding.errorSave");
+      Alert.alert(t("auth.errorTitle"), msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const bottomPad = 24 + Math.max(insets.bottom, 12);
-  const comingSoon = () => Alert.alert(t("auth.comingSoon"));
-
-  const displayName =
-    userProfile?.name?.trim() ||
-    authUser?.name?.trim() ||
-    authUser?.email?.split("@")[0]?.trim() ||
-    t("settings.accountGuest");
-
-  const conditionsSummary = formatConditionTypesSummary(userProfile?.conditionTypes, lang, medicalConditions);
-  const diseaseDisplay = conditionsSummary || EMPTY;
-
-  const avatarSize = isWide ? 160 : 128;
-  const initials = initialsFromName(displayName);
+  const catalogLoading = !medicalConditionsLoaded;
+  const onPrimaryFixed = "#3a4a00";
 
   if (!fontsLoaded) {
-    return <View className="flex-1 bg-surface" />;
+    return (
+      <View className="flex-1 items-center justify-center bg-surface">
+        <ActivityIndicator size="large" color="#4e6300" />
+      </View>
+    );
   }
 
   return (
     <View className="flex-1 bg-surface">
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
+
+      <MultiSelectSheet
+        visible={diseaseSheetOpen}
+        title={t("onboarding.diseasesSheetTitle")}
+        hint={t("onboarding.diseasesSheetHint")}
+        items={diseaseCatalog}
+        selected={selectedConditions}
+        lang={lang}
+        onToggle={toggleCondition}
+        onClose={() => setDiseaseSheetOpen(false)}
+      />
+      <MultiSelectSheet
+        visible={allergySheetOpen}
+        title={t("onboarding.allergiesSheetTitle")}
+        hint={t("onboarding.allergiesSheetHint")}
+        items={allergyCatalog}
+        selected={selectedConditions}
+        lang={lang}
+        onToggle={toggleCondition}
+        onClose={() => setAllergySheetOpen(false)}
+      />
+
       <SafeAreaWrapper className="flex-1 bg-surface" edges={["top"]}>
-        <View className="flex-1">
-          <AppHeader variant="inner" title={t("layout.headerProfile")} />
+        <KeyboardAvoidingView
+          className="flex-1"
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
+        >
+          <View className="flex-1">
+            <AppHeader variant="inner" title={t("layout.headerProfile")} />
 
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{
-              paddingHorizontal: 24,
-              paddingTop: 24,
-              paddingBottom: bottomPad,
-              maxWidth: 960,
-              width: "100%",
-              alignSelf: "center",
-            }}
-            showsVerticalScrollIndicator={false}
-          >
-            <View className="relative mb-12 overflow-hidden rounded-[1rem] bg-surface-container-lowest p-8 shadow-ambient">
-              <View
-                className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary-fixed/10"
-                pointerEvents="none"
-              />
-
-              <View
-                className={`relative z-10 gap-8 ${isWide ? "flex-row items-end" : "flex-col items-center"}`}
+            <ScrollView
+              className="flex-1"
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+              alwaysBounceVertical={false}
+              overScrollMode="never"
+              scrollEventThrottle={16}
+              contentContainerStyle={{
+                paddingHorizontal: 24,
+                paddingTop: 24,
+                paddingBottom: bottomPad + (isDirty || saving ? 12 : 0),
+                maxWidth: 960,
+                width: "100%",
+                alignSelf: "center",
+                flexGrow: 0,
+              }}
+            >
+              <Text
+                className="mb-6 text-base leading-relaxed text-on-surface-variant"
+                style={{ fontFamily: "Inter_400Regular" }}
               >
-                <View className={`relative ${isWide ? "" : "items-center"}`}>
-                  <View
-                    className="items-center justify-center rounded-full border-4 border-surface bg-surface-container-highest shadow-sm"
-                    style={{ width: avatarSize, height: avatarSize }}
+                {t("profile.editScreenIntro")}
+              </Text>
+
+              <View className="relative mb-8 overflow-hidden rounded-[1rem] bg-surface-container-lowest p-8 shadow-ambient">
+                <View
+                  className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary-fixed/10"
+                  pointerEvents="none"
+                />
+                <View className="relative z-10 gap-5">
+                  <Text
+                    className="text-outline text-[11px] font-bold uppercase tracking-wider"
+                    style={{ fontFamily: "Inter_600SemiBold" }}
                   >
+                    {t("profile.profileCardTitle")}
+                  </Text>
+
+                  <View className="flex-row gap-3">
+                    <View className="flex-1 min-w-0">
+                      <Text
+                        className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
+                        style={{ fontFamily: "Inter_600SemiBold" }}
+                      >
+                        {t("profile.givenNameLabel")}
+                      </Text>
+                      <View className="rounded-xl border border-outline-variant/35 bg-surface-container-highest/90 px-3 py-3.5">
+                        <Text
+                          className="text-base text-on-surface"
+                          style={{ fontFamily: "Inter_500Medium" }}
+                          selectable
+                          numberOfLines={2}
+                        >
+                          {givenName}
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="flex-1 min-w-0">
+                      <Text
+                        className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
+                        style={{ fontFamily: "Inter_600SemiBold" }}
+                      >
+                        {t("profile.familyNameLabel")}
+                      </Text>
+                      <View className="rounded-xl border border-outline-variant/35 bg-surface-container-highest/90 px-3 py-3.5">
+                        <Text
+                          className="text-base text-on-surface"
+                          style={{ fontFamily: "Inter_500Medium" }}
+                          selectable
+                          numberOfLines={2}
+                        >
+                          {familyName}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <Text
+                    className="text-[11px] text-outline leading-snug"
+                    style={{ fontFamily: "Inter_400Regular" }}
+                  >
+                    {t("profile.nameLockedHint")}
+                  </Text>
+
+                  <View className="h-px bg-outline-variant/20" />
+
+                  <View>
                     <Text
-                      className="text-on-surface"
-                      style={{
-                        fontFamily: "Manrope_800ExtraBold",
-                        fontSize: avatarSize * 0.28,
-                        lineHeight: avatarSize * 0.32,
-                      }}
+                      className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
+                      style={{ fontFamily: "Inter_600SemiBold" }}
                     >
-                      {initials}
+                      {t("profile.emailField")}
+                    </Text>
+                    <TextInput
+                      value={emailDraft}
+                      onChangeText={setEmailDraft}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      keyboardType="email-address"
+                      editable={!saving}
+                      placeholderTextColor="#767777"
+                      className="rounded-xl border border-outline-variant/40 bg-surface-container-low text-on-surface"
+                      style={{
+                        fontFamily: "Inter_500Medium",
+                        fontSize: 16,
+                        lineHeight: 24,
+                        minHeight: 52,
+                        paddingHorizontal: 16,
+                        paddingVertical: 13,
+                        ...(Platform.OS === "android"
+                          ? { textAlignVertical: "center" as const, includeFontPadding: false }
+                          : {}),
+                      }}
+                    />
+                  </View>
+                </View>
+              </View>
+
+              <View className="bg-surface-container-low rounded-[1rem] p-8 mb-8">
+                <View className="flex-row justify-between items-start mb-4">
+                  <View className="flex-1 pr-3">
+                    <Text className="font-headline text-xl font-bold text-on-surface">
+                      {t("profile.healthIdentity")}
+                    </Text>
+                    <Text
+                      className="text-sm text-on-surface-variant mt-2 leading-relaxed"
+                      style={{ fontFamily: "Inter_400Regular" }}
+                    >
+                      {t("profile.editHealthSubtitle")}
                     </Text>
                   </View>
-                  <View className="absolute bottom-1 right-1 rounded-full border-2 border-surface-container-lowest bg-primary-fixed p-1.5 shadow-lg">
-                    <MaterialCommunityIcons name="check-decagram" size={16} color="#3a4a00" />
-                  </View>
+                  <MaterialCommunityIcons name="shield-check" size={24} color="#767777" />
                 </View>
 
-                <View className={`min-w-0 flex-1 ${isWide ? "items-start" : "items-center"}`}>
+                <View className="gap-6 mt-4">
                   <Text
-                    className="text-on-surface"
-                    style={{
-                      fontFamily: "Manrope_800ExtraBold",
-                      fontSize: 34,
-                      lineHeight: 40,
-                      letterSpacing: -0.5,
-                    }}
-                    numberOfLines={2}
-                  >
-                    {displayName}
-                  </Text>
-                </View>
-
-                <Pressable
-                  onPress={() => router.push("/edit-health-profile")}
-                  className={`z-10 h-14 flex-row items-center justify-center gap-2 rounded-pill bg-primary-fixed active:opacity-90 ${isWide ? "px-8 self-end" : "w-full"}`}
-                >
-                  <MaterialIcons name="edit" size={20} color="#3a4a00" />
-                  <Text
-                    className="text-base font-bold text-on-primary-fixed"
+                    className="text-base text-on-surface"
                     style={{ fontFamily: "Manrope_700Bold" }}
                   >
-                    {t("profile.editProfile")}
+                    {t("profile.conditionSectionTitle")}
                   </Text>
-                </Pressable>
-              </View>
-            </View>
 
-            <View className="bg-surface-container-low rounded-[1rem] p-8 mb-8">
-              <View className="flex-row justify-between items-center mb-8">
-                <Text className="font-headline text-xl font-bold text-on-surface">
-                  {t("profile.healthIdentity")}
-                </Text>
-                <MaterialCommunityIcons name="shield-check" size={24} color="#767777" />
-              </View>
-              <View className="gap-3">
-                <View className="w-full bg-surface-container-lowest p-5 rounded-[0.75rem]">
-                  <Text className="text-outline text-[11px] font-bold uppercase tracking-wider mb-2">
-                    {t("profile.diseaseType")}
-                  </Text>
-                  <Text className="text-xl font-headline text-on-surface leading-7">
-                    {diseaseDisplay}
-                  </Text>
+                  {catalogLoading ? (
+                    <ActivityIndicator size="small" color="#4e6300" />
+                  ) : (
+                    <View className="gap-5">
+                      <View>
+                        <Text
+                          className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
+                          style={{ fontFamily: "Inter_600SemiBold" }}
+                        >
+                          {t("onboarding.diseasesLabel")}
+                        </Text>
+                        <Pressable
+                          onPress={() => setDiseaseSheetOpen(true)}
+                          disabled={saving}
+                          className="flex-row items-center rounded-card border border-outline-variant/30 bg-surface-container-lowest px-5 py-4 active:bg-surface-container"
+                          style={{ opacity: saving ? 0.65 : 1 }}
+                        >
+                          <MaterialIcons name="medical-services" size={20} color="#767777" />
+                          <Text
+                            className={`ml-3 flex-1 text-[15px] ${
+                              selectedDiseaseCount > 0 ? "text-on-surface" : "text-outline"
+                            }`}
+                            style={{ fontFamily: "Inter_500Medium" }}
+                            numberOfLines={3}
+                          >
+                            {selectedDiseaseCount > 0
+                              ? diseaseSummary
+                              : t("onboarding.diseasesPlaceholder")}
+                          </Text>
+                          {selectedDiseaseCount > 0 && (
+                            <View className="mr-2 rounded-full bg-primary-fixed px-2.5 py-0.5">
+                              <Text
+                                className="text-[11px] font-bold text-on-primary-fixed"
+                                style={{ fontFamily: "Inter_600SemiBold" }}
+                              >
+                                {selectedDiseaseCount}
+                              </Text>
+                            </View>
+                          )}
+                          <MaterialIcons name="expand-more" size={22} color="#767777" />
+                        </Pressable>
+                      </View>
+
+                      <View>
+                        <Text
+                          className="mb-2 text-[10px] font-bold uppercase tracking-[0.05em] text-outline"
+                          style={{ fontFamily: "Inter_600SemiBold" }}
+                        >
+                          {t("onboarding.allergiesLabel")}
+                        </Text>
+                        <Pressable
+                          onPress={() => setAllergySheetOpen(true)}
+                          disabled={saving}
+                          className="flex-row items-center rounded-card border border-outline-variant/30 bg-surface-container-lowest px-5 py-4 active:bg-surface-container"
+                          style={{ opacity: saving ? 0.65 : 1 }}
+                        >
+                          <MaterialIcons name="warning-amber" size={20} color="#767777" />
+                          <Text
+                            className={`ml-3 flex-1 text-[15px] ${
+                              selectedAllergyCount > 0 ? "text-on-surface" : "text-outline"
+                            }`}
+                            style={{ fontFamily: "Inter_500Medium" }}
+                            numberOfLines={3}
+                          >
+                            {selectedAllergyCount > 0
+                              ? allergySummary
+                              : t("onboarding.allergiesPlaceholder")}
+                          </Text>
+                          {selectedAllergyCount > 0 && (
+                            <View className="mr-2 rounded-full bg-primary-fixed px-2.5 py-0.5">
+                              <Text
+                                className="text-[11px] font-bold text-on-primary-fixed"
+                                style={{ fontFamily: "Inter_600SemiBold" }}
+                              >
+                                {selectedAllergyCount}
+                              </Text>
+                            </View>
+                          )}
+                          <MaterialIcons name="expand-more" size={22} color="#767777" />
+                        </Pressable>
+                      </View>
+
+                      {selectedConditions.size > 0 && (
+                        <View className="flex-row flex-wrap gap-2">
+                          {medicalConditions
+                            .filter((mc) => selectedConditions.has(mc.code))
+                            .map((mc) => (
+                              <Pressable
+                                key={mc.code}
+                                onPress={() => toggleCondition(mc.code)}
+                                disabled={saving}
+                                className="flex-row items-center gap-1.5 rounded-pill bg-primary-fixed px-4 py-2"
+                                style={{ opacity: saving ? 0.65 : 1 }}
+                              >
+                                <Text
+                                  className="text-xs font-medium text-on-primary-fixed"
+                                  style={{ fontFamily: "Inter_500Medium" }}
+                                >
+                                  {mc.displayNames[lang] ?? mc.displayNames.en ?? mc.code}
+                                </Text>
+                                <MaterialIcons name="close" size={14} color={onPrimaryFixed} />
+                              </Pressable>
+                            ))}
+                        </View>
+                      )}
+                    </View>
+                  )}
                 </View>
               </View>
-            </View>
+            </ScrollView>
 
-            <View className="bg-primary rounded-[1rem] p-8 overflow-hidden relative mb-4">
-              <View className="relative z-10">
-                <Text className="font-headline text-lg font-bold text-on-primary mb-2">
-                  {t("profile.supportTitle")}
-                </Text>
-                <Text className="text-sm text-on-primary/80 mb-6 leading-relaxed">
-                  {t("profile.supportBody")}
-                </Text>
+            {(isDirty || saving) && (
+              <View
+                className="border-t border-surface-container bg-surface px-6 pt-4"
+                style={{ paddingBottom: bottomPad }}
+              >
                 <Pressable
-                  onPress={comingSoon}
-                  className="w-full bg-surface-container-lowest rounded-full py-3 active:opacity-90"
+                  onPress={onSave}
+                  disabled={saving}
+                  className="h-14 flex-row items-center justify-center gap-2 rounded-pill bg-primary-fixed active:opacity-90"
+                  style={{ opacity: saving ? 0.5 : 1 }}
                 >
-                  <Text className="text-center text-primary text-sm font-bold">
-                    {t("profile.supportCta")}
-                  </Text>
+                  {saving ? (
+                    <ActivityIndicator color="#3a4a00" />
+                  ) : (
+                    <>
+                      <Text
+                        className="text-base font-bold text-on-primary-fixed"
+                        style={{ fontFamily: "Manrope_700Bold" }}
+                      >
+                        {t("profile.saveChanges")}
+                      </Text>
+                      <MaterialIcons name="check" size={22} color="#3a4a00" />
+                    </>
+                  )}
                 </Pressable>
               </View>
-            </View>
-          </ScrollView>
-        </View>
+            )}
+          </View>
+        </KeyboardAvoidingView>
       </SafeAreaWrapper>
     </View>
   );

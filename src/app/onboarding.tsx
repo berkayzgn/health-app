@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Alert, ScrollView } from "react-native";
 import { useFonts } from "expo-font";
-import { Manrope_600SemiBold, Manrope_700Bold } from "@expo-google-fonts/manrope";
+import { Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold } from "@expo-google-fonts/manrope";
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
@@ -43,21 +43,21 @@ function BigSelectCard({
       onPress={onPress}
       style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
     >
-      <View className="relative overflow-hidden rounded-2xl bg-primary-fixed px-6 py-6">
+      <View className="relative overflow-hidden rounded-3xl bg-primary-fixed px-8 py-8">
         <View className="flex-row items-center">
-        <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-white/60">
-          <MaterialIcons name={icon} size={22} color={ON_PRIMARY} />
+        <View className="mr-4 h-12 w-12 items-center justify-center rounded-full bg-white/60">
+          <MaterialIcons name={icon} size={26} color={ON_PRIMARY} />
         </View>
         <Text
-          className="flex-1 text-[12px] font-bold uppercase tracking-[0.10em] text-on-primary-fixed"
+          className="flex-1 text-[13px] font-bold uppercase tracking-[0.10em] text-on-primary-fixed"
           style={{ fontFamily: "Inter_600SemiBold" }}
         >
           {kicker}
         </Text>
         {hasSelection && (
-          <View className="rounded-full bg-on-primary-fixed px-3 py-1">
+          <View className="rounded-full bg-on-primary-fixed px-4 py-1.5">
             <Text
-              className="text-[12px] font-bold text-primary-fixed"
+              className="text-[14px] font-bold text-primary-fixed"
               style={{ fontFamily: "Inter_600SemiBold" }}
             >
               {count}
@@ -67,7 +67,7 @@ function BigSelectCard({
       </View>
 
       <Text
-        className="mt-4 text-[24px] leading-7 tracking-tight text-on-primary-fixed"
+        className="mt-5 text-[28px] leading-8 tracking-tight text-on-primary-fixed"
         style={{ fontFamily: "Manrope_700Bold" }}
       >
         {title}
@@ -96,12 +96,12 @@ function BigSelectCard({
       ) : (
         <View className="mt-4 flex-row items-center justify-between">
           <Text
-            className="flex-1 pr-3 text-[14px] text-on-primary-fixed/80"
+            className="flex-1 pr-3 text-[16px] leading-6 text-on-primary-fixed/85"
             style={{ fontFamily: "Inter_400Regular" }}
           >
             {emptyHint}
           </Text>
-          <MaterialIcons name="arrow-forward" size={18} color={ON_PRIMARY} />
+          <MaterialIcons name="arrow-forward" size={22} color={ON_PRIMARY} />
         </View>
       )}
       </View>
@@ -114,6 +114,7 @@ export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
   const router      = useRouter();
 
+  const authUser = useStore((s) => s.authUser);
   const refreshProfile     = useStore((s) => s.refreshProfile);
   const setOnboardingGateComplete = useStore((s) => s.setOnboardingGateComplete);
   const medicalConditions  = useStore((s) => s.medicalConditions);
@@ -129,7 +130,7 @@ export default function OnboardingScreen() {
   }, []);
 
   const [fontsLoaded] = useFonts({
-    Manrope_600SemiBold, Manrope_700Bold,
+    Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold,
     Inter_400Regular, Inter_500Medium, Inter_600SemiBold,
   });
 
@@ -177,7 +178,7 @@ export default function OnboardingScreen() {
       });
       await refreshProfile();
       setOnboardingGateComplete(true);
-      router.replace("/payment");
+      router.replace("/payment/manage");
     } catch (e) {
       Alert.alert(t("auth.errorTitle"), e instanceof Error ? e.message : t("onboarding.errorSave"));
     } finally {
@@ -188,7 +189,7 @@ export default function OnboardingScreen() {
   const onSkip = () => {
     if (saving) return;
     setOnboardingGateComplete(true);
-    router.replace("/payment");
+    router.replace("/payment/manage");
   };
 
   if (!fontsLoaded) {
@@ -225,26 +226,33 @@ export default function OnboardingScreen() {
       />
 
       <SafeAreaWrapper className="flex-1 bg-background" edges={["top"]}>
-        <View className="flex-1 px-6 pt-2">
-          <Text
-            className="text-on-surface font-headline text-4xl leading-tight tracking-tighter mb-2"
-            style={{ fontFamily: "Manrope_600SemiBold" }}
-          >
-            {t("onboarding.profileSetupTitle")}
-          </Text>
-          <Text
-            className="text-on-surface-variant font-body text-lg leading-relaxed mb-8"
-            style={{ fontFamily: "Inter_400Regular" }}
-          >
-            {t("onboarding.profileSetupSubtitle")}
-          </Text>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="pt-14 pb-4">
+            <Text
+              className="text-on-surface leading-tight tracking-tighter mb-3"
+              style={{ fontFamily: "Manrope_800ExtraBold", fontSize: 34, lineHeight: 40 }}
+            >
+              {t("onboarding.profileSetupTitle")}
+            </Text>
+            <Text
+              className="text-on-surface-variant leading-relaxed"
+              style={{ fontFamily: "Inter_400Regular", fontSize: 18, lineHeight: 28 }}
+            >
+              {t("onboarding.profileSetupSubtitle")}
+            </Text>
+          </View>
 
           {!conditionsLoaded ? (
-            <View className="flex-1 items-center justify-center">
+            <View className="min-h-[280px] flex-1 items-center justify-center py-12">
               <ActivityIndicator color={ON_PRIMARY} />
             </View>
           ) : (
-            <View className="mt-auto">
+            <View className="flex-1 justify-center gap-6 py-8" style={{ minHeight: 400 }}>
               <BigSelectCard
                 icon="medical-services"
                 kicker={t("onboarding.diseasesLabel")}
@@ -255,7 +263,6 @@ export default function OnboardingScreen() {
                 onPress={() => setDiseaseSheetOpen(true)}
                 onRemove={toggle}
               />
-              <View className="h-4" />
               <BigSelectCard
                 icon="warning-amber"
                 kicker={t("onboarding.allergiesLabel")}
@@ -268,7 +275,7 @@ export default function OnboardingScreen() {
               />
             </View>
           )}
-        </View>
+        </ScrollView>
 
         <View className="bg-background px-6 pt-3 pb-6">
           <Pressable onPress={onFinish} disabled={saving} style={({ pressed }) => ({ opacity: saving ? 0.55 : pressed ? 0.9 : 1 })}>

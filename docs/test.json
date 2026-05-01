@@ -1,0 +1,2388 @@
+{
+    "schema_version": "1.0",
+    "risk_levels": {
+      "GREEN": "Tüketilebilir",
+      "YELLOW": "Dikkatli tüketilmeli",
+      "RED": "Tüketilmemeli"
+    },
+    "conditions": [
+      {
+        "condition_group": "Karbonhidrat Metabolizması",
+        "condition_name": "Tip 1 Diyabet",
+        "rules": [
+          {
+            "rule_code": "T1D_CARB_MEAL_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "karbonhidrat",
+            "operator": ">",
+            "threshold": 75,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Tek öğünde karbonhidrat miktarı Tip 1 Diyabet profili için kritik sınırın üzerinde.",
+            "ingredient_keywords": [
+              "karbonhidrat",
+              "şeker",
+              "nişasta",
+              "un",
+              "beyaz un",
+              "glikoz",
+              "dekstroz",
+              "sakkaroz"
+            ]
+          },
+          {
+            "rule_code": "T1D_CARB_MEAL_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "karbonhidrat",
+            "operator": ">=",
+            "threshold": 60,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Tek öğünde karbonhidrat miktarı Tip 1 Diyabet profili için dikkat sınırındadır.",
+            "ingredient_keywords": [
+              "karbonhidrat",
+              "şeker",
+              "nişasta",
+              "un",
+              "beyaz un"
+            ]
+          },
+          {
+            "rule_code": "T1D_SIMPLE_SUGAR_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "basit şeker",
+            "operator": ">",
+            "threshold": 30,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Basit şeker miktarı Tip 1 Diyabet profili için yüksektir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "dekstroz",
+              "sakkaroz",
+              "mısır şurubu",
+              "glikoz şurubu"
+            ]
+          },
+          {
+            "rule_code": "T1D_SIMPLE_SUGAR_DAY_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "basit şeker",
+            "operator": ">",
+            "threshold": 50,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Günlük basit şeker miktarı Tip 1 Diyabet profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "dekstroz",
+              "sakkaroz",
+              "mısır şurubu",
+              "glikoz şurubu"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Karbonhidrat Metabolizması",
+        "condition_name": "Tip 2 Diyabet",
+        "rules": [
+          {
+            "rule_code": "T2D_SUGAR_DAY_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 50,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Günlük şeker miktarı Tip 2 Diyabet profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "dekstroz",
+              "sakkaroz",
+              "mısır şurubu",
+              "glikoz şurubu",
+              "meyve suyu konsantresi"
+            ]
+          },
+          {
+            "rule_code": "T2D_SUGAR_DAY_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Şeker miktarı Tip 2 Diyabet profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "dekstroz",
+              "sakkaroz",
+              "mısır şurubu",
+              "glikoz şurubu"
+            ]
+          },
+          {
+            "rule_code": "T2D_REFINED_CARB_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "rafine karbonhidrat",
+            "operator": ">",
+            "threshold": 130,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Rafine karbonhidrat miktarı Tip 2 Diyabet profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "beyaz un",
+              "beyaz ekmek",
+              "pirinç",
+              "makarna",
+              "nişasta",
+              "kraker",
+              "bisküvi"
+            ]
+          },
+          {
+            "rule_code": "T2D_FRUCTOSE_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "fruktoz",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Fruktoz miktarı Tip 2 Diyabet profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "fruktoz",
+              "yüksek fruktozlu mısır şurubu",
+              "meyve suyu konsantresi",
+              "glikoz-fruktoz şurubu"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Karbonhidrat Metabolizması",
+        "condition_name": "Prediyabet",
+        "rules": [
+          {
+            "rule_code": "PRED_SUGAR_DAY_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 50,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Günlük şeker miktarı Prediyabet profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "dekstroz",
+              "sakkaroz",
+              "mısır şurubu",
+              "glikoz şurubu"
+            ]
+          },
+          {
+            "rule_code": "PRED_SUGAR_DAY_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Şeker miktarı Prediyabet profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "dekstroz",
+              "sakkaroz"
+            ]
+          },
+          {
+            "rule_code": "PRED_REFINED_CARB_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "rafine karbonhidrat",
+            "operator": ">",
+            "threshold": 130,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Rafine karbonhidrat miktarı Prediyabet profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "beyaz ekmek",
+              "beyaz un",
+              "pirinç",
+              "makarna",
+              "nişasta",
+              "tatlı",
+              "bisküvi"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Karbonhidrat Metabolizması",
+        "condition_name": "Gestasyonel Diyabet",
+        "rules": [
+          {
+            "rule_code": "GDM_CARB_MEAL_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "karbonhidrat",
+            "operator": ">",
+            "threshold": 60,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Tek öğünde karbonhidrat miktarı Gestasyonel Diyabet profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "karbonhidrat",
+              "şeker",
+              "un",
+              "nişasta",
+              "pirinç",
+              "makarna",
+              "ekmek"
+            ]
+          },
+          {
+            "rule_code": "GDM_SUGARY_DRINK_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "şekerli içecek",
+            "operator": "exists",
+            "threshold": 1,
+            "unit": "adet",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Şekerli içecek Gestasyonel Diyabet profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "kola",
+              "gazoz",
+              "meyve suyu",
+              "ice tea",
+              "enerji içeceği",
+              "şekerli içecek"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Karbonhidrat Metabolizması",
+        "condition_name": "İnsülin Direnci",
+        "rules": [
+          {
+            "rule_code": "IR_SUGAR_DAY_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 50,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Günlük şeker miktarı İnsülin Direnci profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "dekstroz",
+              "sakkaroz",
+              "mısır şurubu"
+            ]
+          },
+          {
+            "rule_code": "IR_SUGAR_DAY_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Şeker miktarı İnsülin Direnci profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "dekstroz"
+            ]
+          },
+          {
+            "rule_code": "IR_REFINED_CARB_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "rafine karbonhidrat",
+            "operator": ">",
+            "threshold": 130,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Rafine karbonhidrat miktarı İnsülin Direnci profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "beyaz un",
+              "beyaz ekmek",
+              "pirinç",
+              "makarna",
+              "nişasta"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Karbonhidrat Metabolizması",
+        "condition_name": "Metabolik Sendrom",
+        "rules": [
+          {
+            "rule_code": "MS_SUGAR_DAY_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 30,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Şeker miktarı Metabolik Sendrom profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "dekstroz",
+              "sakkaroz"
+            ]
+          },
+          {
+            "rule_code": "MS_FAT_SUGAR_COMBO_RED",
+            "rule_type": "COMBO",
+            "trigger_type": "nutrient_combo",
+            "trigger_name": "şeker+yağ",
+            "operator": ">",
+            "threshold": 1,
+            "unit": "kombinasyon",
+            "period": "öğün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Yüksek şeker ve yüksek yağ kombinasyonu Metabolik Sendrom profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "fast food",
+              "kızartma",
+              "tatlı",
+              "kremalı ürün",
+              "çikolata",
+              "hamur işi"
+            ]
+          },
+          {
+            "rule_code": "MS_FIBER_LOW_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "lif",
+            "operator": "<",
+            "threshold": 20,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Lif miktarı Metabolik Sendrom profili için düşüktür.",
+            "ingredient_keywords": [
+              "düşük lif",
+              "rafine un",
+              "beyaz ekmek",
+              "beyaz pirinç"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Kardiyovasküler",
+        "condition_name": "Hipertansiyon",
+        "rules": [
+          {
+            "rule_code": "HT_SODIUM_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "sodyum",
+            "operator": ">",
+            "threshold": 2300,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Sodyum miktarı Hipertansiyon profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "sodyum",
+              "tuz",
+              "monosodyum glutamat",
+              "msg",
+              "salamura",
+              "turşu",
+              "cips",
+              "kraker"
+            ]
+          },
+          {
+            "rule_code": "HT_SODIUM_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "sodyum",
+            "operator": ">",
+            "threshold": 1500,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Sodyum miktarı Hipertansiyon profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "sodyum",
+              "tuz",
+              "msg",
+              "salamura",
+              "turşu",
+              "cips"
+            ]
+          },
+          {
+            "rule_code": "HT_SALT_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "tuz",
+            "operator": ">",
+            "threshold": 5,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Tuz miktarı Hipertansiyon profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "tuz",
+              "salamura",
+              "turşu",
+              "cips",
+              "kraker"
+            ]
+          },
+          {
+            "rule_code": "HT_CAFFEINE_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "kafein",
+            "operator": ">",
+            "threshold": 300,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Kafein miktarı Hipertansiyon profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "kahve",
+              "kafein",
+              "enerji içeceği",
+              "cola",
+              "çay"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Kardiyovasküler",
+        "condition_name": "Koroner Arter Hastalığı",
+        "rules": [
+          {
+            "rule_code": "CAD_TRANS_FAT_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "trans yağ",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "g",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Trans yağ Koroner Arter Hastalığı profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "trans yağ",
+              "kısmen hidrojene yağ",
+              "hidrojene yağ",
+              "margarin"
+            ]
+          },
+          {
+            "rule_code": "CAD_SAT_FAT_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "doymuş yağ",
+            "operator": ">",
+            "threshold": 20,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Doymuş yağ miktarı Koroner Arter Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "doymuş yağ",
+              "tereyağı",
+              "kaymak",
+              "kremalı ürün",
+              "kızartma",
+              "işlenmiş et"
+            ]
+          },
+          {
+            "rule_code": "CAD_CHOLESTEROL_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "kolesterol",
+            "operator": ">",
+            "threshold": 200,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Kolesterol miktarı Koroner Arter Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "kolesterol",
+              "yumurta sarısı",
+              "sakatat",
+              "işlenmiş et"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Kardiyovasküler",
+        "condition_name": "Kalp Yetersizliği",
+        "rules": [
+          {
+            "rule_code": "HF_SODIUM_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "sodyum",
+            "operator": ">",
+            "threshold": 2000,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Sodyum miktarı Kalp Yetersizliği profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "sodyum",
+              "tuz",
+              "salamura",
+              "turşu",
+              "cips",
+              "kraker",
+              "hazır çorba"
+            ]
+          },
+          {
+            "rule_code": "HF_FLUID_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "sıvı",
+            "operator": ">",
+            "threshold": 2,
+            "unit": "L",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Sıvı miktarı Kalp Yetersizliği profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "su",
+              "içecek",
+              "çorba",
+              "sulu gıda"
+            ]
+          },
+          {
+            "rule_code": "HF_SALT_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "tuz",
+            "operator": ">",
+            "threshold": 4,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Tuz miktarı Kalp Yetersizliği profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "tuz",
+              "sodyum",
+              "salamura",
+              "turşu",
+              "cips"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Kardiyovasküler",
+        "condition_name": "Dislipidemi",
+        "rules": [
+          {
+            "rule_code": "DYS_TRANS_FAT_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "trans yağ",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "g",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Trans yağ Dislipidemi profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "trans yağ",
+              "kısmen hidrojene yağ",
+              "hidrojene yağ",
+              "margarin"
+            ]
+          },
+          {
+            "rule_code": "DYS_SUGAR_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 50,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Şeker miktarı Dislipidemi profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "mısır şurubu"
+            ]
+          },
+          {
+            "rule_code": "DYS_SAT_FAT_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "doymuş yağ",
+            "operator": ">",
+            "threshold": 20,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Doymuş yağ miktarı Dislipidemi profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "doymuş yağ",
+              "tereyağı",
+              "kaymak",
+              "kızartma",
+              "işlenmiş et"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Kardiyovasküler",
+        "condition_name": "Yüksek LDL Kolesterol",
+        "rules": [
+          {
+            "rule_code": "LDL_TRANS_FAT_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "trans yağ",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "g",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Trans yağ Yüksek LDL Kolesterol profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "trans yağ",
+              "kısmen hidrojene yağ",
+              "hidrojene yağ",
+              "margarin"
+            ]
+          },
+          {
+            "rule_code": "LDL_SAT_FAT_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "doymuş yağ",
+            "operator": ">",
+            "threshold": 20,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Doymuş yağ miktarı Yüksek LDL Kolesterol profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "doymuş yağ",
+              "tereyağı",
+              "kaymak",
+              "kremalı ürün",
+              "kızartma",
+              "işlenmiş et"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Kardiyovasküler",
+        "condition_name": "Hipertrigliseridemi",
+        "rules": [
+          {
+            "rule_code": "HTG_SUGAR_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 50,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Şeker miktarı Hipertrigliseridemi profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "mısır şurubu",
+              "glikoz şurubu"
+            ]
+          },
+          {
+            "rule_code": "HTG_SUGAR_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Şeker miktarı Hipertrigliseridemi profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz"
+            ]
+          },
+          {
+            "rule_code": "HTG_ALCOHOL_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "alkol",
+            "operator": ">",
+            "threshold": 10,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Alkol Hipertrigliseridemi profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "alkol",
+              "bira",
+              "şarap",
+              "likör",
+              "viski",
+              "votka",
+              "rakı"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Böbrek",
+        "condition_name": "Kronik Böbrek Hastalığı",
+        "rules": [
+          {
+            "rule_code": "CKD_PROTEIN_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "protein",
+            "operator": ">",
+            "threshold": 0.8,
+            "unit": "g/kg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Protein miktarı Kronik Böbrek Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "protein",
+              "et",
+              "tavuk",
+              "balık",
+              "yumurta",
+              "peynir",
+              "protein tozu"
+            ]
+          },
+          {
+            "rule_code": "CKD_SODIUM_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "sodyum",
+            "operator": ">",
+            "threshold": 2000,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Sodyum miktarı Kronik Böbrek Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "sodyum",
+              "tuz",
+              "salamura",
+              "turşu",
+              "cips",
+              "hazır çorba"
+            ]
+          },
+          {
+            "rule_code": "CKD_POTASSIUM_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "potasyum",
+            "operator": ">",
+            "threshold": 3000,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Potasyum miktarı Kronik Böbrek Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "potasyum",
+              "muz",
+              "patates",
+              "domates",
+              "ıspanak",
+              "avokado",
+              "kuru meyve"
+            ]
+          },
+          {
+            "rule_code": "CKD_PHOSPHORUS_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "fosfor",
+            "operator": ">",
+            "threshold": 1000,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Fosfor miktarı Kronik Böbrek Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "fosfor",
+              "fosfat",
+              "kolalı içecek",
+              "işlenmiş et",
+              "peynir",
+              "süt ürünleri"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Böbrek",
+        "condition_name": "Diyabetik Böbrek Hastalığı",
+        "rules": [
+          {
+            "rule_code": "DKD_SUGAR_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 50,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Şeker miktarı Diyabetik Böbrek Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "mısır şurubu"
+            ]
+          },
+          {
+            "rule_code": "DKD_PROTEIN_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "protein",
+            "operator": ">",
+            "threshold": 0.8,
+            "unit": "g/kg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Protein miktarı Diyabetik Böbrek Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "protein",
+              "et",
+              "tavuk",
+              "balık",
+              "yumurta",
+              "peynir",
+              "protein tozu"
+            ]
+          },
+          {
+            "rule_code": "DKD_SALT_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "tuz",
+            "operator": ">",
+            "threshold": 5,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Tuz miktarı Diyabetik Böbrek Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "tuz",
+              "sodyum",
+              "salamura",
+              "turşu",
+              "cips"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Böbrek",
+        "condition_name": "Diyaliz Hastası",
+        "rules": [
+          {
+            "rule_code": "DIALYSIS_FLUID_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "sıvı",
+            "operator": ">",
+            "threshold": 500,
+            "unit": "ml+idrar",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Sıvı miktarı Diyaliz Hastası profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "su",
+              "içecek",
+              "çorba",
+              "sulu gıda"
+            ]
+          },
+          {
+            "rule_code": "DIALYSIS_POTASSIUM_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "potasyum",
+            "operator": ">",
+            "threshold": 3000,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Potasyum miktarı Diyaliz Hastası profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "potasyum",
+              "muz",
+              "patates",
+              "domates",
+              "ıspanak",
+              "avokado",
+              "kuru meyve"
+            ]
+          },
+          {
+            "rule_code": "DIALYSIS_PHOSPHORUS_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "fosfor",
+            "operator": ">",
+            "threshold": 1000,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Fosfor miktarı Diyaliz Hastası profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "fosfor",
+              "fosfat",
+              "kolalı içecek",
+              "işlenmiş et",
+              "peynir",
+              "süt ürünleri"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Böbrek",
+        "condition_name": "Diyaliz Öncesi Böbrek Yetmezliği",
+        "rules": [
+          {
+            "rule_code": "PRE_DIALYSIS_PROTEIN_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "protein",
+            "operator": ">",
+            "threshold": 0.8,
+            "unit": "g/kg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Protein miktarı Diyaliz Öncesi Böbrek Yetmezliği profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "protein",
+              "et",
+              "tavuk",
+              "balık",
+              "yumurta",
+              "peynir",
+              "protein tozu"
+            ]
+          },
+          {
+            "rule_code": "PRE_DIALYSIS_SALT_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "tuz",
+            "operator": ">",
+            "threshold": 5,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Tuz miktarı Diyaliz Öncesi Böbrek Yetmezliği profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "tuz",
+              "sodyum",
+              "salamura",
+              "turşu",
+              "cips"
+            ]
+          },
+          {
+            "rule_code": "PRE_DIALYSIS_POTASSIUM_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "potasyum",
+            "operator": ">",
+            "threshold": 3000,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Potasyum miktarı Diyaliz Öncesi Böbrek Yetmezliği profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "potasyum",
+              "muz",
+              "patates",
+              "domates",
+              "ıspanak",
+              "avokado"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Böbrek",
+        "condition_name": "Ürik Asit Taşı",
+        "rules": [
+          {
+            "rule_code": "URIC_STONE_PURINE_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "pürin",
+            "operator": ">",
+            "threshold": 150,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Pürin miktarı Ürik Asit Taşı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "sakatat",
+              "kırmızı et",
+              "ciğer",
+              "böbrek",
+              "et suyu",
+              "deniz ürünü",
+              "ançuez",
+              "sardalya"
+            ]
+          },
+          {
+            "rule_code": "URIC_STONE_WATER_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "su",
+            "operator": "<",
+            "threshold": 2.5,
+            "unit": "L",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Su tüketimi Ürik Asit Taşı profili için yetersizdir.",
+            "ingredient_keywords": [
+              "su",
+              "sıvı"
+            ]
+          },
+          {
+            "rule_code": "URIC_STONE_PROTEIN_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "protein",
+            "operator": ">",
+            "threshold": 1,
+            "unit": "g/kg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Protein miktarı Ürik Asit Taşı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "protein",
+              "et",
+              "tavuk",
+              "balık",
+              "yumurta",
+              "protein tozu"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Gluten ve İntolerans",
+        "condition_name": "Çölyak",
+        "rules": [
+          {
+            "rule_code": "CELIAC_GLUTEN_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "gluten",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Gluten Çölyak profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "gluten",
+              "buğday",
+              "arpa",
+              "çavdar",
+              "malt",
+              "bulgur",
+              "irmik",
+              "makarna",
+              "ekmek",
+              "galeta",
+              "un"
+            ]
+          },
+          {
+            "rule_code": "CELIAC_TRACE_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "gluten çapraz bulaşma",
+            "operator": "exists",
+            "threshold": 1,
+            "unit": "uyarı",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Gluten çapraz bulaşma riski Çölyak profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "eser miktarda gluten içerebilir",
+              "gluten içeren ürünlerle aynı hatta üretilmiştir",
+              "buğday içerebilir"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Gluten ve İntolerans",
+        "condition_name": "Non-Çölyak Gluten Hassasiyeti",
+        "rules": [
+          {
+            "rule_code": "NCGS_GLUTEN_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "gluten",
+            "operator": ">",
+            "threshold": 100,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Gluten miktarı Non-Çölyak Gluten Hassasiyeti profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "gluten",
+              "buğday",
+              "arpa",
+              "çavdar",
+              "malt",
+              "bulgur",
+              "irmik",
+              "makarna",
+              "ekmek"
+            ]
+          },
+          {
+            "rule_code": "NCGS_GLUTEN_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "gluten",
+            "operator": ">=",
+            "threshold": 50,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Gluten miktarı Non-Çölyak Gluten Hassasiyeti profili için dikkat sınırındadır.",
+            "ingredient_keywords": [
+              "gluten",
+              "buğday",
+              "arpa",
+              "çavdar",
+              "malt"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Gluten ve İntolerans",
+        "condition_name": "Laktoz İntoleransı",
+        "rules": [
+          {
+            "rule_code": "LI_LACTOSE_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "laktoz",
+            "operator": ">",
+            "threshold": 12,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Laktoz miktarı Laktoz İntoleransı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "laktoz",
+              "süt",
+              "süt tozu",
+              "krema",
+              "dondurma",
+              "peynir altı suyu"
+            ]
+          },
+          {
+            "rule_code": "LI_LACTOSE_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "laktoz",
+            "operator": ">=",
+            "threshold": 5,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Laktoz miktarı Laktoz İntoleransı profili için dikkat sınırındadır.",
+            "ingredient_keywords": [
+              "laktoz",
+              "süt",
+              "süt tozu",
+              "krema",
+              "dondurma"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Gastrointestinal",
+        "condition_name": "IBS",
+        "rules": [
+          {
+            "rule_code": "IBS_FODMAP_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "FODMAP",
+            "operator": ">",
+            "threshold": 5,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "FODMAP miktarı IBS profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "soğan",
+              "sarımsak",
+              "buğday",
+              "baklagil",
+              "nohut",
+              "fasulye",
+              "mercimek",
+              "elma",
+              "armut",
+              "bal",
+              "fruktoz",
+              "sorbitol",
+              "maltitol",
+              "ksilitol"
+            ]
+          },
+          {
+            "rule_code": "IBS_FODMAP_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "FODMAP",
+            "operator": ">=",
+            "threshold": 3,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "FODMAP miktarı IBS profili için dikkat sınırındadır.",
+            "ingredient_keywords": [
+              "soğan",
+              "sarımsak",
+              "baklagil",
+              "nohut",
+              "fasulye",
+              "mercimek",
+              "fruktoz",
+              "sorbitol"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Gastrointestinal",
+        "condition_name": "GERD",
+        "rules": [
+          {
+            "rule_code": "GERD_FAT_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "yağ",
+            "operator": ">",
+            "threshold": 30,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Yağ miktarı GERD profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "yağ",
+              "kızartma",
+              "krema",
+              "fast food",
+              "tereyağı",
+              "kaymak"
+            ]
+          },
+          {
+            "rule_code": "GERD_CAFFEINE_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "kafein",
+            "operator": ">",
+            "threshold": 200,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Kafein miktarı GERD profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "kahve",
+              "kafein",
+              "enerji içeceği",
+              "cola",
+              "çay"
+            ]
+          },
+          {
+            "rule_code": "GERD_CHOCOLATE_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "food",
+            "trigger_name": "çikolata",
+            "operator": ">",
+            "threshold": 30,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Çikolata miktarı GERD profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "çikolata",
+              "kakao"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Gastrointestinal",
+        "condition_name": "Crohn Hastalığı",
+        "rules": [
+          {
+            "rule_code": "CROHN_FIBER_ATTACK_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "lif",
+            "operator": ">",
+            "threshold": 15,
+            "unit": "g",
+            "period": "gün",
+            "context": "atak",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Atak döneminde lif miktarı Crohn Hastalığı profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "lif",
+              "çiğ sebze",
+              "kabuklu meyve",
+              "tam tahıl",
+              "baklagil"
+            ]
+          },
+          {
+            "rule_code": "CROHN_FIBER_ATTACK_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "lif",
+            "operator": ">=",
+            "threshold": 10,
+            "unit": "g",
+            "period": "gün",
+            "context": "atak",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Atak döneminde lif miktarı Crohn Hastalığı profili için dikkat sınırındadır.",
+            "ingredient_keywords": [
+              "lif",
+              "çiğ sebze",
+              "tam tahıl",
+              "baklagil"
+            ]
+          },
+          {
+            "rule_code": "CROHN_FAT_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "yağ",
+            "operator": ">",
+            "threshold": 30,
+            "unit": "percent_energy",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Yağ oranı Crohn Hastalığı profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "yağ",
+              "kızartma",
+              "krema",
+              "fast food"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Gastrointestinal",
+        "condition_name": "Ülseratif Kolit",
+        "rules": [
+          {
+            "rule_code": "UC_FIBER_ATTACK_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "lif",
+            "operator": ">",
+            "threshold": 15,
+            "unit": "g",
+            "period": "gün",
+            "context": "atak",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Atak döneminde lif miktarı Ülseratif Kolit profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "lif",
+              "çiğ sebze",
+              "kabuklu meyve",
+              "tam tahıl",
+              "baklagil"
+            ]
+          },
+          {
+            "rule_code": "UC_LACTOSE_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "laktoz",
+            "operator": ">",
+            "threshold": 10,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Laktoz miktarı Ülseratif Kolit profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "laktoz",
+              "süt",
+              "süt tozu",
+              "krema",
+              "dondurma"
+            ]
+          },
+          {
+            "rule_code": "UC_FAT_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "yağ",
+            "operator": ">",
+            "threshold": 30,
+            "unit": "percent_energy",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Yağ oranı Ülseratif Kolit profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "yağ",
+              "kızartma",
+              "krema",
+              "fast food"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Gastrointestinal",
+        "condition_name": "Fonksiyonel Şişkinlik / Gaz",
+        "rules": [
+          {
+            "rule_code": "BLOAT_GAS_FOOD_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "food",
+            "trigger_name": "gaz yapan gıda",
+            "operator": ">",
+            "threshold": 2,
+            "unit": "porsiyon",
+            "period": "öğün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Gaz yapan gıda miktarı Fonksiyonel Şişkinlik / Gaz profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "baklagil",
+              "nohut",
+              "fasulye",
+              "mercimek",
+              "soğan",
+              "sarımsak",
+              "lahana",
+              "brokoli",
+              "karnabahar"
+            ]
+          },
+          {
+            "rule_code": "BLOAT_CARBONATED_YELLOW",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "gazlı içecek",
+            "operator": "exists",
+            "threshold": 1,
+            "unit": "adet",
+            "period": "ürün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Gazlı içecek Fonksiyonel Şişkinlik / Gaz profili için risk oluşturabilir.",
+            "ingredient_keywords": [
+              "gazlı içecek",
+              "kola",
+              "gazoz",
+              "maden suyu",
+              "soda"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Karaciğer",
+        "condition_name": "MASLD (Yağlı Karaciğer)",
+        "rules": [
+          {
+            "rule_code": "MASLD_FRUCTOSE_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "fruktoz",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Fruktoz miktarı MASLD profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "fruktoz",
+              "yüksek fruktozlu mısır şurubu",
+              "glikoz-fruktoz şurubu",
+              "meyve suyu konsantresi"
+            ]
+          },
+          {
+            "rule_code": "MASLD_SUGAR_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 50,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Şeker miktarı MASLD profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "mısır şurubu"
+            ]
+          },
+          {
+            "rule_code": "MASLD_FAT_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "yağ",
+            "operator": ">",
+            "threshold": 30,
+            "unit": "percent_energy",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Yağ oranı MASLD profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "yağ",
+              "kızartma",
+              "krema",
+              "fast food",
+              "doymuş yağ"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Karaciğer",
+        "condition_name": "MASH",
+        "rules": [
+          {
+            "rule_code": "MASH_ALCOHOL_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "alkol",
+            "operator": "exists",
+            "threshold": 1,
+            "unit": "adet",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Alkol MASH profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "alkol",
+              "bira",
+              "şarap",
+              "likör",
+              "viski",
+              "votka",
+              "rakı"
+            ]
+          },
+          {
+            "rule_code": "MASH_FRUCTOSE_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "fruktoz",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Fruktoz miktarı MASH profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "fruktoz",
+              "yüksek fruktozlu mısır şurubu",
+              "glikoz-fruktoz şurubu",
+              "meyve suyu konsantresi"
+            ]
+          },
+          {
+            "rule_code": "MASH_SUGAR_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 50,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Şeker miktarı MASH profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "mısır şurubu"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Kilo Yönetimi",
+        "condition_name": "Obezite",
+        "rules": [
+          {
+            "rule_code": "OBESITY_CALORIE_SURPLUS_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "kalori fazlası",
+            "operator": ">",
+            "threshold": 500,
+            "unit": "kcal",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Kalori fazlası Obezite profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "yüksek kalori",
+              "fast food",
+              "kızartma",
+              "tatlı",
+              "şekerli içecek"
+            ]
+          },
+          {
+            "rule_code": "OBESITY_SUGAR_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "şeker",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Şeker miktarı Obezite profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "şeker",
+              "ilave şeker",
+              "glikoz",
+              "fruktoz",
+              "mısır şurubu"
+            ]
+          },
+          {
+            "rule_code": "OBESITY_FIBER_LOW_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "lif",
+            "operator": "<",
+            "threshold": 20,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Lif miktarı Obezite profili için düşüktür.",
+            "ingredient_keywords": [
+              "düşük lif",
+              "rafine un",
+              "beyaz ekmek",
+              "beyaz pirinç"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Kilo Yönetimi",
+        "condition_name": "Fazla Kiloluluk",
+        "rules": [
+          {
+            "rule_code": "OVERWEIGHT_CALORIE_SURPLUS_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "kalori fazlası",
+            "operator": ">",
+            "threshold": 300,
+            "unit": "kcal",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Kalori fazlası Fazla Kiloluluk profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "yüksek kalori",
+              "fast food",
+              "kızartma",
+              "tatlı",
+              "şekerli içecek"
+            ]
+          },
+          {
+            "rule_code": "OVERWEIGHT_SUGARY_DRINK_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "şekerli içecek",
+            "operator": "exists",
+            "threshold": 1,
+            "unit": "adet",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Şekerli içecek Fazla Kiloluluk profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "kola",
+              "gazoz",
+              "meyve suyu",
+              "ice tea",
+              "enerji içeceği",
+              "şekerli içecek"
+            ]
+          },
+          {
+            "rule_code": "OVERWEIGHT_FASTFOOD_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "food",
+            "trigger_name": "fast food",
+            "operator": ">",
+            "threshold": 2,
+            "unit": "porsiyon",
+            "period": "hafta",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Fast food tüketimi Fazla Kiloluluk profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "fast food",
+              "hamburger",
+              "pizza",
+              "patates kızartması",
+              "kızartma"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Pürin Metabolizması",
+        "condition_name": "Gut (Podagra)",
+        "rules": [
+          {
+            "rule_code": "GOUT_PURINE_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "pürin",
+            "operator": ">",
+            "threshold": 150,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Pürin miktarı Gut profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "sakatat",
+              "ciğer",
+              "böbrek",
+              "kırmızı et",
+              "et suyu",
+              "deniz ürünü",
+              "ançuez",
+              "sardalya"
+            ]
+          },
+          {
+            "rule_code": "GOUT_FRUCTOSE_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "fruktoz",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Fruktoz miktarı Gut profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "fruktoz",
+              "yüksek fruktozlu mısır şurubu",
+              "glikoz-fruktoz şurubu",
+              "meyve suyu konsantresi"
+            ]
+          },
+          {
+            "rule_code": "GOUT_ALCOHOL_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "ingredient",
+            "trigger_name": "alkol",
+            "operator": "exists",
+            "threshold": 1,
+            "unit": "adet",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Alkol Gut profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "alkol",
+              "bira",
+              "şarap",
+              "likör",
+              "viski",
+              "votka",
+              "rakı"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Pürin Metabolizması",
+        "condition_name": "Hiperürisemi",
+        "rules": [
+          {
+            "rule_code": "HYPERURICEMIA_FRUCTOSE_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "fruktoz",
+            "operator": ">",
+            "threshold": 25,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Fruktoz miktarı Hiperürisemi profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "fruktoz",
+              "yüksek fruktozlu mısır şurubu",
+              "glikoz-fruktoz şurubu",
+              "meyve suyu konsantresi"
+            ]
+          },
+          {
+            "rule_code": "HYPERURICEMIA_PURINE_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "pürin",
+            "operator": ">",
+            "threshold": 150,
+            "unit": "mg",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Pürin miktarı Hiperürisemi profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "sakatat",
+              "ciğer",
+              "böbrek",
+              "kırmızı et",
+              "et suyu",
+              "deniz ürünü",
+              "ançuez",
+              "sardalya"
+            ]
+          },
+          {
+            "rule_code": "HYPERURICEMIA_ALCOHOL_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "alkol",
+            "operator": ">",
+            "threshold": 10,
+            "unit": "g",
+            "period": "gün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Alkol Hiperürisemi profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "alkol",
+              "bira",
+              "şarap",
+              "likör",
+              "viski",
+              "votka",
+              "rakı"
+            ]
+          }
+        ]
+      },
+      {
+        "condition_group": "Safra Sistemi",
+        "condition_name": "Safra Taşı Riski",
+        "rules": [
+          {
+            "rule_code": "GALLSTONE_FAT_MEAL_RED",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "yağ",
+            "operator": ">",
+            "threshold": 40,
+            "unit": "g",
+            "period": "öğün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Yağ miktarı Safra Taşı Riski profili için kritik sınırın üzerindedir.",
+            "ingredient_keywords": [
+              "yağ",
+              "kızartma",
+              "krema",
+              "fast food",
+              "tereyağı",
+              "kaymak",
+              "yağlı et"
+            ]
+          },
+          {
+            "rule_code": "GALLSTONE_FAT_DAY_YELLOW",
+            "rule_type": "LIMIT",
+            "trigger_type": "nutrient",
+            "trigger_name": "yağ",
+            "operator": ">",
+            "threshold": 30,
+            "unit": "percent_energy",
+            "period": "gün",
+            "risk_level": "YELLOW",
+            "decision": "Dikkatli tüketilmeli",
+            "user_message": "Yağ oranı Safra Taşı Riski profili için dikkat sınırının üzerindedir.",
+            "ingredient_keywords": [
+              "yağ",
+              "kızartma",
+              "krema",
+              "fast food"
+            ]
+          },
+          {
+            "rule_code": "GALLSTONE_FAST_WEIGHT_LOSS_RED",
+            "rule_type": "BEHAVIOR",
+            "trigger_type": "behavior",
+            "trigger_name": "hızlı kilo kaybı",
+            "operator": ">",
+            "threshold": 1.5,
+            "unit": "kg",
+            "period": "hafta",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Hızlı kilo kaybı Safra Taşı Riski profili için sakıncalıdır.",
+            "ingredient_keywords": [
+              "hızlı kilo kaybı",
+              "çok düşük kalorili diyet"
+            ]
+          }
+        ]
+      }
+    ],
+    "allergies": [
+      {
+        "allergy_name": "Süt Alerjisi",
+        "rules": [
+          {
+            "rule_code": "MILK_ALLERGY_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "allergen",
+            "trigger_name": "süt proteini",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Süt alerjisi profiliyle eşleşen içerik tespit edildi.",
+            "ingredient_keywords": [
+              "süt",
+              "süt proteini",
+              "süt tozu",
+              "kazein",
+              "kazeinat",
+              "whey",
+              "peynir altı suyu",
+              "yoğurt",
+              "peynir",
+              "krema",
+              "tereyağı",
+              "kaymak"
+            ]
+          }
+        ]
+      },
+      {
+        "allergy_name": "Yumurta Alerjisi",
+        "rules": [
+          {
+            "rule_code": "EGG_ALLERGY_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "allergen",
+            "trigger_name": "yumurta proteini",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Yumurta alerjisi profiliyle eşleşen içerik tespit edildi.",
+            "ingredient_keywords": [
+              "yumurta",
+              "yumurta proteini",
+              "yumurta tozu",
+              "albümin",
+              "ovalbümin",
+              "mayonez"
+            ]
+          }
+        ]
+      },
+      {
+        "allergy_name": "Yer Fıstığı Alerjisi",
+        "rules": [
+          {
+            "rule_code": "PEANUT_ALLERGY_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "allergen",
+            "trigger_name": "yer fıstığı",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Yer fıstığı alerjisi profiliyle eşleşen içerik tespit edildi.",
+            "ingredient_keywords": [
+              "yer fıstığı",
+              "peanut",
+              "fıstık ezmesi",
+              "yer fıstığı yağı"
+            ]
+          }
+        ]
+      },
+      {
+        "allergy_name": "Ağaç Yemişleri Alerjisi",
+        "rules": [
+          {
+            "rule_code": "TREE_NUT_ALLERGY_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "allergen",
+            "trigger_name": "ağaç yemişi",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Ağaç yemişleri alerjisi profiliyle eşleşen içerik tespit edildi.",
+            "ingredient_keywords": [
+              "fındık",
+              "badem",
+              "ceviz",
+              "kaju",
+              "antep fıstığı",
+              "pistachio",
+              "makademya",
+              "brezilya cevizi",
+              "çam fıstığı",
+              "pecan"
+            ]
+          }
+        ]
+      },
+      {
+        "allergy_name": "Soya Alerjisi",
+        "rules": [
+          {
+            "rule_code": "SOY_ALLERGY_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "allergen",
+            "trigger_name": "soya",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Soya alerjisi profiliyle eşleşen içerik tespit edildi.",
+            "ingredient_keywords": [
+              "soya",
+              "soya proteini",
+              "soya unu",
+              "soya lesitini",
+              "soya sosu",
+              "tofu",
+              "edamame"
+            ]
+          }
+        ]
+      },
+      {
+        "allergy_name": "Buğday Alerjisi",
+        "rules": [
+          {
+            "rule_code": "WHEAT_ALLERGY_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "allergen",
+            "trigger_name": "buğday proteini",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Buğday alerjisi profiliyle eşleşen içerik tespit edildi.",
+            "ingredient_keywords": [
+              "buğday",
+              "buğday unu",
+              "irmik",
+              "bulgur",
+              "makarna",
+              "ekmek",
+              "galeta",
+              "nişasta",
+              "gluten"
+            ]
+          }
+        ]
+      },
+      {
+        "allergy_name": "Balık Alerjisi",
+        "rules": [
+          {
+            "rule_code": "FISH_ALLERGY_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "allergen",
+            "trigger_name": "balık proteini",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Balık alerjisi profiliyle eşleşen içerik tespit edildi.",
+            "ingredient_keywords": [
+              "balık",
+              "balık proteini",
+              "balık yağı",
+              "ton balığı",
+              "somon",
+              "hamsi",
+              "sardalya",
+              "uskumru"
+            ]
+          }
+        ]
+      },
+      {
+        "allergy_name": "Kabuklu Deniz Ürünü Alerjisi",
+        "rules": [
+          {
+            "rule_code": "SHELLFISH_ALLERGY_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "allergen",
+            "trigger_name": "kabuklu deniz ürünü",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Kabuklu deniz ürünü alerjisi profiliyle eşleşen içerik tespit edildi.",
+            "ingredient_keywords": [
+              "karides",
+              "midye",
+              "istiridye",
+              "yengeç",
+              "ıstakoz",
+              "kalamar",
+              "kabuklu deniz ürünü"
+            ]
+          }
+        ]
+      },
+      {
+        "allergy_name": "Susam Alerjisi",
+        "rules": [
+          {
+            "rule_code": "SESAME_ALLERGY_RED",
+            "rule_type": "INGREDIENT",
+            "trigger_type": "allergen",
+            "trigger_name": "susam",
+            "operator": ">",
+            "threshold": 0,
+            "unit": "mg",
+            "period": "ürün",
+            "risk_level": "RED",
+            "decision": "Tüketilmemeli",
+            "user_message": "Susam alerjisi profiliyle eşleşen içerik tespit edildi.",
+            "ingredient_keywords": [
+              "susam",
+              "tahin",
+              "susam yağı",
+              "susam ezmesi"
+            ]
+          }
+        ]
+      }
+    ]
+  }

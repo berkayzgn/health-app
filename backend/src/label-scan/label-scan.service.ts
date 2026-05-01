@@ -8,7 +8,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { PrismaService } from '../prisma/prisma.service';
 import { GeminiVisionService } from './gemini-vision.service';
-import type { LabelScanLocale } from './dto/scan-label.dto';
+import type { LabelScanLocale, ScanImageKind } from './dto/scan-label.dto';
+import { foldTurkishAscii } from '../common/string-fold';
+import { compactNumericRecord } from '../nutrition/nutrient-json';
 
 function resolveLocale(l?: string): LabelScanLocale {
   return l === 'en' ? 'en' : 'tr';
@@ -45,6 +47,12 @@ export interface LabelScanApiResult {
   ingredients: ScanIngredient[];
   matchedTriggers: MatchedTrigger[];
   scanId: string;
+  /** Porsiyon başına yaklaşık besin özeti — her zaman sıfır veya sayıların birleşimi */
+  nutrientsPerServing: Record<string, number>;
+  servingSizeG: number | null;
+  servingsPerPack?: number | null;
+  consumed: boolean;
+  portionsConsumed: number;
 }
 
 // ── Filter glossary types (from abc.json root) ────────────────────────────────
@@ -56,35 +64,6 @@ interface FilterEntry {
 
 interface FilterGlossary {
   [token: string]: FilterEntry;
-}
-
-/** Türkçe karakterleri ASCII’ye indirger; etiket metni ile sözlük eşlemesi için */
-function foldTurkishAscii(s: string): string {
-  const map: Record<string, string> = {
-    ş: 's',
-    Ş: 's',
-    ğ: 'g',
-    Ğ: 'g',
-    ü: 'u',
-    Ü: 'u',
-    ö: 'o',
-    Ö: 'o',
-    ç: 'c',
-    Ç: 'c',
-    ı: 'i',
-    İ: 'i',
-    â: 'a',
-    Â: 'a',
-    î: 'i',
-    Î: 'i',
-    û: 'u',
-    Û: 'u',
-  };
-  return s
-    .split('')
-    .map((ch) => map[ch] ?? ch)
-    .join('')
-    .toLowerCase();
 }
 
 /**
@@ -167,13 +146,20 @@ export class LabelScanService implements OnModuleInit {
     userId: string,
     imageBase64: string,
     localeInput?: string,
+    scanKind: ScanImageKind = 'label',
   ): Promise<LabelScanApiResult> {
     const locale = resolveLocale(localeInput);
-    // 1. Gemini Vision → içindekiler + ürün adı
-    const { productTitle, rawIngredients } = await this.extractStructuredFromLabel(
-      imageBase64,
-      locale,
-    );
+    const {
+      productTitle,
+      rawIngredients,
+      nutrientsPerServing,
+      servingSizeG,
+      servingsPerPack,
+    } = await this.extractStructuredFromLabel(imageBase64, locale, scanKind);
+
+    const nutrientsRecord = compactNumericRecord(
+      nutrientsPerServing,
+    ) as Record<string, number>;
 
     // 2. Load user's medical conditions + trigger foods
     const conditions = await this.loadUserConditions(userId);
@@ -199,6 +185,14 @@ export class LabelScanService implements OnModuleInit {
           : 'Sağlık durumlarınız için işaretlenen içerik yok.';
 
     // 5. Persist scan record
+    const snap = {
+      summaryLine,
+      ingredients: ingredientDetails,
+      nutrientsPerServing: nutrientsRecord,
+      servingSizeG,
+      servingsPerPack,
+    };
+
     const scan = await this.prisma.scanHistory.create({
       data: {
         userId,
@@ -206,10 +200,12 @@ export class LabelScanService implements OnModuleInit {
         rawIngredients: rawIngredients as unknown as import('@prisma/client').Prisma.JsonArray,
         matchedTriggers: matchedTriggers as unknown as import('@prisma/client').Prisma.JsonArray,
         safetyLabel,
-        resultSnapshot: {
-          summaryLine,
-          ingredients: ingredientDetails,
-        } as unknown as import('@prisma/client').Prisma.InputJsonValue,
+        nutrientsPerServing: nutrientsRecord as unknown as import('@prisma/client').Prisma.InputJsonValue,
+        servingSizeG,
+        consumed: false,
+        portionsConsumed: 1,
+        resultSnapshot:
+          snap as unknown as import('@prisma/client').Prisma.InputJsonValue,
       },
     });
 
@@ -221,6 +217,11 @@ export class LabelScanService implements OnModuleInit {
       ingredients: ingredientDetails,
       matchedTriggers,
       scanId: scan.id,
+      nutrientsPerServing: nutrientsRecord,
+      servingSizeG,
+      servingsPerPack,
+      consumed: false,
+      portionsConsumed: 1,
     };
   }
 
@@ -236,6 +237,8 @@ export class LabelScanService implements OnModuleInit {
         matchedTriggers: true,
         rawIngredients: true,
         scannedAt: true,
+        consumed: true,
+        portionsConsumed: true,
       },
     });
   }
@@ -252,6 +255,9 @@ export class LabelScanService implements OnModuleInit {
     const snap = row.resultSnapshot as {
       summaryLine?: string;
       ingredients?: ScanIngredient[];
+      nutrientsPerServing?: Record<string, number>;
+      servingSizeG?: number | null;
+      servingsPerPack?: number | null;
     } | null;
 
     const hasWarnings = triggers.length > 0;
@@ -263,6 +269,9 @@ export class LabelScanService implements OnModuleInit {
 
     const ingredients = snap?.ingredients?.length ? snap.ingredients : [];
     const hasRichDetail = Boolean(snap?.ingredients?.length);
+    const nutRow = row.nutrientsPerServing as unknown as Record<string, number> | null;
+    const nutrientsPerServing =
+      nutRow && Object.keys(nutRow).length > 0 ? nutRow : snap?.nutrientsPerServing ?? {};
 
     return {
       id: row.id,
@@ -274,6 +283,11 @@ export class LabelScanService implements OnModuleInit {
       summaryLine,
       ingredients,
       hasRichDetail,
+      consumed: row.consumed,
+      portionsConsumed: row.portionsConsumed,
+      nutrientsPerServing,
+      servingSizeG: row.servingSizeG ?? snap?.servingSizeG ?? null,
+      servingsPerPack: snap?.servingsPerPack ?? null,
     };
   }
 
@@ -282,18 +296,24 @@ export class LabelScanService implements OnModuleInit {
   private async extractStructuredFromLabel(
     imageBase64: string,
     locale: LabelScanLocale,
-  ): Promise<{
-    productTitle: string;
-    rawIngredients: string[];
-  }> {
-    const { productTitle, rawIngredients } =
-      await this.gemini.extractLabelData(imageBase64, locale);
+    scanKind: ScanImageKind,
+  ): Promise<Awaited<ReturnType<GeminiVisionService['extractLabelData']>>> {
+    const extraction = await this.gemini.extractLabelData(imageBase64, locale, scanKind);
+
+    const { productTitle, rawIngredients } = extraction;
 
     this.logger.log(
-      `Label pipeline: Gemini Vision (${rawIngredients.length} ingredients, title="${productTitle}", locale=${locale})`,
+      `Vision pipeline (${scanKind}): Gemini (${rawIngredients.length} ingredients, title="${productTitle}", locale=${locale})`,
     );
 
     if (rawIngredients.length === 0) {
+      if (scanKind === 'meal') {
+        throw new BadRequestException(
+          locale === 'en'
+            ? 'Could not infer foods from this photo. Try a closer shot with better lighting.'
+            : 'Bu fotoğraftan yemek veya bileşen çıkarılamadı. Daha yakın çekim veya daha iyi ışıkla tekrar dene.',
+        );
+      }
       throw new BadRequestException(
         locale === 'en'
           ? 'Could not read content from the label. Try a clearer photo or angle.'
@@ -301,10 +321,7 @@ export class LabelScanService implements OnModuleInit {
       );
     }
 
-    return {
-      productTitle,
-      rawIngredients,
-    };
+    return extraction;
   }
 
   private async loadUserConditions(

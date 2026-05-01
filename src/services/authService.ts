@@ -52,6 +52,7 @@ export async function getMe(): Promise<ProfileResponse | null> {
 
 export type UpdateProfileBody = {
     name?: string;
+    email?: string;
     conditionTypes?: string[];
 };
 

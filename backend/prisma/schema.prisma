@@ -18,25 +18,56 @@ model User {
 
   medicalConditions UserMedicalCondition[]
   scanHistory       ScanHistory[]
+  consumptionLogs   ConsumptionLog[]
 
   @@map("users")
 }
 
 /** Sabit hastalık / sağlık koşulları (katalog). Kaynak: kök abc.json (diseases + allergies). */
 model MedicalCondition {
-  id           String                 @id @default(uuid())
-  code         String                 @unique
+  id           String                   @id @default(uuid())
+  code         String                   @unique
   /** "disease" | "allergy" — abc.json diseases / allergies */
-  kind         String                 @default("disease")
-  sortOrder    Int                    @default(0)
+  kind         String                   @default("disease")
+  sortOrder    Int                      @default(0)
+  /** docs/test.json condition_group — UI gruplama */
+  groupLabel   String?
   /** { "en": "…", "tr": "…" } */
-  displayNames Json                   @default("{}")
+  displayNames Json                     @default("{}")
   /** ["sugar", "white_bread", …] — etiket tarama tetikleyicileri (abc filters) */
-  triggerFoods Json                   @default("[]")
+  triggerFoods Json                     @default("[]")
   users        UserMedicalCondition[]
+  rules        MedicalConditionRule[]
 
   @@index([kind])
   @@map("medical_conditions")
+}
+
+/** docs/test.json — koşula bağlı miktar içerik / tetik kuralları */
+model MedicalConditionRule {
+  id            String           @id @default(uuid())
+  code          String           @unique
+  conditionId   String
+  condition     MedicalCondition @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+  ruleType      String
+  triggerType   String
+  triggerName   String
+  triggerSlug   String
+  operator      String
+  threshold     Float
+  unit          String
+  period        String
+  riskLevel     String
+  /** scan: etiket + günlük toplam motoru | advice: davranış — etikete uygulanmaz */
+  scope         String           @default("scan")
+  /** { tr, en } kullanıcı mesajı */
+  messages      Json             @default("{}")
+  keywords      Json             @default("[]")
+  keywordsSlug  Json             @default("[]")
+
+  @@index([conditionId])
+  @@index([period])
+  @@map("medical_condition_rules")
 }
 
 /** Kullanıcı ↔ katalog hastalık (çok-çok, satır başı bir koşul). */
@@ -58,18 +89,42 @@ model UserMedicalCondition {
  * safetyLabel    : "safe" | "caution" | "avoid"
  */
 model ScanHistory {
-  id              String   @id @default(uuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  productTitle    String   @default("Scanned Product")
-  rawIngredients  Json     @default("[]")
-  matchedTriggers Json     @default("[]")
-  safetyLabel     String   @default("safe")
+  id                   String           @id @default(uuid())
+  userId               String
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productTitle         String           @default("Scanned Product")
+  rawIngredients       Json             @default("[]")
+  matchedTriggers      Json             @default("[]")
+  safetyLabel          String           @default("safe")
   /** Özet satırı, glisemik/işleme metinleri ve içerik dökümü (yeni taramalar). */
-  resultSnapshot  Json?
-  scannedAt       DateTime @default(now())
+  resultSnapshot       Json?
+  /** Porsiyon başına çıkarılan besin miktarları (camelCase anahtarlar) */
+  nutrientsPerServing  Json?
+  servingSizeG         Float?
+  consumed             Boolean          @default(false)
+  consumedAt           DateTime?
+  portionsConsumed     Float            @default(1)
+  scannedAt            DateTime         @default(now())
+  consumption          ConsumptionLog?
 
   @@index([userId])
   @@index([userId, scannedAt])
   @@map("scan_history")
+}
+
+model ConsumptionLog {
+  id            String       @id @default(uuid())
+  userId        String
+  scanId        String       @unique
+  consumedAt    DateTime     @default(now())
+  /** Kullanıcı timezone’unda YYYY-MM-DD */
+  localDate     String
+  portions      Float        @default(1)
+  /** portions * nutrientsPerServing */
+  nutrientsScaled Json
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scan          ScanHistory  @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([userId, localDate])
+  @@map("consumption_logs")
 }

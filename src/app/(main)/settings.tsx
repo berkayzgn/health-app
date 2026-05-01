@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  Switch,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
@@ -83,6 +84,60 @@ function SettingsNavRow({
       </View>
       <MaterialIcons name="chevron-right" size={22} color="#acadad" />
     </Pressable>
+  );
+}
+
+/** Açık / kapalı için satır içi anahtar; sol metne dokunarak da değişir. */
+function SettingsSwitchRow({
+  icon,
+  title,
+  subtitle,
+  value,
+  onValueChange,
+  showBottomBorder,
+}: {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  title: string;
+  subtitle: string;
+  value: boolean;
+  onValueChange: (next: boolean) => void | Promise<void>;
+  showBottomBorder?: boolean;
+}) {
+  const flip = () => void onValueChange(!value);
+
+  return (
+    <View
+      className={`w-full flex-row items-center justify-between p-6 ${
+        showBottomBorder ? "border-b border-surface-container-low" : ""
+      }`}
+    >
+      <Pressable
+        onPress={flip}
+        className="flex-row items-center gap-5 flex-1 min-w-0 pr-4 active:bg-surface-container-low/80 rounded-2xl -m-2 p-2"
+        accessibilityRole="button"
+        accessibilityLabel={title}
+      >
+        <View className="h-12 w-12 items-center justify-center rounded-2xl bg-surface-container-low">
+          <MaterialIcons name={icon} size={22} color="#4e6300" />
+        </View>
+        <View className="flex-1 min-w-0">
+          <Text className="text-on-surface font-bold" style={{ fontFamily: "Inter_600SemiBold" }} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text className="text-xs text-on-surface-variant mt-1" style={{ fontFamily: "Inter_400Regular" }} numberOfLines={2}>
+            {subtitle}
+          </Text>
+        </View>
+      </Pressable>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        accessibilityRole="switch"
+        trackColor={{ false: "#cfd2d6", true: "#9eb355" }}
+        thumbColor="#f6f8f9"
+        ios_backgroundColor="#cfd2d6"
+      />
+    </View>
   );
 }
 
@@ -430,20 +485,22 @@ export default function SettingsScreen() {
               </SettingsSection>
 
               <SettingsSection title={t("settings.sectionAppSettings")}>
-                <SettingsNavRow
+                <SettingsSwitchRow
                   icon="notifications"
                   title={t("settings.notifications")}
                   subtitle={
                     notificationsOn ? t("settings.notificationsSubtitle") : t("settings.notificationsOffSubtitle")
                   }
-                  onPress={() => void setNotifications(!notificationsOn)}
+                  value={notificationsOn}
+                  onValueChange={(v) => void setNotifications(v)}
                   showBottomBorder
                 />
-                <SettingsNavRow
+                <SettingsSwitchRow
                   icon="dark-mode"
                   title={t("settings.theme")}
-                  subtitle={t("settings.themeSystemDefault", { value: themeSubtitle })}
-                  onPress={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  subtitle={themeSubtitle}
+                  value={theme === "dark"}
+                  onValueChange={(dark) => setTheme(dark ? "dark" : "light")}
                 />
               </SettingsSection>
 

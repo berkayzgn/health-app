@@ -79,6 +79,21 @@ export default function ScanAnalysisDetailContent({ model, t }: Props) {
                 </Text>
               </View>
             ) : null}
+
+            <View className="mt-6 flex-row gap-3 rounded-xl border border-outline-variant/25 bg-surface-container-low px-4 py-3">
+              <MaterialCommunityIcons name="shield-alert-outline" size={22} color="#767777" style={{ marginTop: 2 }} />
+              <View className="flex-1">
+                <Text
+                  className="mb-1 text-[11px] font-bold uppercase tracking-wider text-outline"
+                  style={{ fontFamily: "Inter_600SemiBold" }}
+                >
+                  {t("labelScan.aiDisclaimerTitle")}
+                </Text>
+                <Text className="text-sm leading-relaxed text-on-surface-variant" style={{ fontFamily: "Inter_400Regular" }}>
+                  {t("labelScan.aiDisclaimerBody")}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 

@@ -18,7 +18,7 @@ import { Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { StatusBar } from "expo-status-bar";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SafeAreaWrapper from "../../components/SafeAreaWrapper";
@@ -26,9 +26,14 @@ import AppHeader from "../../components/AppHeader";
 import LabelScanSkeleton from "../../components/LabelScanSkeleton";
 import MultiSelectSheet from "../../components/MultiSelectSheet";
 import { useStore } from "../../store/useStore";
-import { MOCK_LABEL_SCAN_RESULT } from "../../utils/labelScanMock";
 import type { LabelScanResult } from "../../services/labelScanService";
-import { scanLabel as apiScanLabel } from "../../services/labelScanService";
+import {
+  scanLabel as apiScanLabel,
+  type ScanImageKind,
+  consumeScanHistory,
+  clearScanConsumption,
+  isBackendScanId,
+} from "../../services/labelScanService";
 import * as authService from "../../services/authService";
 import {
   ensureCameraPermission,
@@ -40,12 +45,6 @@ import { buildHealthConditionTypesPayload } from "../../utils/conditionTypesDisp
 import ScanAnalysisDetailContent from "../../components/ScanAnalysisDetailContent";
 
 type Phase = "needs_conditions" | "idle" | "analyzing" | "result" | "canceled";
-
-const ANALYZE_DELAY_MS = 900;
-
-function delay(ms: number) {
-  return new Promise<void>((r) => setTimeout(r, ms));
-}
 
 /** Sunucu etiket AI’sı (Gemini) veya eski Textract mesajları için yapılandırma hatası. */
 function isServerLabelAiConfigErrorMessage(message: string): boolean {
@@ -85,9 +84,26 @@ export default function ScanScreen() {
   );
   const [diseaseSheetOpen, setDiseaseSheetOpen] = useState(false);
   const [allergySheetOpen, setAllergySheetOpen] = useState(false);
+  const [portion, setPortion] = useState<0.25 | 0.5 | 1 | 2>(1);
+  const [consumeBusy, setConsumeBusy] = useState(false);
+  const [consumeOverride, setConsumeOverride] = useState<boolean | null>(null);
   const [savingConditions, setSavingConditions] = useState(false);
 
   const initialPickDone = useRef(false);
+  const pendingScanSourceRef = useRef<"camera" | "library" | null>(null);
+  const pendingScanKindRef = useRef<ScanImageKind>("auto");
+  useEffect(() => {
+    setConsumeOverride(null);
+    const p = result?.portionsConsumed;
+    if (p === 0.25 || p === 0.5 || p === 1 || p === 2) setPortion(p);
+    else setPortion(1);
+  }, [result?.scanId, result?.portionsConsumed]);
+
+  const scanRouteParams = useLocalSearchParams<{
+    source?: string | string[];
+    ts?: string | string[];
+    scanKind?: string | string[];
+  }>();
 
   const medicalCodeSet = useMemo(
     () => new Set(medicalConditions.map((c) => c.code)),
@@ -141,6 +157,25 @@ export default function ScanScreen() {
     }, [refreshProfile, medicalConditionsLoaded, loadMedicalConditions]),
   );
 
+  /** Ana sayfa kartları: her dokunuşta yeni `ts` ile gelir; böylece yeniden tarama güvenilir tetiklenir. */
+  useEffect(() => {
+    const rawTs = Array.isArray(scanRouteParams.ts) ? scanRouteParams.ts[0] : scanRouteParams.ts;
+    const rawSrc = Array.isArray(scanRouteParams.source) ? scanRouteParams.source[0] : scanRouteParams.source;
+    const rawKind = Array.isArray(scanRouteParams.scanKind) ? scanRouteParams.scanKind[0] : scanRouteParams.scanKind;
+    const norm = rawSrc === "camera" || rawSrc === "library" ? rawSrc : null;
+    if (!norm || !rawTs) return;
+
+    pendingScanSourceRef.current = norm;
+    let kind: ScanImageKind =
+      rawKind === "meal" || rawKind === "label" || rawKind === "auto"
+        ? rawKind
+        : "auto";
+    pendingScanKindRef.current = kind;
+    setResult(null);
+    setPhase("idle");
+    initialPickDone.current = false;
+  }, [scanRouteParams.ts, scanRouteParams.source, scanRouteParams.scanKind]);
+
   useEffect(() => {
     if (!userProfile || !medicalConditionsLoaded) return;
     const fromProfile = new Set<string>();
@@ -150,38 +185,14 @@ export default function ScanScreen() {
     setSelectedConditions(fromProfile);
   }, [userProfile, medicalConditionsLoaded, medicalCodeSet]);
 
-  useEffect(() => {
-    if (!medicalConditionsLoaded || !profileReady) return;
-    if (!hasMedicalSelections) {
-      setPhase("needs_conditions");
-      initialPickDone.current = false;
-      return;
-    }
-    if (initialPickDone.current) return;
-    if (phase !== "idle" || result) return;
-    initialPickDone.current = true;
-    showPickSourceRef.current();
-  }, [
-    medicalConditionsLoaded,
-    profileReady,
-    hasMedicalSelections,
-    phase,
-    result,
-  ]);
-
   const showPickSourceRef = useRef<() => void>(() => {});
 
   const runAnalyze = useCallback(async (imageUri: string) => {
     setPhase("analyzing");
-    if (__DEV__ && imageUri === "simulator-mock") {
-      await delay(ANALYZE_DELAY_MS);
-      setResult(MOCK_LABEL_SCAN_RESULT as unknown as LabelScanResult);
-      setPhase("result");
-      return;
-    }
     const scanLocale = i18n.language.startsWith("tr") ? "tr" : "en";
+    const scanKindForRequest = pendingScanKindRef.current;
     try {
-      const scanResult = await apiScanLabel(imageUri, scanLocale);
+      const scanResult = await apiScanLabel(imageUri, scanLocale, scanKindForRequest);
       setResult(scanResult);
       setPhase("result");
     } catch (err) {
@@ -197,6 +208,7 @@ export default function ScanScreen() {
   }, [t, i18n.language]);
 
   const runCameraFlow = useCallback(async () => {
+    pendingScanKindRef.current = "auto";
     try {
       const ok = await ensureCameraPermission(t);
       if (!ok) {
@@ -225,6 +237,7 @@ export default function ScanScreen() {
   }, [runAnalyze, t]);
 
   const runLibraryFlow = useCallback(async () => {
+    pendingScanKindRef.current = "auto";
     try {
       const ok = await ensureMediaLibraryPermission(t);
       if (!ok) {
@@ -269,16 +282,6 @@ export default function ScanScreen() {
               void runLibraryFlow();
             },
           },
-          ...(__DEV__
-            ? [
-                {
-                  text: t("labelScan.devPreviewMock"),
-                  onPress: () => {
-                    void runAnalyze("simulator-mock");
-                  },
-                },
-              ]
-            : []),
           {
             text: t("media.takePhoto"),
             onPress: () => {
@@ -329,9 +332,43 @@ export default function ScanScreen() {
         },
       ],
     );
-  }, [runAnalyze, runCameraFlow, runLibraryFlow, t]);
+  }, [runCameraFlow, runLibraryFlow, t]);
 
   showPickSourceRef.current = showPickSource;
+
+  const openFromPendingSourceOrPicker = useCallback(() => {
+    const src = pendingScanSourceRef.current;
+    pendingScanSourceRef.current = null;
+    if (src === "camera") {
+      void runCameraFlow();
+      return;
+    }
+    if (src === "library") {
+      void runLibraryFlow();
+      return;
+    }
+    showPickSourceRef.current();
+  }, [runCameraFlow, runLibraryFlow]);
+
+  useEffect(() => {
+    if (!medicalConditionsLoaded || !profileReady) return;
+    if (!hasMedicalSelections) {
+      setPhase("needs_conditions");
+      initialPickDone.current = false;
+      return;
+    }
+    if (initialPickDone.current) return;
+    if (phase !== "idle" || result) return;
+    initialPickDone.current = true;
+    openFromPendingSourceOrPicker();
+  }, [
+    medicalConditionsLoaded,
+    profileReady,
+    hasMedicalSelections,
+    phase,
+    result,
+    openFromPendingSourceOrPicker,
+  ]);
 
   const toggleCondition = useCallback((code: string) => {
     setSelectedConditions((prev) => {
@@ -358,7 +395,7 @@ export default function ScanScreen() {
       await refreshProfile();
       setPhase("idle");
       initialPickDone.current = true;
-      showPickSource();
+      openFromPendingSourceOrPicker();
     } catch (e) {
       Alert.alert(
         t("auth.errorTitle"),
@@ -372,7 +409,7 @@ export default function ScanScreen() {
     savingConditions,
     selectedConditions,
     refreshProfile,
-    showPickSource,
+    openFromPendingSourceOrPicker,
     t,
   ]);
 
@@ -383,6 +420,47 @@ export default function ScanScreen() {
     }
     showPickSource();
   }, [hasMedicalSelections, showPickSource]);
+
+  const effectiveConsumed = useMemo(
+    () => (consumeOverride !== null ? consumeOverride : Boolean(result?.consumed)),
+    [consumeOverride, result?.consumed],
+  );
+
+  const onMarkNotConsumed = useCallback(async () => {
+    if (!result?.scanId || !isBackendScanId(result.scanId)) return;
+    if (!effectiveConsumed) return;
+    setConsumeBusy(true);
+    try {
+      await clearScanConsumption(result.scanId);
+      setConsumeOverride(false);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t("auth.errorGeneric");
+      Alert.alert(t("auth.errorTitle"), msg);
+    } finally {
+      setConsumeBusy(false);
+    }
+  }, [result?.scanId, effectiveConsumed, t]);
+
+  const onMarkConsumed = useCallback(async () => {
+    if (!result?.scanId || !isBackendScanId(result.scanId)) return;
+    setConsumeBusy(true);
+    try {
+      const resp = await consumeScanHistory(result.scanId, portion, { locale: lang });
+      setConsumeOverride(true);
+      const rules = resp.triggeredRules ?? [];
+      if (rules.length > 0) {
+        Alert.alert(
+          t("labelScan.consumeLimitAlertTitle"),
+          rules.map((r) => r.message).join("\n\n"),
+        );
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t("auth.errorGeneric");
+      Alert.alert(t("auth.errorTitle"), msg);
+    } finally {
+      setConsumeBusy(false);
+    }
+  }, [result?.scanId, portion, lang, t]);
 
   const onScanAgain = useCallback(() => {
     setResult(null);
@@ -625,6 +703,82 @@ export default function ScanScreen() {
                 }}
                 t={t}
               />
+              {result && isBackendScanId(result.scanId) ? (
+                <View className="mt-8 rounded-2xl border border-outline-variant/25 bg-surface-container-low p-5 gap-3">
+                  <Text
+                    className="text-on-surface text-base font-bold"
+                    style={{ fontFamily: "Manrope_700Bold" }}
+                  >
+                    {t("labelScan.consumePrompt")}
+                  </Text>
+                  <Text
+                    className="text-outline text-xs font-semibold"
+                    style={{ fontFamily: "Inter_600SemiBold" }}
+                  >
+                    {t("labelScan.consumePortionHint")}
+                  </Text>
+                  <View className="flex-row flex-wrap gap-2">
+                    {([
+                      [0.25, "portionQuarter"],
+                      [0.5, "portionHalf"],
+                      [1, "portionOne"],
+                      [2, "portionTwo"],
+                    ] as const).map(([p, portionKey]) => (
+                      <Pressable
+                        key={p}
+                        onPress={() => setPortion(p)}
+                        disabled={consumeBusy || effectiveConsumed}
+                        className={`rounded-full px-5 py-3 border ${
+                          portion === p
+                            ? "bg-primary-fixed border-primary"
+                            : "bg-surface-container-high border-outline-variant/40"
+                        } ${effectiveConsumed ? "opacity-50" : ""}`}
+                      >
+                        <Text
+                          className={
+                            portion === p
+                              ? "text-on-primary-fixed font-semibold"
+                              : "text-on-surface font-semibold"
+                          }
+                          style={{ fontFamily: "Inter_600SemiBold" }}
+                        >
+                          {t(`home.dashboard.${portionKey}` as const)}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <View className="flex-row gap-3 mt-2">
+                    {consumeBusy ? (
+                      <View className="flex-1 items-center py-4 justify-center">
+                        <ActivityIndicator size="small" color="#4e6300" />
+                      </View>
+                    ) : (
+                      <>
+                        <Pressable
+                          onPress={() => void onMarkNotConsumed()}
+                          disabled={!effectiveConsumed}
+                          className="flex-1 rounded-full border border-outline-variant bg-surface-container-highest py-3 items-center"
+                          style={{ opacity: !effectiveConsumed ? 0.45 : 1 }}
+                        >
+                          <Text className="text-on-surface font-bold text-center text-sm">
+                            {t("labelScan.consumeNot")}
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => void onMarkConsumed()}
+                          disabled={effectiveConsumed}
+                          className="flex-1 rounded-full bg-primary-fixed py-3 items-center"
+                          style={{ opacity: effectiveConsumed ? 0.45 : 1 }}
+                        >
+                          <Text className="text-on-primary-fixed font-bold text-center text-sm">
+                            {t("labelScan.consumeYes")}
+                          </Text>
+                        </Pressable>
+                      </>
+                    )}
+                  </View>
+                </View>
+              ) : null}
             </ScrollView>
 
             <View

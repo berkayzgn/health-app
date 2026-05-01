@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   userProfileInclude,
@@ -56,17 +56,38 @@ export class UsersService {
     id: string,
     data: Partial<{
       name: string;
+      email: string;
       conditionTypes: string[];
     }>,
   ): Promise<ProfileResponseBody | null> {
     const { conditionTypes, ...scalarFields } = data;
+    const trimmedName =
+      scalarFields.name !== undefined ? scalarFields.name.trim() : undefined;
+    const normalizedEmail =
+      scalarFields.email !== undefined
+        ? scalarFields.email.toLowerCase().trim()
+        : undefined;
+
+    if (normalizedEmail !== undefined) {
+      const taken = await this.prisma.user.findFirst({
+        where: { email: normalizedEmail, NOT: { id } },
+      });
+      if (taken) {
+        throw new ConflictException(
+          'This email address is already in use.',
+        );
+      }
+    }
 
     try {
       const updated = await this.prisma.$transaction(async (tx) => {
-        if (scalarFields.name !== undefined) {
+        const userPatch: { name?: string; email?: string } = {};
+        if (trimmedName !== undefined) userPatch.name = trimmedName;
+        if (normalizedEmail !== undefined) userPatch.email = normalizedEmail;
+        if (Object.keys(userPatch).length > 0) {
           await tx.user.update({
             where: { id },
-            data: { name: scalarFields.name },
+            data: userPatch,
           });
         }
 

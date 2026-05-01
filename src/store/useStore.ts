@@ -55,6 +55,11 @@ export const useStore = create<AppState>((set) => ({
     try {
       const profile = await authService.getMe();
       set({ userProfile: profile });
+      if (profile) {
+        const user = { id: profile.id, email: profile.email, name: profile.name };
+        set({ authUser: user });
+        AsyncStorage.setItem("@health_app_user", JSON.stringify(user)).catch(() => {});
+      }
       return profile;
     } catch {
       set({ userProfile: null });

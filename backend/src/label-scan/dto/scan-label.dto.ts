@@ -3,6 +3,13 @@ import { IsString, IsNotEmpty, MaxLength, IsOptional, IsIn } from 'class-validat
 /** Mobil uygulama dili — Gemini prompt ve özet metinleri buna göre seçilir */
 export type LabelScanLocale = 'tr' | 'en';
 
+/**
+ * `label` — ambalaj / besin değerleri / içindekiler etiketi (OCR odaklı).
+ * `meal` — tabak, yemek veya etiketsiz ürün fotoğrafı (görsel çıkarım + konservatif alerjen tahmini).
+ * `auto` — görüntüde okunabilir etiket metni varsa OCR; yoksa yemek fotoğrafı olarak yorumla.
+ */
+export type ScanImageKind = 'label' | 'meal' | 'auto';
+
 export class ScanLabelDto {
   /**
    * Base64-encoded image of the product label (JPEG/PNG).
@@ -17,4 +24,9 @@ export class ScanLabelDto {
   @IsString()
   @IsIn(['tr', 'en'])
   locale?: LabelScanLocale;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['label', 'meal', 'auto'])
+  scanKind?: ScanImageKind;
 }
