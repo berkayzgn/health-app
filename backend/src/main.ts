@@ -1,17 +1,20 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { json, urlencoded, type Response } from 'express';
 import { AppModule } from './app.module';
+import { PrismaService } from './prisma/prisma.service';
 
 /** Base64 etiket görüntüsü (ScanLabelDto ~8M) + JSON sarmalayıcı; varsayılan 100kb yetmez. */
 const BODY_LIMIT = '15mb';
 
 async function bootstrap() {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false,
-    logger: ['log', 'warn', 'error', 'debug', 'verbose'],
+    logger: isProduction ? ['warn', 'error'] : ['log', 'warn', 'error', 'debug', 'verbose'],
   });
   app.use(json({ limit: BODY_LIMIT }));
   app.use(urlencoded({ extended: true, limit: BODY_LIMIT }));
@@ -36,9 +39,15 @@ async function bootstrap() {
     }),
   );
 
-  // DB/Prisma yok — bağlantı testi (listen öncesi Express’e eklenir)
-  app.getHttpAdapter().get('/health', (_req, res: Response) => {
-    res.json({ ok: true, ts: Date.now() });
+  const prisma = app.get(PrismaService);
+
+  app.getHttpAdapter().get('/health', async (_req, res: Response) => {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      res.json({ ok: true, db: 'up', ts: Date.now() });
+    } catch {
+      res.status(503).json({ ok: false, db: 'down', ts: Date.now() });
+    }
   });
 
   const configService = app.get(ConfigService);
@@ -46,6 +55,8 @@ async function bootstrap() {
 
   // 0.0.0.0: telefon / tablet gibi aynı ağdaki cihazların bilgisayara bağlanabilmesi için
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Backend running on http://localhost:${port} (LAN: http://0.0.0.0:${port})`);
+
+  const logger = new Logger('Bootstrap');
+  logger.log(`Backend running on http://localhost:${port}`);
 }
 bootstrap();

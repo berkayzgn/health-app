@@ -14,6 +14,8 @@ export interface ProfileResponse {
     email: string;
     name: string;
     conditionTypes?: string[];
+    /** starter | plus | pro */
+    subscriptionPlan?: 'starter' | 'plus' | 'pro';
 }
 
 export async function register(
@@ -54,6 +56,7 @@ export type UpdateProfileBody = {
     name?: string;
     email?: string;
     conditionTypes?: string[];
+    subscriptionPlan?: 'starter' | 'plus' | 'pro';
 };
 
 export async function updateProfile(body: UpdateProfileBody): Promise<ProfileResponse | null> {

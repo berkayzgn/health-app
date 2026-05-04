@@ -3,6 +3,8 @@ import {
   Logger,
   OnModuleInit,
   BadRequestException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -11,6 +13,7 @@ import { GeminiVisionService } from './gemini-vision.service';
 import type { LabelScanLocale, ScanImageKind } from './dto/scan-label.dto';
 import { foldTurkishAscii } from '../common/string-fold';
 import { compactNumericRecord } from '../nutrition/nutrient-json';
+import { ScanQuotaService } from '../users/scan-quota.service';
 
 function resolveLocale(l?: string): LabelScanLocale {
   return l === 'en' ? 'en' : 'tr';
@@ -120,6 +123,7 @@ export class LabelScanService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gemini: GeminiVisionService,
+    private readonly scanQuota: ScanQuotaService,
   ) {}
 
   onModuleInit() {
@@ -147,7 +151,22 @@ export class LabelScanService implements OnModuleInit {
     imageBase64: string,
     localeInput?: string,
     scanKind: ScanImageKind = 'label',
+    timeZone?: string,
   ): Promise<LabelScanApiResult> {
+    try {
+      await this.scanQuota.assertScanAllowed(userId, timeZone);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === 'ScanQuotaExceeded') {
+        throw new HttpException(
+          {
+            code: 'SCAN_QUOTA_EXCEEDED',
+            message: 'Daily scan limit reached for your plan.',
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+      throw e;
+    }
     const locale = resolveLocale(localeInput);
     const {
       productTitle,

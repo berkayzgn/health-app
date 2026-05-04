@@ -49,20 +49,31 @@ function getDevMachineHostnameFromExpo(): string | null {
     return null;
 }
 
+/**
+ * Reads the Metro bundle URL from the RN bridge.
+ * Old architecture: `NativeModules.SourceCode.scriptURL`
+ * New architecture (TurboModules): falls back to a deep require that is
+ * intentionally kept inside a try-catch so it silently degrades when the
+ * internal module path changes across RN versions.
+ */
 function readMetroScriptUrl(): string | undefined {
     const nm = NativeModules as { SourceCode?: { scriptURL?: string } };
-    let u = nm.SourceCode?.scriptURL;
-    if (u) return u;
+    const legacy = nm.SourceCode?.scriptURL;
+    if (legacy) return legacy;
     try {
-        // RN yeni mimari: TurboModule (NativeModules.SourceCode boş olabilir)
+        // Dynamic require is necessary here — this internal TurboModule path
+        // has no stable public export. Wrapped in try-catch for forward-compat.
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const NativeSourceCode = require('react-native/Libraries/NativeModules/specs/NativeSourceCode')
-            .default as { getConstants: () => { scriptURL?: string } };
-        u = NativeSourceCode.getConstants()?.scriptURL;
+        const mod = require('react-native/Libraries/NativeModules/specs/NativeSourceCode') as
+            | { default?: { getConstants?: () => { scriptURL?: string } } }
+            | { getConstants?: () => { scriptURL?: string } };
+        const getConstants =
+            ('default' in mod ? mod.default?.getConstants : undefined) ??
+            (mod as { getConstants?: () => { scriptURL?: string } }).getConstants;
+        return getConstants?.()?.scriptURL;
     } catch {
-        /* noop */
+        return undefined;
     }
-    return u;
 }
 
 /**
@@ -225,6 +236,7 @@ function classifyAuthError(message: string | null, status: number): ApiErrorCode
 async function request<T>(
     endpoint: string,
     options: RequestInit = {},
+    timeoutMs = REQUEST_TIMEOUT_MS,
 ): Promise<T> {
     if (!API_BASE_URL) {
         throw new Error(
@@ -245,7 +257,7 @@ async function request<T>(
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     let response: Response;
     try {
@@ -260,7 +272,7 @@ async function request<T>(
         const aborted = err instanceof Error && err.name === 'AbortError';
         throw new ApiError(
             aborted
-                ? `Sunucu ${REQUEST_TIMEOUT_MS / 1000}s içinde yanıt vermedi (${API_BASE_URL})`
+                ? `Sunucu ${timeoutMs / 1000}s içinde yanıt vermedi (${API_BASE_URL})`
                 : `Sunucuya ulaşılamadı (${API_BASE_URL}). ${detail}`,
             { code: aborted ? 'TIMEOUT' : 'NETWORK_ERROR' },
         );
@@ -323,4 +335,11 @@ export const api = {
         }),
 
     delete: <T>(endpoint: string) => request<T>(endpoint, { method: 'DELETE' }),
+
+    /**
+     * POST with a custom timeout — for long-running backend tasks such as
+     * Gemini Vision / OCR where the default 12–25 s timeout is too short.
+     */
+    postLong: <T>(endpoint: string, body: unknown, timeoutMs: number) =>
+        request<T>(endpoint, { method: 'POST', body: JSON.stringify(body) }, timeoutMs),
 };

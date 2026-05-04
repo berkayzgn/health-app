@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { View, Text } from "react-native";
 import type { TFunction } from "i18next";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -7,7 +8,7 @@ import {
 } from "@expo-google-fonts/manrope";
 import { Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import type { ScanIngredient, SafetyLabel } from "../services/labelScanService";
-import { displayIngredientName } from "../utils/displayIngredientName";
+import { displayIngredientName, sanitizeScanDisplayText } from "../utils/displayIngredientName";
 
 export type ScanAnalysisDetailModel = {
   productTitle: string;
@@ -25,14 +26,34 @@ type Props = {
 
 export default function ScanAnalysisDetailContent({ model, t }: Props) {
   const result = model;
+
+  const breakdownItems = useMemo((): ScanIngredient[] => {
+    if (result.ingredients.length > 0) {
+      return [...result.ingredients].sort((a, b) => {
+        if (a.variant === b.variant) return 0;
+        return a.variant === "warning" ? -1 : 1;
+      });
+    }
+    const raw = result.rawIngredientsFallback;
+    if (raw?.length) {
+      return raw.map((name) => ({
+        name,
+        variant: "normal" as const,
+        tag: t("scanHistory.archivedIngredientTag"),
+        description: t("scanHistory.fallbackIngredientHint"),
+      }));
+    }
+    return [];
+  }, [result.ingredients, result.rawIngredientsFallback, t]);
+
   return (
-    <View className="gap-8">
-      <View className="flex-col gap-6">
+    <View className="gap-6">
+      <View className="flex-col gap-4">
         <View className="relative flex-1 overflow-hidden rounded-2xl bg-surface-container-lowest p-8 shadow-ambient">
           <View className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary-fixed opacity-10" />
           <View className="relative z-10">
             <Text
-              className="mb-4 text-[10px] font-bold uppercase tracking-widest text-outline"
+              className="mb-2 text-sm font-bold uppercase tracking-wide text-outline"
               style={{ fontFamily: "Inter_600SemiBold" }}
             >
               {t("labelScan.analysisResult")}
@@ -44,7 +65,7 @@ export default function ScanAnalysisDetailContent({ model, t }: Props) {
               {result.productTitle}
             </Text>
             <Text
-              className="mb-8 max-w-lg text-on-surface-variant"
+              className="mb-4 max-w-lg text-on-surface-variant"
               style={{ fontFamily: "Inter_400Regular" }}
             >
               {result.summaryLine}
@@ -80,7 +101,7 @@ export default function ScanAnalysisDetailContent({ model, t }: Props) {
               </View>
             ) : null}
 
-            <View className="mt-6 flex-row gap-3 rounded-xl border border-outline-variant/25 bg-surface-container-low px-4 py-3">
+            <View className="mt-4 flex-row gap-3 rounded-xl border border-outline-variant/25 bg-surface-container-low px-4 py-3">
               <MaterialCommunityIcons name="shield-alert-outline" size={22} color="#767777" style={{ marginTop: 2 }} />
               <View className="flex-1">
                 <Text
@@ -96,40 +117,24 @@ export default function ScanAnalysisDetailContent({ model, t }: Props) {
             </View>
           </View>
         </View>
-
-        <View className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-6">
-          <Text
-            className="mb-3 text-[10px] font-bold uppercase tracking-widest text-outline"
-            style={{ fontFamily: "Inter_600SemiBold" }}
-          >
-            {t("labelScan.extractedIngredientsEn")}
-          </Text>
-          <Text className="text-base leading-relaxed text-on-surface" style={{ fontFamily: "Inter_400Regular" }}>
-            {result.ingredients.length > 0
-              ? result.ingredients.map((ing) => displayIngredientName(ing.name)).join(", ")
-              : result.rawIngredientsFallback?.length
-                ? result.rawIngredientsFallback.map((s) => displayIngredientName(s)).join(", ")
-                : "—"}
-          </Text>
-        </View>
       </View>
 
       <View>
-        <View className="mb-8 flex-row items-baseline justify-between">
+        <View className="mb-4 flex-row items-baseline justify-between">
           <Text className="text-2xl text-on-surface" style={{ fontFamily: "Manrope_700Bold" }}>
             {t("labelScan.ingredientBreakdown")}
           </Text>
           <Text className="text-sm font-medium text-on-surface-variant" style={{ fontFamily: "Inter_400Regular" }}>
-            {t("labelScan.ingredientsCount", { count: result.ingredients.length })}
+            {t("labelScan.ingredientsCount", { count: breakdownItems.length })}
           </Text>
         </View>
-        {result.ingredients.length === 0 && !result.rawIngredientsFallback?.length ? (
+        {breakdownItems.length === 0 ? (
           <Text className="text-on-surface-variant text-sm" style={{ fontFamily: "Inter_400Regular" }}>
             {t("scanHistory.detailNoBreakdown")}
           </Text>
-        ) : result.ingredients.length === 0 ? null : (
+        ) : (
           <View className="gap-4">
-            {result.ingredients.map((ing, idx) => (
+            {breakdownItems.map((ing, idx) => (
               <View
                 key={`${ing.name}-${idx}`}
                 className={`w-full p-6 ${
@@ -158,9 +163,11 @@ export default function ScanAnalysisDetailContent({ model, t }: Props) {
                   </View>
                 </View>
                 <Text className="text-sm leading-relaxed text-on-surface-variant" style={{ fontFamily: "Inter_400Regular" }}>
-                  {ing.description}{" "}
+                  {sanitizeScanDisplayText(ing.description)}{" "}
                   {ing.cautionAmount ? (
-                    <Text className="font-bold text-error">{ing.cautionAmount}</Text>
+                    <Text className="font-bold text-error">
+                      {ing.cautionAmount ? sanitizeScanDisplayText(ing.cautionAmount) : null}
+                    </Text>
                   ) : null}
                   {ing.variant === "warning" && ing.cautionAmount ? "." : ""}
                 </Text>

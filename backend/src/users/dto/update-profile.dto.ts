@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsEmail,
+  IsIn,
   IsOptional,
   IsString,
   MinLength,
@@ -30,4 +31,10 @@ export class UpdateProfileDto {
   @IsArray()
   @IsString({ each: true })
   conditionTypes?: string[];
+
+  /** starter | plus | pro — günlük sorgu kotası */
+  @IsOptional()
+  @IsString()
+  @IsIn(['starter', 'plus', 'pro'])
+  subscriptionPlan?: 'starter' | 'plus' | 'pro';
 }

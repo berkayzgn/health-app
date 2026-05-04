@@ -43,6 +43,7 @@ export class LabelScanController {
       dto.imageBase64,
       dto.locale ?? 'tr',
       dto.scanKind ?? 'label',
+      dto.timezone,
     );
   }
 

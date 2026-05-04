@@ -1,87 +1,37 @@
 import "react-native-gesture-handler";
-import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { Dimensions, Image, Modal, StyleSheet, View } from "react-native";
 import "../../global.css";
 import * as SplashScreen from "expo-splash-screen";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import { I18nextProvider } from "react-i18next";
 import i18n, { loadStoredLanguage } from "../i18n";
 import { useStore } from "../store/useStore";
 import { profileNeedsOnboarding } from "../utils/profileNeedsOnboarding";
 import { getDesignVars } from "../theme/designVars";
-import { DARK_RGB, LIGHT_RGB, rgbTripletToHex } from "../theme/designRgb";
 import { registerUnauthorizedCallback } from "../services/api";
 
-function RootLayoutContent() {
-  const theme = useStore((s) => s.theme);
-  const loadStoredTheme = useStore((s) => s.loadStoredTheme);
-  const loadStoredAuth = useStore((s) => s.loadStoredAuth);
+void SplashScreen.preventAutoHideAsync();
+
+/** `assets/splash.png` ve `app.json` splash zemini ile aynı. */
+const SPLASH_SCREEN_BG = "#DFFF00";
+const MIN_SPLASH_VISIBLE_MS = 1000;
+const HOLD_SPLASH_SCREEN = false;
+const SPLASH_ASSET_WIDTH = 6000;
+const SPLASH_ASSET_HEIGHT = 3375;
+const SPLASH_VISIBLE_CENTER_X = 3044;
+const SPLASH_VISIBLE_CENTER_Y = 1902;
+
+function BootNavigationEffects() {
   const isAuthenticated = useStore((s) => s.isAuthenticated);
   const authLoading = useStore((s) => s.authLoading);
   const userProfile = useStore((s) => s.userProfile);
   const onboardingGateComplete = useStore((s) => s.onboardingGateComplete);
-  const clearAuth = useStore((s) => s.clearAuth);
   const router = useRouter();
   const segments = useSegments();
   const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const notificationsSetupRef = useRef(false);
-
-  /** 401 global handler: token geçersizleşince clearAuth tetiklenir, router auth'a yönlendirir. */
-  useEffect(() => {
-    registerUnauthorizedCallback(() => {
-      clearAuth();
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only
-  }, []);
-  /**
-   * authLoading biter bitmez router.replace bazen Stack henüz mount olmadan çalışıyor (React 19:
-   * "state update on component that hasn't mounted yet"). Bir kare bekleyip sonra yönlendir.
-   */
   const [stackReadyForNav, setStackReadyForNav] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    const timer = setTimeout(() => {
-      void loadStoredLanguage({ isActive: () => active });
-    }, 0);
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    const timer = setTimeout(() => {
-      if (!active) return;
-      void loadStoredTheme();
-      void loadStoredAuth();
-    }, 0);
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, []);
-
-  /** Bildirim izni + Android kanalı; dil yüklendikten sonra, yalnızca oturum açıkken bir kez. */
-  useEffect(() => {
-    if (authLoading || !isAuthenticated) return;
-    if (notificationsSetupRef.current) return;
-    notificationsSetupRef.current = true;
-    void (async () => {
-      await loadStoredLanguage();
-      const { ensureNotificationSetup } = await import("../services/notifications");
-      await ensureNotificationSetup();
-    })();
-  }, [authLoading, isAuthenticated]);
-
-  /** Native splash: auth bittikten sonra açık kaldıysa kapat (simülatörde “takılı” hissi). */
-  useEffect(() => {
-    if (authLoading) return;
-    SplashScreen.hideAsync().catch(() => {});
-  }, [authLoading]);
 
   useEffect(() => {
     if (authLoading) {
@@ -94,7 +44,6 @@ function RootLayoutContent() {
     return () => cancelAnimationFrame(raf);
   }, [authLoading]);
 
-  /** Auth yönlendirmesi: Stack commit edildikten sonra (stackReadyForNav + microtask). */
   useEffect(() => {
     if (authLoading || !stackReadyForNav) return;
 
@@ -139,23 +88,112 @@ function RootLayoutContent() {
         navTimeoutRef.current = null;
       }
     };
-  }, [stackReadyForNav, authLoading, isAuthenticated, segments, router, userProfile, onboardingGateComplete]);
+  }, [
+    stackReadyForNav,
+    authLoading,
+    isAuthenticated,
+    segments,
+    router,
+    userProfile,
+    onboardingGateComplete,
+  ]);
 
-  const accentSpinner = rgbTripletToHex(theme === "dark" ? DARK_RGB.primary : LIGHT_RGB.primary);
+  return null;
+}
 
-  if (authLoading) {
-    return (
-      <View style={getDesignVars(theme)} className="flex-1 items-center justify-center bg-background">
-        <StatusBar style={theme === "dark" ? "light" : "dark"} />
-        <ActivityIndicator size="large" color={accentSpinner} />
-      </View>
-    );
-  }
+function RootStackShell({ children }: { children: ReactNode }) {
+  const theme = useStore((s) => s.theme);
 
   return (
-    <View style={getDesignVars(theme)} className="flex-1 bg-background">
+    <View style={[{ flex: 1 }, getDesignVars(theme)]}>
+      <BootNavigationEffects />
+      {children}
+    </View>
+  );
+}
+
+function RootLayoutContent() {
+  const theme = useStore((s) => s.theme);
+  const loadStoredTheme = useStore((s) => s.loadStoredTheme);
+  const loadStoredAuth = useStore((s) => s.loadStoredAuth);
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
+  const authLoading = useStore((s) => s.authLoading);
+  const clearAuth = useStore((s) => s.clearAuth);
+  const notificationsSetupRef = useRef(false);
+  const [minSplashElapsed, setMinSplashElapsed] = useState(false);
+
+  useEffect(() => {
+    registerUnauthorizedCallback(() => {
+      clearAuth();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const timer = setTimeout(() => {
+      void loadStoredLanguage({ isActive: () => active });
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const timer = setTimeout(() => {
+      if (!active) return;
+      void loadStoredTheme();
+      void loadStoredAuth();
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
+    if (notificationsSetupRef.current) return;
+    notificationsSetupRef.current = true;
+    void (async () => {
+      await loadStoredLanguage();
+      const { ensureNotificationSetup } = await import("../services/notifications");
+      await ensureNotificationSetup();
+    })();
+  }, [authLoading, isAuthenticated]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinSplashElapsed(true);
+    }, MIN_SPLASH_VISIBLE_MS);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const showSplash = HOLD_SPLASH_SCREEN || authLoading || !minSplashElapsed;
+
+  useEffect(() => {
+    if (!minSplashElapsed) return;
+    SplashScreen.hideAsync().catch(() => {});
+  }, [minSplashElapsed]);
+
+  const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+  const splashImageWidth = windowWidth * 1.65;
+  const splashImageHeight = Math.min(windowHeight * 0.82, 760);
+  const splashImageScale = Math.min(
+    splashImageWidth / SPLASH_ASSET_WIDTH,
+    splashImageHeight / SPLASH_ASSET_HEIGHT,
+  );
+  const splashOffsetX = -(SPLASH_VISIBLE_CENTER_X - SPLASH_ASSET_WIDTH / 2) * splashImageScale;
+  const splashOffsetY = -(SPLASH_VISIBLE_CENTER_Y - SPLASH_ASSET_HEIGHT / 2) * splashImageScale;
+
+  return (
+    <>
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
       <Stack
+        screenLayout={({ children }) => <RootStackShell>{children}</RootStackShell>}
         screenOptions={{
           headerShown: false,
           animation: "slide_from_right",
@@ -168,16 +206,38 @@ function RootLayoutContent() {
         <Stack.Screen name="payment" options={{ animation: "slide_from_right" }} />
         <Stack.Screen name="(main)" options={{ headerShown: false }} />
       </Stack>
-    </View>
+      <Modal
+        animationType="none"
+        transparent={false}
+        visible={showSplash}
+        presentationStyle="fullScreen"
+        statusBarTranslucent
+      >
+        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: SPLASH_SCREEN_BG }]}>
+          <StatusBar style="dark" />
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <Image
+              accessibilityIgnoresInvertColors
+              source={require("../../assets/splash.png")}
+              resizeMode="contain"
+              style={{
+                width: splashImageWidth,
+                height: splashImageHeight,
+                alignSelf: "center",
+                transform: [{ translateX: splashOffsetX }, { translateY: splashOffsetY }],
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
 export default function RootLayout() {
   return (
     <I18nextProvider i18n={i18n}>
-      <SafeAreaProvider>
-        <RootLayoutContent />
-      </SafeAreaProvider>
+      <RootLayoutContent />
     </I18nextProvider>
   );
 }

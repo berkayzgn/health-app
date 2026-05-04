@@ -1,4 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
+import { normalizeSubscriptionPlan } from '../subscription/plan-limits';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   userProfileInclude,
@@ -58,9 +59,10 @@ export class UsersService {
       name: string;
       email: string;
       conditionTypes: string[];
+      subscriptionPlan: string;
     }>,
   ): Promise<ProfileResponseBody | null> {
-    const { conditionTypes, ...scalarFields } = data;
+    const { conditionTypes, subscriptionPlan, ...scalarFields } = data;
     const trimmedName =
       scalarFields.name !== undefined ? scalarFields.name.trim() : undefined;
     const normalizedEmail =
@@ -81,9 +83,16 @@ export class UsersService {
 
     try {
       const updated = await this.prisma.$transaction(async (tx) => {
-        const userPatch: { name?: string; email?: string } = {};
+        const userPatch: {
+          name?: string;
+          email?: string;
+          subscriptionPlan?: string;
+        } = {};
         if (trimmedName !== undefined) userPatch.name = trimmedName;
         if (normalizedEmail !== undefined) userPatch.email = normalizedEmail;
+        if (subscriptionPlan !== undefined) {
+          userPatch.subscriptionPlan = normalizeSubscriptionPlan(subscriptionPlan);
+        }
         if (Object.keys(userPatch).length > 0) {
           await tx.user.update({
             where: { id },

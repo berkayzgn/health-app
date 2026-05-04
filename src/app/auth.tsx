@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -32,7 +32,7 @@ import AmbientCircles from "../components/AmbientCircles";
 import { useStore } from "../store/useStore";
 import * as authService from "../services/authService";
 import { ApiError } from "../services/api";
-import { DARK_RGB, LIGHT_RGB, rgbTripletToHex } from "../theme/designRgb";
+import { DARK_RGB, LIGHT_RGB, rgbTripletToHex, rgbTripletToRgba } from "../theme/designRgb";
 import { profileNeedsOnboarding } from "../utils/profileNeedsOnboarding";
 import { setStoredLanguage } from "../i18n";
 
@@ -48,6 +48,34 @@ export default function AuthScreen() {
   const onSurfaceIcon = rgbTripletToHex(palette["on-surface"]);
   const accentSpinner = rgbTripletToHex(palette.primary);
   const showHeaderLinks = width >= 768;
+
+  const welcome = useMemo(() => {
+    const primary = palette.primary;
+    const primaryFixed = palette["primary-fixed"];
+    return {
+      surface: rgbTripletToHex(palette.surface),
+      onSurface: rgbTripletToHex(palette["on-surface"]),
+      onSurfaceMuted: rgbTripletToHex(palette["on-surface-variant"]),
+      primary: rgbTripletToHex(primary),
+      primaryFixed: rgbTripletToHex(primaryFixed),
+      onPrimaryContainer: rgbTripletToHex(palette["on-primary-container"]),
+      outlineVariant: rgbTripletToHex(palette["outline-variant"]),
+      ghostMuted: rgbTripletToHex(palette.outline),
+      pillBg: rgbTripletToRgba(primary, 0.07),
+      blobLarge: rgbTripletToRgba(primary, theme === "dark" ? 0.14 : 0.07),
+      blobAccent: rgbTripletToRgba(primaryFixed, theme === "dark" ? 0.14 : 0.12),
+      blobSmall: rgbTripletToRgba(primary, theme === "dark" ? 0.09 : 0.05),
+      langBtnBg: rgbTripletToRgba(palette["surface-container-lowest"], theme === "dark" ? 0.92 : 0.85),
+      langBtnBorder: rgbTripletToRgba(primary, theme === "dark" ? 0.28 : 0.14),
+      sheetBg: rgbTripletToHex(palette["surface-container-lowest"]),
+      sheetGrab: rgbTripletToHex(palette["outline-variant"]),
+      sheetRowInactive: rgbTripletToHex(palette["surface-container-low"]),
+      sheetRowActiveBg: rgbTripletToRgba(primaryFixed, 0.22),
+      sheetRowActiveBorder: rgbTripletToRgba(primary, theme === "dark" ? 0.22 : 0.18),
+      sheetInactiveBorder: rgbTripletToRgba(palette["outline-variant"], theme === "dark" ? 0.45 : 0.65),
+      sheetCloseBg: rgbTripletToHex(palette["surface-container-high"]),
+    };
+  }, [palette, theme]);
 
   const [fontsLoaded] = useFonts({
     Manrope_700Bold,
@@ -141,7 +169,7 @@ export default function AuthScreen() {
 
   if (!fontsLoaded) {
     return (
-      <View className="flex-1 items-center justify-center bg-surface">
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor: welcome.surface }}>
         <ActivityIndicator size="large" color={accentSpinner} />
       </View>
     );
@@ -152,7 +180,7 @@ export default function AuthScreen() {
       <SafeAreaWrapper className="flex-1" edges={["top", "bottom"]}>
         <StatusBar style={theme === "dark" ? "light" : "dark"} />
 
-        <View className="flex-1" style={{ backgroundColor: "#f6f6f6" }}>
+        <View className="flex-1" style={{ backgroundColor: welcome.surface }}>
           {/* Language button (top-right) */}
           <Pressable
             onPress={() => setLanguageSheetOpen(true)}
@@ -167,13 +195,13 @@ export default function AuthScreen() {
               borderRadius: 22,
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "rgba(255,255,255,0.85)",
+              backgroundColor: welcome.langBtnBg,
               borderWidth: 1,
-              borderColor: "rgba(78,99,0,0.14)",
+              borderColor: welcome.langBtnBorder,
               opacity: pressed ? 0.85 : 1,
             })}
           >
-            <MaterialIcons name="language" size={22} color="#4e6300" />
+            <MaterialIcons name="language" size={22} color={welcome.primary} />
           </Pressable>
 
           {/* Organic blob decorations (approx) */}
@@ -186,7 +214,7 @@ export default function AuthScreen() {
               width: 320,
               height: 320,
               borderRadius: 9999,
-              backgroundColor: "rgba(78,99,0,0.07)",
+              backgroundColor: welcome.blobLarge,
               transform: [{ scale: 1.5 }],
             }}
           />
@@ -199,7 +227,7 @@ export default function AuthScreen() {
               width: 192,
               height: 192,
               borderRadius: 9999,
-              backgroundColor: "rgba(202,253,0,0.12)",
+              backgroundColor: welcome.blobAccent,
             }}
           />
           <View
@@ -211,7 +239,7 @@ export default function AuthScreen() {
               width: 256,
               height: 256,
               borderRadius: 9999,
-              backgroundColor: "rgba(78,99,0,0.05)",
+              backgroundColor: welcome.blobSmall,
             }}
           />
 
@@ -226,7 +254,7 @@ export default function AuthScreen() {
                   fontWeight: "500",
                   letterSpacing: 1.2,
                   textTransform: "uppercase",
-                  color: "#4e6300",
+                  color: welcome.primary,
                 }}
               >
                 {t("auth.welcomeLabel")}
@@ -240,7 +268,7 @@ export default function AuthScreen() {
                 fontFamily: "Manrope_800ExtraBold",
                 fontWeight: "800",
                 letterSpacing: -1.2,
-                color: "#2d2f2f",
+                color: welcome.onSurface,
                 lineHeight: 60,
                 marginBottom: 20,
               }}
@@ -256,7 +284,7 @@ export default function AuthScreen() {
               style={{
                 width: 48,
                 height: 4,
-                backgroundColor: "#cafd00",
+                backgroundColor: welcome.primaryFixed,
                 borderRadius: 9999,
               }}
             />
@@ -267,7 +295,7 @@ export default function AuthScreen() {
                 fontSize: 19,
                 fontFamily: "Inter_400Regular",
                 fontWeight: "400",
-                color: "#5a5c5c",
+                color: welcome.onSurfaceMuted,
                 lineHeight: 30,
                 marginBottom: 48,
                 maxWidth: 320,
@@ -285,7 +313,7 @@ export default function AuthScreen() {
                   <View
                     key={tag}
                     style={{
-                      backgroundColor: "rgba(78,99,0,0.07)",
+                      backgroundColor: welcome.pillBg,
                       paddingHorizontal: 14,
                       paddingVertical: 8,
                       borderRadius: 9999,
@@ -296,7 +324,7 @@ export default function AuthScreen() {
                         fontSize: 14,
                         fontFamily: "Inter_500Medium",
                         fontWeight: "500",
-                        color: "#4e6300",
+                        color: welcome.primary,
                       }}
                     >
                       {tag}
@@ -311,7 +339,7 @@ export default function AuthScreen() {
               onPress={() => setMode("register")}
               className="flex-row items-center justify-center gap-3 w-full py-5"
               style={{
-                backgroundColor: "#cafd00",
+                backgroundColor: welcome.primaryFixed,
                 borderRadius: 9999,
               }}
             >
@@ -320,13 +348,13 @@ export default function AuthScreen() {
                   fontFamily: "Manrope_700Bold",
                   fontWeight: "700",
                   fontSize: 18,
-                  color: "#3a4a00",
+                  color: welcome.onPrimaryContainer,
                   letterSpacing: -0.3,
                 }}
               >
                 {t("auth.getStarted")}
               </Text>
-              <MaterialIcons name="arrow-forward" size={22} color="#3a4a00" />
+              <MaterialIcons name="arrow-forward" size={22} color={welcome.onPrimaryContainer} />
             </Pressable>
 
             {/* Ghost link */}
@@ -336,11 +364,11 @@ export default function AuthScreen() {
                   fontFamily: "Inter_400Regular",
                   fontWeight: "400",
                   fontSize: 16,
-                  color: "#767777",
+                  color: welcome.ghostMuted,
                 }}
               >
                 {t("auth.alreadyHaveAccount")}{" "}
-                <Text style={{ color: "#4e6300", fontFamily: "Inter_500Medium", fontWeight: "500" }}>
+                <Text style={{ color: welcome.primary, fontFamily: "Inter_500Medium", fontWeight: "500" }}>
                   {t("auth.signInLink")}
                 </Text>
               </Text>
@@ -361,7 +389,7 @@ export default function AuthScreen() {
             <Pressable
               onPress={() => {}}
               style={{
-                backgroundColor: "#fff",
+                backgroundColor: welcome.sheetBg,
                 borderTopLeftRadius: 22,
                 borderTopRightRadius: 22,
                 paddingTop: 12,
@@ -370,7 +398,7 @@ export default function AuthScreen() {
               }}
             >
               <View style={{ alignItems: "center", paddingBottom: 10 }}>
-                <View style={{ width: 44, height: 5, borderRadius: 999, backgroundColor: "#E6E6E6" }} />
+                <View style={{ width: 44, height: 5, borderRadius: 999, backgroundColor: welcome.sheetGrab }} />
               </View>
 
               <Text
@@ -378,7 +406,7 @@ export default function AuthScreen() {
                   fontFamily: "Manrope_700Bold",
                   fontWeight: "700",
                   fontSize: 18,
-                  color: "#2d2f2f",
+                  color: welcome.onSurface,
                   marginBottom: 10,
                   paddingHorizontal: 6,
                 }}
@@ -390,7 +418,7 @@ export default function AuthScreen() {
                   fontFamily: "Inter_400Regular",
                   fontWeight: "400",
                   fontSize: 14,
-                  color: "#5a5c5c",
+                  color: welcome.onSurfaceMuted,
                   marginBottom: 14,
                   paddingHorizontal: 6,
                 }}
@@ -418,9 +446,9 @@ export default function AuthScreen() {
                       borderRadius: 14,
                       paddingVertical: 14,
                       paddingHorizontal: 14,
-                      backgroundColor: active ? "rgba(202,253,0,0.22)" : "#F7F7F7",
+                      backgroundColor: active ? welcome.sheetRowActiveBg : welcome.sheetRowInactive,
                       borderWidth: 1,
-                      borderColor: active ? "rgba(78,99,0,0.18)" : "#E8E8E8",
+                      borderColor: active ? welcome.sheetRowActiveBorder : welcome.sheetInactiveBorder,
                       marginBottom: 10,
                       opacity: pressed ? 0.88 : 1,
                     })}
@@ -430,12 +458,12 @@ export default function AuthScreen() {
                         fontFamily: "Inter_600SemiBold",
                         fontWeight: "600",
                         fontSize: 16,
-                        color: "#2d2f2f",
+                        color: welcome.onSurface,
                       }}
                     >
                       {opt.label}
                     </Text>
-                    <MaterialIcons name={active ? "check-circle" : "radio-button-unchecked"} size={20} color="#4e6300" />
+                    <MaterialIcons name={active ? "check-circle" : "radio-button-unchecked"} size={20} color={welcome.primary} />
                   </Pressable>
                 );
               })}
@@ -448,11 +476,11 @@ export default function AuthScreen() {
                   borderRadius: 9999,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: "#efefef",
+                  backgroundColor: welcome.sheetCloseBg,
                   opacity: pressed ? 0.88 : 1,
                 })}
               >
-                <Text style={{ fontFamily: "Inter_600SemiBold", fontWeight: "600", color: "#2d2f2f" }}>
+                <Text style={{ fontFamily: "Inter_600SemiBold", fontWeight: "600", color: welcome.onSurface }}>
                   {t("settings.languageSheetClose")}
                 </Text>
               </Pressable>

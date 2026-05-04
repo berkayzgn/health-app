@@ -25,14 +25,20 @@ import { parseNutrientsPerServing } from '../nutrition/nutrient-json';
  * - gemini-2.5-flash-lite → 10 RPM, 250K TPM, 20 RPD
  * - gemini-3-flash / gemini-2.5-flash → 5 RPM, 20 RPD
  *
- * Varsayılan: 3.1 flash-lite — 2.5’e göre sık sık daha az 503 yaşanır (farklı uç kotası).
- * 503 sonra otomatik yedek: karşı flash-lite (veya GEMINI_FALLBACK_MODEL).
+ * Varsayılan zincir: önce 2.5 flash-lite (daha geniş anahtar uyumu), sonra 3.1 flash-lite (bazı projelerde daha yüksek RPD),
+ * ardından flash sınıfı yedekler. `GEMINI_MODEL` ile ilk adımı sabitleyebilirsiniz.
+ * 503 / model bulunamadı (404) durumunda otomatik yedek: `GEMINI_FALLBACK_MODEL` veya varsayılan model zinciri.
  *
  * Live API’deki “Unlimited” modeller (Native Audio, Flash Live) bu HTTP endpoint ile kullanılmaz.
  * Gemma / Imagen / TTS / Embedding farklı ürün; etiket görseli + JSON için Flash Lite doğru sınıf.
  */
-const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
-const SECONDARY_FLASH_LITE = 'gemini-2.5-flash-lite';
+const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-lite';
+const GEMINI_MODEL_SUGGESTIONS = [
+  'gemini-2.5-flash-lite',
+  'gemini-3.1-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-3-flash',
+] as const;
 
 /** Üst Gemini uçlarında geçici 502/503 geldiğinde (yük artışı) kısa bekleme ile tekrar. */
 const GEMINI_TRANSIENT_RETRIES = 3;
@@ -47,7 +53,17 @@ function resolvedGeminiModel(): string {
   return m.length > 0 ? m : DEFAULT_GEMINI_MODEL;
 }
 
-/** 503 sonrası yedek: GEMINI_FALLBACK_MODEL veya karşı flash-lite (biri dolu tutulunca diğeri). */
+function uniqModelChain(ids: string[]): string[] {
+  const out: string[] = [];
+  for (const id of ids) {
+    const t = id.trim();
+    if (!t) continue;
+    if (!out.includes(t)) out.push(t);
+  }
+  return out;
+}
+
+/** Model zinciri: `GEMINI_MODEL` + (isteğe bağlı) `GEMINI_FALLBACK_MODEL` veya varsayılan adaylar. */
 function resolvedGeminiModelChain(): string[] {
   const primary = resolvedGeminiModel();
   const chain: string[] = [primary];
@@ -55,15 +71,24 @@ function resolvedGeminiModelChain(): string[] {
   if (manual && manual !== primary && manual.toUpperCase() !== 'OFF') {
     chain.push(manual);
   } else {
-    const alternate =
-      primary === SECONDARY_FLASH_LITE
-        ? DEFAULT_GEMINI_MODEL
-        : primary === DEFAULT_GEMINI_MODEL
-          ? SECONDARY_FLASH_LITE
-          : null;
-    if (alternate) chain.push(alternate);
+    for (const candidate of GEMINI_MODEL_SUGGESTIONS) {
+      if (candidate !== primary) chain.push(candidate);
+    }
   }
-  return [...new Set(chain)];
+  return uniqModelChain(chain);
+}
+
+function isGeminiModelNotFoundHttpException(e: unknown): boolean {
+  if (!(e instanceof HttpException)) return false;
+  if (e.getStatus() !== HttpStatus.BAD_REQUEST) return false;
+  const body = e.getResponse();
+  const msg =
+    typeof body === 'string'
+      ? body
+      : typeof body === 'object' && body && 'message' in body
+        ? String((body as { message?: unknown }).message ?? '')
+        : '';
+  return msg.includes('Gemini modeli bulunamadı');
 }
 
 function isLikelyGeminiCapacity503(e: unknown): boolean {
@@ -351,13 +376,17 @@ export class GeminiVisionService {
           const raw = err.message ?? '';
           const zeroQuota = /limit:\s*0\b/i.test(raw);
           const body = zeroQuota
-            ? `Seçilen Gemini modeli (${modelId}) bu API anahtarı için kotada görünmüyor (limit: 0). AI Studio’da limiti 0 olmayan satırla eşleşen model deneyin: gemini-3.1-flash-lite, gemini-2.5-flash-lite, gemini-2.5-flash. Anahtarın doğru Google Cloud projesine ait olduğunu doğrulayın.`
+            ? `Seçilen Gemini modeli (${modelId}) bu API anahtarı için kotada görünmüyor (limit: 0). AI Studio’da limiti 0 olmayan satırla eşleşen model deneyin: ${GEMINI_MODEL_SUGGESTIONS.join(
+                ', ',
+              )}. Anahtarın doğru Google Cloud projesine ait olduğunu doğrulayın.`
             : 'Gemini kotası veya hız limiti (RPM/RPD/TPM). AI Studio → Usage / Rate limits; gerekirse bekleyin veya faturalandırmayı açın.';
           throw new HttpException(body, HttpStatus.TOO_MANY_REQUESTS);
         }
         if (st === 404) {
           throw new BadRequestException(
-            `Gemini modeli bulunamadı: "${modelId}". Deneyin: gemini-3.1-flash-lite, gemini-2.5-flash-lite, gemini-2.5-flash, gemini-3-flash (.env GEMINI_MODEL).`,
+            `Gemini modeli bulunamadı: "${modelId}". Deneyin: ${GEMINI_MODEL_SUGGESTIONS.join(
+              ', ',
+            )} (.env GEMINI_MODEL / GEMINI_FALLBACK_MODEL).`,
           );
         }
         if (st === 400) {
@@ -493,6 +522,12 @@ export class GeminiVisionService {
         if (haveNext && isLikelyGeminiCapacity503(e)) {
           this.logger.warn(
             `Gemini kapasite/geçici hata (${modelId}) — sıradaki: ${modelChain[mi + 1]}`,
+          );
+          continue;
+        }
+        if (haveNext && isGeminiModelNotFoundHttpException(e)) {
+          this.logger.warn(
+            `Gemini model bulunamadı (${modelId}) — sıradaki: ${modelChain[mi + 1]}`,
           );
           continue;
         }

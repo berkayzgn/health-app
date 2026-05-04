@@ -1,10 +1,12 @@
 import type { Prisma } from '@prisma/client';
+import { normalizeSubscriptionPlan } from '../subscription/plan-limits';
 
 export type ProfileResponseBody = {
   id: string;
   email: string;
   name: string;
   conditionTypes: string[];
+  subscriptionPlan: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -29,6 +31,7 @@ export function userToProfileResponse(
     email: user.email,
     name: user.name,
     conditionTypes,
+    subscriptionPlan: normalizeSubscriptionPlan(user.subscriptionPlan),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

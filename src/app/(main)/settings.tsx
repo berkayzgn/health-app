@@ -150,6 +150,7 @@ function ProfileGlimpseCard({
   memberLabel: string;
   onManageSubscription: () => void;
 }) {
+  const { t } = useTranslation();
   const initials = useMemo(() => {
     const parts = displayName.trim().split(/\s+/).filter(Boolean);
     const a = parts[0]?.[0] ?? "L";
@@ -182,7 +183,7 @@ function ProfileGlimpseCard({
           <View className="flex-row items-center rounded-full bg-surface-container-low px-4 py-2">
             <MaterialIcons name="workspace-premium" size={18} color="#4e6300" />
             <Text className="ml-2 text-xs font-semibold text-on-surface-variant" style={{ fontFamily: "Inter_600SemiBold" }}>
-              Manage Subscription
+              {t("settings.paymentSubtitle")}
             </Text>
           </View>
         </Pressable>

@@ -20,7 +20,11 @@ import { useFocusEffect, useRouter } from "expo-router";
 import SafeAreaWrapper from "../../../components/SafeAreaWrapper";
 import AppHeader from "../../../components/AppHeader";
 import { useStore } from "../../../store/useStore";
-import { getScanHistory, type ScanHistoryItem } from "../../../services/labelScanService";
+import {
+  getScanHistory,
+  SCAN_HISTORY_ARCHIVE_LIMIT,
+  type ScanHistoryItem,
+} from "../../../services/labelScanService";
 import { scanHistorySafetyMciName } from "../../../utils/scanHistorySafetyIcon";
 
 export default function ScanHistoryListScreen() {
@@ -39,7 +43,7 @@ export default function ScanHistoryListScreen() {
         try {
           setLoading(true);
           setError(false);
-          const list = await getScanHistory(50);
+          const list = await getScanHistory(SCAN_HISTORY_ARCHIVE_LIMIT);
           if (!cancelled) setItems(list);
         } catch {
           if (!cancelled) {

@@ -29,4 +29,10 @@ export class ScanLabelDto {
   @IsString()
   @IsIn(['label', 'meal', 'auto'])
   scanKind?: ScanImageKind;
+
+  /** Cihaz IANA zaman dilimi — günlük tarama kotası yerel güne göre sayılır. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  timezone?: string;
 }

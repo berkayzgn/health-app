@@ -46,6 +46,30 @@ function setsEqual(a: Set<string>, b: Set<string>) {
   return true;
 }
 
+const NAME_PLACEHOLDER = "—";
+
+function nameDraftParts(fullName: string | undefined | null): { given: string; family: string } {
+  const { givenName, familyName } = splitRegisteredFullName(fullName?.trim() || null);
+  return {
+    given: givenName === NAME_PLACEHOLDER ? "" : givenName,
+    family: familyName === NAME_PLACEHOLDER ? "" : familyName,
+  };
+}
+
+/** Sunucunun tek `name` alanı — boş iki alan için boş dize dönmez, validasyon gerektirir */
+function composeProfileFullName(given: string, family: string): string {
+  const g = given.trim().replace(/\s+/g, " ");
+  const f = family.trim().replace(/\s+/g, " ");
+  if (!g && !f) return "";
+  if (!g) return f;
+  if (!f) return g;
+  return `${g} ${f}`;
+}
+
+function normalizeNameForCompare(s: string): string {
+  return s.trim().replace(/\s+/g, " ");
+}
+
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -68,6 +92,8 @@ export default function ProfileScreen() {
   });
 
   const [emailDraft, setEmailDraft] = useState("");
+  const [givenNameDraft, setGivenNameDraft] = useState("");
+  const [familyNameDraft, setFamilyNameDraft] = useState("");
   const [selectedConditions, setSelectedConditions] = useState<Set<string>>(() => new Set());
   const [saving, setSaving] = useState(false);
   const [diseaseSheetOpen, setDiseaseSheetOpen] = useState(false);
@@ -79,11 +105,19 @@ export default function ProfileScreen() {
 
   useLayoutEffect(() => {
     setEmailDraft(userProfile?.email?.trim() || authUser?.email?.trim() || "");
-  }, [userProfile?.email, authUser?.email]);
+    const registered = userProfile?.name?.trim() || authUser?.name?.trim() || "";
+    const parts = nameDraftParts(registered);
+    setGivenNameDraft(parts.given);
+    setFamilyNameDraft(parts.family);
+  }, [userProfile?.email, authUser?.email, userProfile?.name, authUser?.name]);
 
   useFocusEffect(
     useCallback(() => {
       setEmailDraft(userProfile?.email?.trim() || authUser?.email?.trim() || "");
+      const registered = userProfile?.name?.trim() || authUser?.name?.trim() || "";
+      const parts = nameDraftParts(registered);
+      setGivenNameDraft(parts.given);
+      setFamilyNameDraft(parts.family);
       if (!userProfile || !medicalConditionsLoaded) return;
       const { selected } = parseHealthConditionsFromProfile(userProfile.conditionTypes);
       setSelectedConditions(selected);
@@ -91,10 +125,6 @@ export default function ProfileScreen() {
   );
 
   const registeredFullName = userProfile?.name?.trim() || authUser?.name?.trim() || "";
-  const { givenName, familyName } = useMemo(
-    () => splitRegisteredFullName(registeredFullName || null),
-    [registeredFullName],
-  );
 
   const baselineEmailNormalized = (
     userProfile?.email?.trim() ||
@@ -110,9 +140,20 @@ export default function ProfileScreen() {
   const isDirty = useMemo(() => {
     const draftEmailNorm = emailDraft.trim().toLowerCase();
     const emailChanged = draftEmailNorm !== baselineEmailNormalized;
-    if (!savedConditionSet) return emailChanged;
-    return emailChanged || !setsEqual(selectedConditions, savedConditionSet);
-  }, [emailDraft, baselineEmailNormalized, selectedConditions, savedConditionSet]);
+    const nameChanged =
+      normalizeNameForCompare(composeProfileFullName(givenNameDraft, familyNameDraft)) !==
+      normalizeNameForCompare(registeredFullName);
+    if (!savedConditionSet) return emailChanged || nameChanged;
+    return emailChanged || nameChanged || !setsEqual(selectedConditions, savedConditionSet);
+  }, [
+    emailDraft,
+    baselineEmailNormalized,
+    givenNameDraft,
+    familyNameDraft,
+    registeredFullName,
+    selectedConditions,
+    savedConditionSet,
+  ]);
 
   function isValidEmail(value: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -178,6 +219,11 @@ export default function ProfileScreen() {
       );
       return;
     }
+    const nameCombined = composeProfileFullName(givenNameDraft, familyNameDraft).trim();
+    if (!nameCombined) {
+      Alert.alert(t("auth.errorTitle"), t("profile.nameRequired"));
+      return;
+    }
     const emailTrim = emailDraft.trim();
     if (!isValidEmail(emailTrim)) {
       Alert.alert(t("auth.errorTitle"), t("profile.invalidEmail"));
@@ -188,6 +234,7 @@ export default function ProfileScreen() {
     try {
       const conditionTypes = buildHealthConditionTypesPayload(selectedConditions);
       await authService.updateProfile({
+        name: nameCombined,
         email: emailTrim,
         conditionTypes,
       });
@@ -301,16 +348,25 @@ export default function ProfileScreen() {
                       >
                         {t("profile.givenNameLabel")}
                       </Text>
-                      <View className="rounded-xl border border-outline-variant/35 bg-surface-container-highest/90 px-3 py-3.5">
-                        <Text
-                          className="text-base text-on-surface"
-                          style={{ fontFamily: "Inter_500Medium" }}
-                          selectable
-                          numberOfLines={2}
-                        >
-                          {givenName}
-                        </Text>
-                      </View>
+                      <TextInput
+                        value={givenNameDraft}
+                        onChangeText={setGivenNameDraft}
+                        autoCapitalize="words"
+                        editable={!saving}
+                        placeholderTextColor="#767777"
+                        className="rounded-xl border border-outline-variant/35 bg-surface-container-low text-on-surface"
+                        style={{
+                          fontFamily: "Inter_500Medium",
+                          fontSize: 16,
+                          lineHeight: 24,
+                          minHeight: 52,
+                          paddingHorizontal: 12,
+                          paddingVertical: 13,
+                          ...(Platform.OS === "android"
+                            ? { textAlignVertical: "center" as const, includeFontPadding: false }
+                            : {}),
+                        }}
+                      />
                     </View>
                     <View className="flex-1 min-w-0">
                       <Text
@@ -319,25 +375,27 @@ export default function ProfileScreen() {
                       >
                         {t("profile.familyNameLabel")}
                       </Text>
-                      <View className="rounded-xl border border-outline-variant/35 bg-surface-container-highest/90 px-3 py-3.5">
-                        <Text
-                          className="text-base text-on-surface"
-                          style={{ fontFamily: "Inter_500Medium" }}
-                          selectable
-                          numberOfLines={2}
-                        >
-                          {familyName}
-                        </Text>
-                      </View>
+                      <TextInput
+                        value={familyNameDraft}
+                        onChangeText={setFamilyNameDraft}
+                        autoCapitalize="words"
+                        editable={!saving}
+                        placeholderTextColor="#767777"
+                        className="rounded-xl border border-outline-variant/35 bg-surface-container-low text-on-surface"
+                        style={{
+                          fontFamily: "Inter_500Medium",
+                          fontSize: 16,
+                          lineHeight: 24,
+                          minHeight: 52,
+                          paddingHorizontal: 12,
+                          paddingVertical: 13,
+                          ...(Platform.OS === "android"
+                            ? { textAlignVertical: "center" as const, includeFontPadding: false }
+                            : {}),
+                        }}
+                      />
                     </View>
                   </View>
-
-                  <Text
-                    className="text-[11px] text-outline leading-snug"
-                    style={{ fontFamily: "Inter_400Regular" }}
-                  >
-                    {t("profile.nameLockedHint")}
-                  </Text>
 
                   <View className="h-px bg-outline-variant/20" />
 

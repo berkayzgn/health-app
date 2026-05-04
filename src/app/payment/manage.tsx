@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SafeAreaWrapper from "../../components/SafeAreaWrapper";
 import AppHeader from "../../components/AppHeader";
 import { useStore } from "../../store/useStore";
+import { updateProfile } from "../../services/authService";
 
 type PlanId = "starter" | "plus" | "pro";
 
@@ -214,6 +215,8 @@ export default function PaymentManageScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const theme = useStore((s) => s.theme);
+  const refreshProfile = useStore((s) => s.refreshProfile);
+  const isAuthenticated = useStore((s) => s.isAuthenticated);
   const insets = useSafeAreaInsets();
 
   const [fontsLoaded] = useFonts({
@@ -230,7 +233,16 @@ export default function PaymentManageScreen() {
     return <View className="flex-1 bg-background" />;
   }
 
-  const onPrimaryAction = () => {
+  const onPrimaryAction = async () => {
+    if (plan && isAuthenticated) {
+      try {
+        await updateProfile({ subscriptionPlan: plan });
+        await refreshProfile();
+      } catch {
+        Alert.alert(t("auth.errorTitle"), t("auth.errorGeneric"));
+        return;
+      }
+    }
     Alert.alert(t("payment.mockTitle"), t("payment.mockBody"));
     router.replace("/");
   };

@@ -124,10 +124,6 @@ export default function OnboardingScreen() {
   const lang: "tr" | "en" = i18n.language?.startsWith("tr") ? "tr" : "en";
 
   useEffect(() => { if (!conditionsLoaded) loadConditions(); }, [conditionsLoaded, loadConditions]);
-  useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log("[onboarding] nativewind cards build v4");
-  }, []);
 
   const [fontsLoaded] = useFonts({
     Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold,

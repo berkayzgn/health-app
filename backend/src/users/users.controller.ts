@@ -13,7 +13,8 @@ import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { userToProfileResponse } from './profile-mapper';
 import { DailyIntakeService } from '../daily-intake/daily-intake.service';
-import { formatLocalDateIso } from '../nutrition/local-date';
+import { ScanQuotaService } from './scan-quota.service';
+import { formatLocalDateIso, calendarWeekMondayToSunday } from '../nutrition/local-date';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -21,7 +22,16 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly dailyIntake: DailyIntakeService,
+    private readonly scanQuota: ScanQuotaService,
   ) {}
+
+  @Get('me/scan-usage')
+  async scanUsage(
+    @Req() req: { user: { userId: string } },
+    @Query('timezone') timezoneRaw?: string,
+  ) {
+    return this.scanQuota.getScanUsageForUser(req.user.userId, timezoneRaw);
+  }
 
   @Get('me')
   async getProfile(@Req() req: { user: { userId: string } }) {
@@ -50,13 +60,28 @@ export class UsersController {
   }
 
   @Get('me/weekly-rules')
-  async weeklyRules(@Req() req: { user: { userId: string } }) {
-    const rules = await this.dailyIntake.listWeeklyPlaceholderRules(req.user.userId);
+  async weeklyRules(
+    @Req() req: { user: { userId: string } },
+    @Query('timezone') timezoneRaw?: string,
+    @Query('locale') localeRaw?: string,
+  ) {
+    const tz = (timezoneRaw ?? 'Europe/Istanbul').trim() || 'Europe/Istanbul';
+    const locale = localeRaw === 'en' ? ('en' as const) : ('tr' as const);
+    const today = formatLocalDateIso(new Date(), tz);
+    const { weekStart, weekEnd } = calendarWeekMondayToSunday(today);
+    const { totals, conditions } = await this.dailyIntake.getWeeklyNutrientSummary(
+      req.user.userId,
+      weekStart,
+      weekEnd,
+      locale,
+    );
     return {
-      trackable: false as const,
-      rules,
-      note:
-        'Haftalık toplamlar yakında burada görünecek; şimdilik liste yalın bir özetdir.',
+      trackable: true as const,
+      timezone: tz,
+      weekStart,
+      weekEnd,
+      totals,
+      conditions,
     };
   }
 

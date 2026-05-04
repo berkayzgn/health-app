@@ -13,6 +13,29 @@ import { resolveMetricForRule, ruleFires } from '../nutrition/trigger-metric';
 
 type Locale = 'tr' | 'en';
 
+type NutrientDashboardRow = {
+  slug: string;
+  triggerName: string;
+  unit: string;
+  current: number | null;
+  readiness: string;
+  worstLevel: 'ok' | 'yellow' | 'red' | 'unknown';
+  rules: {
+    code: string;
+    riskLevel: string;
+    operator: string;
+    threshold: number;
+    fires: boolean;
+  }[];
+};
+
+/** Günlük / haftalık özet blokları (consumption_logs toplamlarına göre kurallı). */
+export type NutrientDashboardConditions = {
+  conditionCode: string;
+  conditionName: string;
+  rows: NutrientDashboardRow[];
+}[];
+
 export type TriggeredRuleDto = {
   ruleCode: string;
   conditionCode: string;
@@ -32,6 +55,25 @@ export class DailyIntakeService {
   async sumDailyNutrients(userId: string, localDate: string): Promise<NutrientTotals> {
     const logs = await this.prisma.consumptionLog.findMany({
       where: { userId, localDate },
+      select: { nutrientsScaled: true },
+    });
+    const parsed = logs.map((l) =>
+      parseNutrientsPerServing(l.nutrientsScaled as unknown),
+    );
+    return sumNutrientRecords(parsed);
+  }
+
+  /** Yerel tarih aralığı (YYYY-MM-DD, dahil) consumption_logs üzerinden toplam besinler. */
+  async sumNutrientsInclusiveRange(
+    userId: string,
+    startLocal: string,
+    endLocal: string,
+  ): Promise<NutrientTotals> {
+    const logs = await this.prisma.consumptionLog.findMany({
+      where: {
+        userId,
+        localDate: { gte: startLocal, lte: endLocal },
+      },
       select: { nutrientsScaled: true },
     });
     const parsed = logs.map((l) =>
@@ -146,28 +188,37 @@ export class DailyIntakeService {
     userId: string,
     localDate: string,
     locale: Locale,
-  ): Promise<
-    {
-      conditionCode: string;
-      conditionName: string;
-      rows: {
-        slug: string;
-        triggerName: string;
-        unit: string;
-        current: number | null;
-        readiness: string;
-        worstLevel: 'ok' | 'yellow' | 'red' | 'unknown';
-        rules: {
-          code: string;
-          riskLevel: string;
-          operator: string;
-          threshold: number;
-          fires: boolean;
-        }[];
-      }[];
-    }[]
-  > {
+  ): Promise<NutrientDashboardConditions> {
     const totals = await this.sumDailyNutrients(userId, localDate);
+    return this.nutrientDashboard(userId, totals, locale, 'DAY');
+  }
+
+  async getWeeklyNutrientSummary(
+    userId: string,
+    weekStartLocal: string,
+    weekEndLocal: string,
+    locale: Locale,
+  ): Promise<{ totals: NutrientTotals; conditions: NutrientDashboardConditions }> {
+    const totals = await this.sumNutrientsInclusiveRange(
+      userId,
+      weekStartLocal,
+      weekEndLocal,
+    );
+    const conditions = await this.nutrientDashboard(
+      userId,
+      totals,
+      locale,
+      'WEEK',
+    );
+    return { totals, conditions };
+  }
+
+  private async nutrientDashboard(
+    userId: string,
+    totals: NutrientTotals,
+    locale: Locale,
+    rulePeriod: 'DAY' | 'WEEK',
+  ): Promise<NutrientDashboardConditions> {
     const links = await this.prisma.userMedicalCondition.findMany({
       where: { userId },
       include: {
@@ -175,7 +226,7 @@ export class DailyIntakeService {
           include: {
             rules: {
               where: {
-                period: 'DAY',
+                period: rulePeriod,
                 scope: 'scan',
                 triggerType: 'nutrient',
               },
@@ -264,37 +315,6 @@ export class DailyIntakeService {
       out.push({ conditionCode: cond.code, conditionName, rows });
     }
 
-    return out;
-  }
-
-  async listWeeklyPlaceholderRules(
-    userId: string,
-  ): Promise<{ code: string; title: string }[]> {
-    const links = await this.prisma.userMedicalCondition.findMany({
-      where: { userId },
-      include: {
-        condition: {
-          include: {
-            rules: {
-              where: {
-                period: 'WEEK',
-                scope: 'scan',
-              },
-            },
-          },
-        },
-      },
-    });
-    const out: { code: string; title: string }[] = [];
-    for (const link of links) {
-      const disp = link.condition.displayNames as { tr?: string };
-      for (const r of link.condition.rules) {
-        out.push({
-          code: r.code,
-          title: `${disp.tr ?? link.condition.code} — ${r.triggerName}`,
-        });
-      }
-    }
     return out;
   }
 
