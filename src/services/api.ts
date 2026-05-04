@@ -132,7 +132,8 @@ if (__DEV__) {
 }
 
 const TOKEN_KEY = '@health_app_token';
-const REQUEST_TIMEOUT_MS = __DEV__ ? 25_000 : 12_000;
+/** Release: uzak API (örn. Render ücretsiz katman soğuk başlatma) 12s'i aşabilir. */
+const REQUEST_TIMEOUT_MS = __DEV__ ? 25_000 : 60_000;
 
 type UnauthorizedCallback = () => void;
 let _onUnauthorized: UnauthorizedCallback | null = null;
