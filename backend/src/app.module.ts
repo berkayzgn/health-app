@@ -14,7 +14,7 @@ const envValidationSchema = Joi.object({
   JWT_EXPIRATION: Joi.string().default('7d'),
   GEMINI_API_KEY: Joi.string().required(),
   GEMINI_MODEL: Joi.string().optional(),
-  ALLOWED_ORIGINS: Joi.string().optional().default(''),
+  ALLOWED_ORIGINS: Joi.string().allow('').optional().default(''),
   NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
   PORT: Joi.number().integer().positive().default(3000),
 });
