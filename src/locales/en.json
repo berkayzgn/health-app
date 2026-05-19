@@ -374,6 +374,8 @@
       }
     },
     "primaryCta": "Continue",
+    "planConfirmedTitle": "Your plan is confirmed!",
+    "planConfirmedSubtitle": "Great choice. Taking you to the home screen…",
     "footer": "Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period. Manage settings in your Apple ID or Google Play account.",
     "mockTitle": "Payment (mock)",
     "mockBody": "Payment integration will be added next. For now, you can continue to the app."

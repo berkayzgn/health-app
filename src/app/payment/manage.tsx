@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, Text, Pressable, Alert, ScrollView } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
@@ -12,6 +12,7 @@ import SafeAreaWrapper from "../../components/SafeAreaWrapper";
 import AppHeader from "../../components/AppHeader";
 import { useStore } from "../../store/useStore";
 import { updateProfile } from "../../services/authService";
+import PlanConfirmedCelebration from "../../components/payment/PlanConfirmedCelebration";
 
 type PlanId = "starter" | "plus" | "pro";
 
@@ -72,11 +73,11 @@ function SubscriptionCard({
         ? "bg-primary-container/10 border-2 border-primary-container shadow-[0_20px_40px_-10px_rgba(78,99,0,0.08)]"
         : "bg-tertiary-container/15 border-2 border-tertiary/30";
 
-  const selectedRing = selected ? "ring-2 ring-primary/25" : "";
+  const selectedBorder = selected ? "border-primary/50" : "";
 
   return (
     <Pressable onPress={onPress} className="active:opacity-90">
-      <View className={`relative rounded-3xl p-5 ${toneClasses} ${selectedRing}`}>
+      <View className={`relative rounded-3xl p-5 ${toneClasses} ${selectedBorder}`}>
         {recommendedLabel ? (
           <View
             style={{
@@ -228,6 +229,12 @@ export default function PaymentManageScreen() {
   });
 
   const [plan, setPlan] = useState<PlanId | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  const finishCelebration = useCallback(() => {
+    setShowCelebration(false);
+    router.replace("/");
+  }, [router]);
 
   if (!fontsLoaded) {
     return <View className="flex-1 bg-background" />;
@@ -243,13 +250,18 @@ export default function PaymentManageScreen() {
         return;
       }
     }
-    Alert.alert(t("payment.mockTitle"), t("payment.mockBody"));
-    router.replace("/");
+    setShowCelebration(true);
   };
 
   return (
     <View className="flex-1 bg-background">
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
+      <PlanConfirmedCelebration
+        visible={showCelebration}
+        title={t("payment.planConfirmedTitle")}
+        subtitle={t("payment.planConfirmedSubtitle")}
+        onDone={finishCelebration}
+      />
       <SafeAreaWrapper className="flex-1 bg-background" edges={["top", "bottom"]}>
         <AppHeader variant="inner" title={t("payment.choosePlanTitle")} />
 

@@ -374,7 +374,9 @@
       }
     },
     "primaryCta": "Devam et",
-    "footer": "Abonelikler, mevcut dönem bitmeden en az 24 saat önce iptal edilmediği sürece otomatik yenilenir. Ayarları Apple ID veya Google Play hesabınızdan yönetebilirsiniz.",
+    "planConfirmedTitle": "Planınız onaylandı!",
+    "planConfirmedSubtitle": "Harika seçim. Ana sayfaya yönlendiriliyorsunuz…",
+    "footer": "Abonelikler, mevcut dönem bitmeden en az 24 saat önce iptal edilmediği sürece otomatik yenilenir. Ayarları Apple ID veya Google Play hesabınızdan yünetebilirsiniz.",
     "mockTitle": "Ödeme (mock)",
     "mockBody": "Ödeme entegrasyonu daha sonra eklenecek. Şimdilik uygulamaya devam edebilirsiniz."
   }

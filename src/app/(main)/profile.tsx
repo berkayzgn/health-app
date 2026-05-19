@@ -48,6 +48,13 @@ function setsEqual(a: Set<string>, b: Set<string>) {
 
 const NAME_PLACEHOLDER = "—";
 
+/** iOS TextInput: sabit lineHeight metni keser; auth ekranıyla aynı kutu ölçüsü */
+const profileFieldClass =
+  "min-h-[52px] rounded-xl border border-outline-variant/35 bg-surface-container-low px-3 py-3 text-base text-on-surface";
+const profileFieldStyle = { fontFamily: "Inter_500Medium" as const };
+const profileEmailFieldClass =
+  "min-h-[52px] rounded-xl border border-outline-variant/40 bg-surface-container-low px-4 py-3 text-base text-on-surface";
+
 function nameDraftParts(fullName: string | undefined | null): { given: string; family: string } {
   const { givenName, familyName } = splitRegisteredFullName(fullName?.trim() || null);
   return {
@@ -354,18 +361,13 @@ export default function ProfileScreen() {
                         autoCapitalize="words"
                         editable={!saving}
                         placeholderTextColor="#767777"
-                        className="rounded-xl border border-outline-variant/35 bg-surface-container-low text-on-surface"
-                        style={{
-                          fontFamily: "Inter_500Medium",
-                          fontSize: 16,
-                          lineHeight: 24,
-                          minHeight: 52,
-                          paddingHorizontal: 12,
-                          paddingVertical: 13,
-                          ...(Platform.OS === "android"
+                        className={profileFieldClass}
+                        style={[
+                          profileFieldStyle,
+                          Platform.OS === "android"
                             ? { textAlignVertical: "center" as const, includeFontPadding: false }
-                            : {}),
-                        }}
+                            : null,
+                        ]}
                       />
                     </View>
                     <View className="flex-1 min-w-0">
@@ -381,18 +383,13 @@ export default function ProfileScreen() {
                         autoCapitalize="words"
                         editable={!saving}
                         placeholderTextColor="#767777"
-                        className="rounded-xl border border-outline-variant/35 bg-surface-container-low text-on-surface"
-                        style={{
-                          fontFamily: "Inter_500Medium",
-                          fontSize: 16,
-                          lineHeight: 24,
-                          minHeight: 52,
-                          paddingHorizontal: 12,
-                          paddingVertical: 13,
-                          ...(Platform.OS === "android"
+                        className={profileFieldClass}
+                        style={[
+                          profileFieldStyle,
+                          Platform.OS === "android"
                             ? { textAlignVertical: "center" as const, includeFontPadding: false }
-                            : {}),
-                        }}
+                            : null,
+                        ]}
                       />
                     </View>
                   </View>
@@ -414,18 +411,13 @@ export default function ProfileScreen() {
                       keyboardType="email-address"
                       editable={!saving}
                       placeholderTextColor="#767777"
-                      className="rounded-xl border border-outline-variant/40 bg-surface-container-low text-on-surface"
-                      style={{
-                        fontFamily: "Inter_500Medium",
-                        fontSize: 16,
-                        lineHeight: 24,
-                        minHeight: 52,
-                        paddingHorizontal: 16,
-                        paddingVertical: 13,
-                        ...(Platform.OS === "android"
+                      className={profileEmailFieldClass}
+                      style={[
+                        profileFieldStyle,
+                        Platform.OS === "android"
                           ? { textAlignVertical: "center" as const, includeFontPadding: false }
-                          : {}),
-                      }}
+                          : null,
+                      ]}
                     />
                   </View>
                 </View>
